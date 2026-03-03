@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Map, QrCode, Wrench, Home } from 'lucide-react';
+import AuthButton from './AuthButton';
 
 export default function Navbar() {
     return (
@@ -71,6 +72,7 @@ export default function Navbar() {
                         <span className="hidden sm:inline">{link.label}</span>
                     </Link>
                 ))}
+                <AuthButton />
             </nav>
         </header>
     );
