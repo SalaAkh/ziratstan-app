@@ -1,14 +1,15 @@
 import Image from "next/image";
-import { MapPin, Calendar, Heart, Share2, BookOpen, Music } from "lucide-react";
+import { MapPin, Calendar, Heart, BookOpen, Music, ImageIcon } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
+import ShareButton from "@/components/ui/ShareButton";
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
     // Next.js 15+: params — это Promise, нужно await
     const { id: profileId } = await params;
 
-
     let profile = null;
+    let mediaItems: { id: string; media_type: string; file_url: string; title: string | null }[] = [];
 
     // Пытаемся получить профиль из Supabase по ID
     if (profileId !== 'test-id') {
@@ -20,6 +21,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
         if (!error && data) {
             profile = data;
+
+            // Загружаем медиа-вложения
+            const { data: media } = await supabase
+                .from('media_attachments')
+                .select('id, media_type, file_url, title')
+                .eq('profile_id', profileId)
+                .order('uploaded_at', { ascending: false });
+
+            if (media) {
+                mediaItems = media;
+            }
         }
     }
 
@@ -37,6 +49,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         photoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ea/Dinmukhamed_Kunayev_1982.jpg",
     };
 
+    // Mock-медиа для демо профиля
+    const mockMedia = profileId === 'test-id' ? [
+        { id: 'mock-1', media_type: 'image', file_url: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Dinmukhamed_Kunayev_1982.jpg', title: 'Официальное фото, 1982' },
+        { id: 'mock-2', media_type: 'image', file_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Dinmuhamed_Kunayev_and_Leonid_Brezhnev_1981.jpg/800px-Dinmuhamed_Kunayev_and_Leonid_Brezhnev_1981.jpg', title: 'С Л.И. Брежневым, 1981' },
+    ] : [];
+
+    const displayMedia = mediaItems.length > 0 ? mediaItems : mockMedia;
+
     // Адаптируем данные под UI в зависимости от того, откуда они пришли
     const isRealData = !!profile;
     const firstName = isRealData ? profile.first_name : mockProfile.firstName;
@@ -49,6 +69,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     const photoUrl = isRealData ? (profile.main_photo_url || '/placeholder.jpg') : mockProfile.photoUrl;
     const epitaph = isRealData ? profile.epitaph : mockProfile.epitaph;
     const biography = isRealData ? profile.biography : mockProfile.biography;
+
+    const fullName = `${lastName} ${firstName} ${patronymic || ''}`.trim();
 
     return (
         <div className="min-h-screen bg-background pb-24">
@@ -98,10 +120,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <Heart className="w-5 h-5" />
                         <span>Оставить соболезнование</span>
                     </button>
-                    <button className="flex items-center gap-2 px-6 py-3 border border-primary/20 rounded-full font-medium hover:bg-primary/5 transition-all">
-                        <Share2 className="w-5 h-5" />
-                        <span>Поделиться страницей</span>
-                    </button>
+                    <ShareButton
+                        title={`${fullName} — Зиратстан`}
+                        text={`Мемориальная страница: ${fullName}. ${epitaph || ''}`}
+                    />
                 </section>
 
                 {/* Biography */}
@@ -115,7 +137,37 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     </p>
                 </section>
 
-                {/* Memory Audio/Video - Заглушка для будущей фичи */}
+                {/* Media Gallery */}
+                {displayMedia.length > 0 && (
+                    <section>
+                        <h2 className="text-2xl font-bold flex items-center gap-3 mb-6">
+                            <ImageIcon className="w-6 h-6 text-accent" />
+                            Фотогалерея
+                        </h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {displayMedia
+                                .filter(m => m.media_type === 'image')
+                                .map((m) => (
+                                    <div key={m.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-primary/10">
+                                        <Image
+                                            src={m.file_url}
+                                            alt={m.title || 'Фотография'}
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            unoptimized
+                                        />
+                                        {m.title && (
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                                                <p className="text-white text-sm font-medium">{m.title}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Memory Audio/Video */}
                 <section className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
                     <h2 className="text-xl font-bold flex items-center gap-3 mb-4">
                         <Music className="w-6 h-6 text-accent" />
