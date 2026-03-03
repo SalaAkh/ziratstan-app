@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Map, QrCode, Wrench, Home } from 'lucide-react';
+import { Map, QrCode, Wrench, Home, Search } from 'lucide-react';
 import AuthButton from './AuthButton';
 
 export default function Navbar() {
@@ -41,6 +41,7 @@ export default function Navbar() {
                 {[
                     { href: '/', icon: <Home size={16} />, label: 'Главная' },
                     { href: '/map', icon: <Map size={16} />, label: 'Карта' },
+                    { href: '/search', icon: <Search size={16} />, label: 'Поиск' },
                     { href: '/services', icon: <Wrench size={16} />, label: 'Услуги' },
                     { href: '/admin/qr', icon: <QrCode size={16} />, label: 'QR' },
                 ].map((link) => (

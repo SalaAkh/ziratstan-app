@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { MapPin, Calendar, Heart, BookOpen, Music, ImageIcon } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Calendar, Heart, BookOpen, Music, ImageIcon, Network } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import ShareButton from "@/components/ui/ShareButton";
@@ -70,7 +71,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     const epitaph = isRealData ? profile.epitaph : mockProfile.epitaph;
     const biography = isRealData ? profile.biography : mockProfile.biography;
 
-    const fullName = `${lastName} ${firstName} ${patronymic || ''}`.trim();
+    const fullName = `${lastName} ${firstName} ${patronymic || ''} `.trim();
 
     return (
         <div className="min-h-screen bg-background pb-24">
@@ -83,7 +84,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 <div className="absolute inset-0 bg-primary/20 flex items-center justify-center overflow-hidden">
                     <Image
                         src={photoUrl}
-                        alt={`${firstName} ${lastName}`}
+                        alt={`${firstName} ${lastName} `}
                         fill
                         className="object-cover opacity-80"
                         unoptimized // Для Википедии
@@ -120,14 +121,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <Heart className="w-5 h-5" />
                         <span>Оставить соболезнование</span>
                     </button>
+                    <Link href={`/ profile / ${profileId} /tree`} className="flex items-center gap-2 px-6 py-3 bg-transparent border border-primary/20 text - foreground rounded - full font - medium hover: bg - primary / 5 transition - colors">
+                        < Network className="w-5 h-5 text-accent" />
+                        <span>Генеалогическое древо</span>
+                    </Link >
                     <ShareButton
                         title={`${fullName} — Зиратстан`}
                         text={`Мемориальная страница: ${fullName}. ${epitaph || ''}`}
                     />
-                </section>
+                </section >
 
                 {/* Biography */}
-                <section>
+                < section >
                     <h2 className="text-2xl font-bold flex items-center gap-3 mb-4">
                         <BookOpen className="w-6 h-6 text-accent" />
                         Биография
@@ -135,37 +140,39 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     <p className="text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
                         {biography}
                     </p>
-                </section>
+                </section >
 
                 {/* Media Gallery */}
-                {displayMedia.length > 0 && (
-                    <section>
-                        <h2 className="text-2xl font-bold flex items-center gap-3 mb-6">
-                            <ImageIcon className="w-6 h-6 text-accent" />
-                            Фотогалерея
-                        </h2>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {displayMedia
-                                .filter(m => m.media_type === 'image')
-                                .map((m) => (
-                                    <div key={m.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-primary/10">
-                                        <Image
-                                            src={m.file_url}
-                                            alt={m.title || 'Фотография'}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                            unoptimized
-                                        />
-                                        {m.title && (
-                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                                                <p className="text-white text-sm font-medium">{m.title}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                        </div>
-                    </section>
-                )}
+                {
+                    displayMedia.length > 0 && (
+                        <section>
+                            <h2 className="text-2xl font-bold flex items-center gap-3 mb-6">
+                                <ImageIcon className="w-6 h-6 text-accent" />
+                                Фотогалерея
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {displayMedia
+                                    .filter(m => m.media_type === 'image')
+                                    .map((m) => (
+                                        <div key={m.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-primary/10">
+                                            <Image
+                                                src={m.file_url}
+                                                alt={m.title || 'Фотография'}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                unoptimized
+                                            />
+                                            {m.title && (
+                                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                                                    <p className="text-white text-sm font-medium">{m.title}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
+                        </section>
+                    )
+                }
 
                 {/* Memory Audio/Video */}
                 <section className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
@@ -186,7 +193,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <span className="text-sm font-medium mr-4 text-foreground/50">0:42</span>
                     </div>
                 </section>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
