@@ -3,10 +3,10 @@ import { MapPin, Calendar, Heart, Share2, BookOpen, Music } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 
-export default async function ProfilePage({ params }: { params: { id: string } }) {
-    // Получаем ID из параметров (Next.js 14 передает params как promise в некоторых случаях, 
-    // но в базовых реализациях можно использовать прямо)
-    const profileId = params.id;
+export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+    // Next.js 15+: params — это Promise, нужно await
+    const { id: profileId } = await params;
+
 
     let profile = null;
 
