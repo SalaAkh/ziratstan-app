@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { QrCode, Search, Heart, ShieldCheck, Map } from "lucide-react";
+import { QrCode, Heart, ShieldCheck, Map } from "lucide-react";
 
 export default function Home() {
   return (
