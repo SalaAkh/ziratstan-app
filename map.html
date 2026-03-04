@@ -862,8 +862,15 @@
             PROFILES.forEach(p => {
                 if (pMarkers[p.id]) {
                     const visible = filteredVip.find(f => f.id === p.id);
-                    if (visible) { pMarkers[p.id].addTo(map); }
-                    else { pMarkers[p.id].remove(); }
+                    if (visible) {
+                        if (!markersCluster.hasLayer(pMarkers[p.id])) {
+                            markersCluster.addLayer(pMarkers[p.id]);
+                        }
+                    } else {
+                        if (markersCluster.hasLayer(pMarkers[p.id])) {
+                            markersCluster.removeLayer(pMarkers[p.id]);
+                        }
+                    }
                 }
             });
         }
