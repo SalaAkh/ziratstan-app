@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+// Import the newly created client component
 import QrGeneratorClient from './QrGeneratorClient'
 
 export const metadata = {
