@@ -633,6 +633,9 @@ const PROFILES_STATIC = [
     { id: 'golden_man_issyk_300', name: 'Алтын Адам (Есік)', fullName: 'Алтын Адам', era: 'ancient', birth: 'V ғ. б.з.д.', death: 'IV ғ. б.з.д.', cemetery: 'Есік қорғаны', city: 'Алматы обл', filter: 'historical', lat: 43.40, lng: 77.40, photo: null },
     { id: 'shilikti_golden_man_301', name: 'Шілікті Алтын Адамы', fullName: 'Бәйгетөбе қорғаны', era: 'ancient', birth: 'VIII ғ. б.з.д.', death: 'VIII ғ. б.з.д.', cemetery: 'Шілікті қорымы', city: 'Шығыс ҚЗ', filter: 'historical', lat: 47.188793, lng: 84.537249, photo: null },
     { id: 'berel_kurgans_302', name: 'Берел қорғандары', fullName: 'Патша қорғандары', era: 'ancient', birth: 'V ғ. б.з.д.', death: 'IV ғ. б.з.д.', cemetery: 'Берел', city: 'Шығыс ҚЗ', filter: 'historical', lat: 49.3739, lng: 86.4272, photo: null },
+    { id: 'tomyris_330', name: 'Тұмар (Томирис) патшайым', fullName: 'Тұмар патшайым', era: 'ancient', birth: 'VI ғ. б.з.д.', death: 'VI ғ. б.з.д.', cemetery: 'Белгісіз (Қазақстан даласы)', city: 'Белгісіз', filter: 'historical', lat: 45.0, lng: 65.0, photo: null },
+    { id: 'modu_chanyu_331', name: 'Мөде қаған (Мөде-шаньюй)', fullName: 'Мөде қаған', era: 'ancient', birth: '234 ж. б.з.д.', death: '174 ж. б.з.д.', cemetery: 'Белгісіз (Орталық Азия)', city: 'Белгісіз', filter: 'historical', lat: 48.0, lng: 70.0, photo: null },
+    { id: 'eleke_sazy_332', name: 'Елеке сазының Алтын Адамы', fullName: 'Төртінші Алтын Адам', era: 'ancient', birth: 'VIII-VII ғ. б.з.д.', death: 'VIII-VII ғ. б.з.д.', cemetery: 'Елеке сазы', city: 'Шығыс ҚЗ', filter: 'historical', lat: 47.50, lng: 85.00, photo: null },
 
     // ═══════════════════════════════════════════
     // ОРТА ҒАСЫРЛАР (Средневековье) - era: 'medieval'
@@ -642,6 +645,9 @@ const PROFILES_STATIC = [
     { id: 'aisha_bibi_305', name: 'Айша бибі', fullName: 'Айша бибі', era: 'medieval', birth: 'XI ғ.', death: 'XII ғ.', cemetery: 'Мавзолей Айша бибі', city: 'Жамбыл обл', filter: 'historical', lat: 42.8339, lng: 71.2105, photo: null },
     { id: 'babaji_khatun_306', name: 'Бабаджи қатын', fullName: 'Бабаджи қатын', era: 'medieval', birth: 'XI ғ.', death: 'XI ғ.', cemetery: 'Мавзолей Бабаджи қатын', city: 'Жамбыл обл', filter: 'historical', lat: 42.834, lng: 71.2107, photo: null },
     { id: 'koja_akhmet_yasawi_307', name: 'Қожа Ахмет Ясауи', fullName: 'Қожа Ахмет Ясауи', era: 'medieval', birth: '1093', death: '1166', cemetery: 'Мавзолей Ясауи', city: 'Түркістан', filter: 'historical', lat: 43.297, lng: 68.270, photo: null },
+    { id: 'berke_khan_333', name: 'Берке хан', fullName: 'Берке хан', era: 'medieval', birth: '1209', death: '1266', cemetery: 'Белгісіз (Сарай-Берке)', city: 'Белгісіз (Атырау обл маңы)', filter: 'historical', lat: 47.1, lng: 51.9, photo: null },
+    { id: 'ozbeg_khan_334', name: 'Өзбек хан', fullName: 'Өзбек хан', era: 'medieval', birth: '1282', death: '1341', cemetery: 'Сарай-Бату (болжамды)', city: 'Белгісіз', filter: 'historical', lat: 47.2, lng: 52.0, photo: null },
+    { id: 'toqtamysh_khan_335', name: 'Тоқтамыс хан', fullName: 'Тоқтамыс хан', era: 'medieval', birth: 'XIV ғ.', death: '1406', cemetery: 'Түмен маңы (Ресей)', city: 'Түмен', filter: 'historical', lat: 57.15, lng: 65.52, photo: null },
 
     // ═══════════════════════════════════════════
     // ХАНДАР МЕН БАТЫРЛАР (Казахское ханство) - era: 'khanate'
