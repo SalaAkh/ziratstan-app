@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title id="pageTitle">Профиль | Зиратстан</title>
-    <meta name="description" id="pageDesc" content="Мемориальная страница на Зиратстан — цифровая память предков." />
+    <meta name="description" id="pageDesc"
+        content="Зиратстандағы мемориалдық парақша — ата-бабаларымыздың цифрлық естелігі." />
     <meta property="og:type" content="profile" />
     <meta property="og:site_name" content="Зиратстан" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -764,9 +765,9 @@
     <nav>
         <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
         <div class="nav-links">
-            <a href="index.html">Главная</a>
+            <a href="index.html">Басты бет</a>
             <a href="map.html">Карта</a>
-            <a href="services.html">Услуги</a>
+            <a href="services.html">Қызметтер</a>
         </div>
     </nav>
 
@@ -775,7 +776,7 @@
         <img id="heroImg" class="hero-img" style="display:none;" alt="" />
         <div class="hero-gradient"></div>
         <div class="hero-info">
-            <div id="heroBadge" class="hero-badge">Личность</div>
+            <div id="heroBadge" class="hero-badge">Тұлға</div>
             <h1 id="heroName"></h1>
             <div id="heroDates" class="hero-dates"></div>
             <div id="heroLocation" class="hero-location"></div>
@@ -784,40 +785,40 @@
 
     <div id="profileContent" class="content">
         <div class="actions">
-            <button class="btn-action btn-fill" onclick="openAddBioModal()">✍️ Дополнить биографию</button>
-            <button class="btn-action btn-outline" onclick="shareProfile()">🔗 Поделиться</button>
-            <a href="map.html" class="btn-action btn-back">🗺️ Назад к карте</a>
+            <button class="btn-action btn-fill" onclick="openAddBioModal()">✍️ Өмірбаянды толықтыру</button>
+            <button class="btn-action btn-outline" onclick="shareProfile()">🔗 Бөлісу</button>
+            <a href="map.html" class="btn-action btn-back">🗺️ Картаға қайту</a>
         </div>
 
         <!-- QR Memorial Section -->
         <section class="qr-memorial" id="qrSection" style="display:none;">
-            <h2><span class="s-icon">📲</span> QR-Мемориал</h2>
+            <h2><span class="s-icon">📲</span> QR-Ескерткіш</h2>
             <!-- Filled by JS: either QR display or create button -->
             <div id="qrContent"></div>
         </section>
 
         <!-- Info Grid -->
         <section>
-            <h2><span class="s-icon">📋</span> Сведения</h2>
+            <h2><span class="s-icon">📋</span> Мәліметтер</h2>
             <div class="info-grid">
                 <div class="info-cell">
-                    <div class="info-label">Полное имя</div>
+                    <div class="info-label">Толық аты-жөні</div>
                     <div class="info-value" id="infoFullName">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Дата рождения</div>
+                    <div class="info-label">Туған күні</div>
                     <div class="info-value" id="infoBirth">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Дата смерти</div>
+                    <div class="info-label">Қайтыс болған күні</div>
                     <div class="info-value" id="infoDeath">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Место захоронения</div>
+                    <div class="info-label">Жерленген орны</div>
                     <div class="info-value" id="infoCemetery">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Город / Регион</div>
+                    <div class="info-label">Қала / Өңір</div>
                     <div class="info-value" id="infoCity">—</div>
                 </div>
             </div>
@@ -830,13 +831,13 @@
 
         <!-- Biography -->
         <section>
-            <h2><span class="s-icon">📖</span> Биография</h2>
+            <h2><span class="s-icon">📖</span> Өмірбаян</h2>
             <p class="bio" id="biographyText"></p>
         </section>
 
         <!-- Family Tree (Шежіре) -->
         <section id="familySection" style="display:none;">
-            <h2><span class="s-icon">🌳</span> Шежіре (Семейное древо)</h2>
+            <h2><span class="s-icon">🌳</span> Шежіре</h2>
             <div class="tree-container">
                 <div class="tree" id="familyTree">
                     <!-- Будет заполнено JS -->
@@ -847,38 +848,36 @@
 
     <!-- Not Found -->
     <div id="notFound" class="not-found" style="display:none; margin-top:64px;">
-        <h2>😔 Профиль не найден</h2>
-        <p>Личность с таким ID не существует в базе данных.</p>
-        <a href="map.html" class="btn-action btn-fill" style="display:inline-flex; margin-top:1rem;">← Вернуться на
-            карту</a>
+        <h2>😔 Профиль табылған жоқ</h2>
+        <p>Мұндай ID-сі бар тұлға дерекқорда жоқ.</p>
+        <a href="map.html" class="btn-action btn-fill" style="display:inline-flex; margin-top:1rem;">← Картаға оралу</a>
     </div>
 
     <!-- Add Bio Modal -->
     <div class="modal-overlay" id="addBioModal" style="display:none; display:none;">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>✍️ Дополнить биографию</h3>
+                <h3>✍️ Өмірбаянды толықтыру</h3>
                 <button class="modal-close" onclick="closeModal('addBioModal')">&times;</button>
             </div>
-            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5;">Знаете об этой
-                личности больше? Добавьте биографические сведения, цитаты или фото. После модерации они появятся на этой
-                странице.</p>
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5;">Бұл тұлға туралы
+                көбірек білесіз бе? Өмірбаяндық мәліметтерді, дәйексөздерді немесе фотосуреттерді қосыңыз. Модерациядан
+                кейін олар осы парақшада пайда болады.</p>
             <form onsubmit="submitBio(event)">
                 <div class="form-group">
-                    <label for="bioAuthorName">Ваше ФИО (необязательно)</label>
-                    <input type="text" id="bioAuthorName" placeholder="Например: Нурлан Ахметов" />
+                    <label for="bioAuthorName">Сіздің АЖТ (міндетті емес)</label>
+                    <input type="text" id="bioAuthorName" placeholder="Мысалы: Нұрлан Ахметов" />
                 </div>
                 <div class="form-group">
-                    <label for="bioText">Биографические сведения / Воспоминания</label>
+                    <label for="bioText">Өмірбаяндық мәліметтер / Естеліктер</label>
                     <textarea id="bioText" rows="5"
-                        placeholder="Напишите всё, что знаете об этой личности. Даты, факты, воспоминания..."
+                        placeholder="Осы тұлға туралы білетініңіздің бәрін жазыңыз. Күндер, фактілер, естеліктер..."
                         required></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal('addBioModal')"
-                        style="background:transparent; color:var(--muted);">Отмена</button>
-                    <button type="submit"
-                        style="background:var(--gold); color:var(--bg); border:none;">Отправить</button>
+                        style="background:transparent; color:var(--muted);">Болдырмау</button>
+                    <button type="submit" style="background:var(--gold); color:var(--bg); border:none;">Жіберу</button>
                 </div>
             </form>
         </div>
@@ -919,7 +918,7 @@
 
             // Set SEO tags
             document.getElementById('pageTitle').textContent = `${p.fullName} | Зиратстан`;
-            document.getElementById('pageDesc').setAttribute('content', `Мемориальная страница: ${p.fullName} (${p.birth}–${p.death}). ${p.cemetery}, ${p.city}.`);
+            document.getElementById('pageDesc').setAttribute('content', `Мемориалдық парақша: ${p.fullName} (${p.birth}–${p.death}). ${p.cemetery}, ${p.city}.`);
 
             // Hero section
             if (p.photo) {
@@ -944,15 +943,15 @@
             document.getElementById('infoCity').textContent = p.city;
 
             // Biography placeholder
-            const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — выдающийся деятель, покоящийся в ${p.cemetery}, ${p.city}.
+            const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — көрнекті қайраткер, ${p.city}, ${p.cemetery} зиратында жерленген.
 
-Подробная историческая биография находится в процессе оцифровки. Если вы владеете сведениями об этой личности — нажмите кнопку «Дополнить биографию» и помогите нам сохранить историческую память.`;
+Толық тарихи өмірбаян цифрландыру үстінде. Егер сізде бұл тұлға туралы мәліметтер болса — «Өмірбаянды толықтыру» түймесін басып, тарихи жадты сақтауға көмектесіңіз.`;
             document.getElementById('biographyText').textContent = p.bio || bioDefault;
 
             // Badge
             const badge = document.getElementById('heroBadge');
             if (p.filter === 'almaty') badge.textContent = 'Алматы';
-            else if (p.filter === 'historical') badge.textContent = 'Историческая личность';
+            else if (p.filter === 'historical') badge.textContent = 'Тарихи тұлға';
 
             document.getElementById('profileContent').style.display = '';
             document.getElementById('notFound').style.display = 'none';
@@ -993,14 +992,14 @@
             if (parents.length > 0) {
                 const pLevel = document.createElement('div');
                 pLevel.className = 'tree-level';
-                parents.forEach(r => pLevel.appendChild(createNode(r.profiles, 'Родитель')));
+                parents.forEach(r => pLevel.appendChild(createNode(r.profiles, 'Ата-анасы')));
                 treeEl.appendChild(pLevel);
             }
 
             // Level 2: Self
             const selfLevel = document.createElement('div');
             selfLevel.className = 'tree-level';
-            const selfNode = createNode(self, 'Бул');
+            const selfNode = createNode(self, 'Өзі');
             selfNode.classList.add('active');
             selfLevel.appendChild(selfNode);
             treeEl.appendChild(selfLevel);
@@ -1059,7 +1058,7 @@
 
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerText;
-            submitBtn.innerText = 'Отправка...';
+            submitBtn.innerText = 'Жіберілуде...';
             submitBtn.disabled = true;
 
             try {
@@ -1073,15 +1072,15 @@
                     <div style="background:var(--surface); padding:32px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:460px; text-align:center;">
                         <div style="font-size:3rem; margin-bottom:12px;">✨</div>
                         <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">МашаАллах, Рахмет!</h3>
-                        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Ваши сведения отправлены на проверку. После модерации они появятся на этой странице.</p>
-                        <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Закрыть</button>
+                        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Сіздің мәліметтеріңіз тексеруге жіберілді. Модерациядан кейін олар осы парақшада пайда болады.</p>
+                        <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жабу</button>
                     </div>`;
             } catch (err) {
                 console.error('[Ziratstan] Error submitting bio:', err);
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
                 const toast = document.getElementById('toast');
-                toast.textContent = '❌ Ошибка при отправке. Пожалуйста, попробуйте позже.';
+                toast.textContent = '❌ Жіберу кезінде қате шықты. Кейінірек қайталап көріңіз.';
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3000);
             }
@@ -1096,10 +1095,10 @@
             } else {
                 navigator.clipboard.writeText(url).then(() => {
                     const toast = document.getElementById('toast');
-                    toast.textContent = '✅ Ссылка скопирована!';
+                    toast.textContent = '✅ Сілтеме көшірілді!';
                     toast.classList.add('show');
                     setTimeout(() => toast.classList.remove('show'), 2500);
-                }).catch(() => { prompt('Скопируйте ссылку:', url); });
+                }).catch(() => { prompt('Сілтемені көшіріңіз:', url); });
             }
         }
 
@@ -1135,16 +1134,16 @@
                 <div class="qr-slug-display">📲 ${qr.slug}</div>
                 <br>
                 <div class="qr-scan-count">
-                    👁️ Отсканировано: <strong>${qr.scan_count || 0}</strong> раз
+                    👁️ Скан жасалды: <strong>${qr.scan_count || 0}</strong> рет
                 </div>
                 <div class="qr-actions">
-                    <button class="btn-action btn-fill" onclick="downloadQrPng()">📥 Скачать PNG</button>
-                    <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">📐 Скачать SVG</button>
-                    <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">🔗 Копировать ссылку</button>
+                    <button class="btn-action btn-fill" onclick="downloadQrPng()">📥 PNG жүктеп алу</button>
+                    <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">📐 SVG жүктеп алу</button>
+                    <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">🔗 Сілтемені көшіру</button>
                 </div>
                 <p class="qr-hint">
-                    Распечатайте QR-код и закажите изготовление таблички для надгробия.<br>
-                    При сканировании откроется эта страница памяти.
+                    QR-кодты басып шығарып, құлпытасқа тақтайша жасауға тапсырыс беріңіз.<br>
+                    Скан жасалғанда осы естелік парақшасы ашылады.
                 </p>
             `;
 
@@ -1162,18 +1161,18 @@
         function renderQrCreate(container, profileId) {
             container.innerHTML = `
                 <p style="color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; line-height:1.7;">
-                    У этого профиля ещё нет QR-кода. Создайте его, чтобы разместить на надгробной табличке.
-                    При сканировании камерой откроется эта мемориальная страница.
+                    Бұл профильде әлі QR-код жоқ. Оны құлпытасқа орналастыру үшін жасаңыз.
+                    Камерамен скан жасағанда осы мемориалдық парақша ашылады.
                 </p>
                 <button class="qr-create-btn" id="createQrBtn" onclick="createQrForProfile('${profileId}')">
-                    📲 Создать QR-код
+                    📲 QR-код жасау
                 </button>
             `;
         }
 
         async function createQrForProfile(profileId) {
             const btn = document.getElementById('createQrBtn');
-            btn.textContent = '⏳ Генерация...';
+            btn.textContent = '⏳ Генерациялануда...';
             btn.disabled = true;
 
             try {
@@ -1182,15 +1181,15 @@
                 renderQrDisplay(content, { slug: result.slug, scan_count: 0 }, profileId);
 
                 const toast = document.getElementById('toast');
-                toast.textContent = '✅ QR-код создан: ' + result.slug;
+                toast.textContent = '✅ QR-код жасалды: ' + result.slug;
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3000);
             } catch (err) {
                 console.error('[Ziratstan QR] Create error:', err);
-                btn.textContent = '❌ Ошибка, попробуйте снова';
+                btn.textContent = '❌ Қате, қайталап көріңіз';
                 btn.disabled = false;
                 setTimeout(() => {
-                    btn.textContent = '📲 Создать QR-код';
+                    btn.textContent = '📲 QR-код жасау';
                 }, 2000);
             }
         }
@@ -1228,11 +1227,11 @@
         function copyQrLink(url) {
             navigator.clipboard.writeText(url).then(() => {
                 const toast = document.getElementById('toast');
-                toast.textContent = '✅ Ссылка скопирована!';
+                toast.textContent = '✅ Сілтеме көшірілді!';
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 2500);
             }).catch(() => {
-                prompt('Скопируйте ссылку:', url);
+                prompt('Сілтемені көшіріңіз:', url);
             });
         }
 

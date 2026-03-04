@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Услуги по уходу за могилой | Зиратстан</title>
+    <title>Бейітті күту қызметтері | Зиратстан</title>
     <meta name="description"
-        content="Закажите уборку, покраску или чтение Корана у могилы из любого города. Фотоотчёт после выполнения." />
+        content="Кез келген қаладан бейітті тазалау, сырлау немесе Құран оқытуға тапсырыс беріңіз. Орындалғаннан кейін фотоесепберіледі." />
     <meta name="keywords"
-        content="уборка могил, уход за захоронениями, чтение корана онлайн, реставрация памятников, зиратстан услуги" />
+        content="бейіттерді тазалау, жерлеу орындарын күту, онлайн құран оқу, ескерткіштерді қалпына келтіру, зиратстан қызметтері" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Услуги по уходу за могилой | Зиратстан" />
-    <meta property="og:description" content="Дистанционный заказ услуг по уходу за захоронениями с фотоотчётом." />
+    <meta property="og:title" content="Бейітті күту қызметтері | Зиратстан" />
+    <meta property="og:description" content="Фотоесеппен жерлеу орындарын күту қызметтеріне қашықтан тапсырыс беру." />
     <meta property="og:site_name" content="Зиратстан" />
     <meta property="og:image" content="https://ziratstan.kz/og-services.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -400,16 +400,16 @@
     <nav>
         <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
         <div class="nav-links">
-            <a href="index.html">Главная</a>
+            <a href="index.html">Басты бет</a>
             <a href="map.html">Карта</a>
-            <a href="services.html" class="active">Услуги</a>
+            <a href="services.html" class="active">Қызметтер</a>
             <a href="profile.html">Демо</a>
         </div>
     </nav>
 
     <div class="header">
-        <h1>Услуги по уходу за могилой</h1>
-        <p>Заказывайте из любой точки мира. Исполнитель пришлёт фотоотчёт.</p>
+        <h1>Бейітті күту қызметтері</h1>
+        <p>Әлемнің кез келген нүктесінен тапсырыс беріңіз. Орындаушы фотоесеп жібереді.</p>
     </div>
 
     <!-- Step 1: Select -->
@@ -417,28 +417,28 @@
         <div class="services-grid">
             <div class="service-card" data-id="cleaning" data-price="5000" data-icon="🧹" onclick="selectService(this)">
                 <div class="service-icon">🧹</div>
-                <h3>Уборка могилы</h3>
-                <p class="desc">Профессиональная уборка территории, прополка, подметание, мытьё памятника.</p>
+                <h3>Бейітті тазалау</h3>
+                <p class="desc">Аумақты кәсіби тазалау, арамшөптерді жұлу, сыпыру, ескерткішті жуу.</p>
                 <div class="service-price">
                     <span class="price-val">5 000 ₸</span>
-                    <span class="price-time">1–2 часа</span>
+                    <span class="price-time">1–2 сағат</span>
                 </div>
             </div>
             <div class="service-card" data-id="painting" data-price="12000" data-icon="🎨"
                 onclick="selectService(this)">
                 <div class="service-icon">🎨</div>
-                <h3>Покраска ограды</h3>
-                <p class="desc">Покраска металлической оградки, обновление цвета памятника, нанесение защитного лака.
+                <h3>Қоршауды бояу</h3>
+                <p class="desc">Металл қоршауды бояу, ескерткіш түсін жаңарту, қорғаныш лак жағу.
                 </p>
                 <div class="service-price">
                     <span class="price-val">12 000 ₸</span>
-                    <span class="price-time">2–4 часа</span>
+                    <span class="price-time">2–4 сағат</span>
                 </div>
             </div>
             <div class="service-card" data-id="quran" data-price="8000" data-icon="📖" onclick="selectService(this)">
                 <div class="service-icon">📖</div>
-                <h3>Чтение Корана</h3>
-                <p class="desc">Приглашение имама для чтения Корана и молитвы у могилы с видео-подтверждением.</p>
+                <h3>Құран оқыту</h3>
+                <p class="desc">Бейіт басында Құран мен дұға оқу үшін имам шақыру (видео растаумен).</p>
                 <div class="service-price">
                     <span class="price-val">8 000 ₸</span>
                     <span class="price-time">30–60 минут</span>
@@ -446,7 +446,7 @@
             </div>
         </div>
         <div class="next-btn">
-            <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()">Далее →</button>
+            <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()">Келесі →</button>
         </div>
     </div>
 
@@ -454,18 +454,18 @@
     <div class="container form-section" id="formStep">
         <div class="form-selected" id="formSelected"></div>
         <div>
-            <label for="nameInput">Ваше имя</label>
-            <input type="text" id="nameInput" placeholder="Ахмед Сейткали" />
-            <label for="phoneInput">Номер телефона</label>
+            <label for="nameInput">Атыңыз</label>
+            <input type="text" id="nameInput" placeholder="Ахмед Сейтқали" />
+            <label for="phoneInput">Телефон нөмірі</label>
             <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" />
-            <label for="profileInput">ID профиля усопшего <span class="optional">(необязательно)</span></label>
-            <input type="text" id="profileInput" placeholder="ZRT-1234 или ссылка на профиль" />
-            <label for="commentInput">Комментарий</label>
-            <textarea rows="3" id="commentInput" placeholder="Дополнительные пожелания..."></textarea>
+            <label for="profileInput">Марқұмның профиль ID-і <span class="optional">(міндетті емес)</span></label>
+            <input type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" />
+            <label for="commentInput">Пікір</label>
+            <textarea rows="3" id="commentInput" placeholder="Қосымша тілектер..."></textarea>
         </div>
         <div class="form-btns">
-            <button class="btn btn-outline" onclick="goBack()">Назад</button>
-            <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Оформить заказ</button>
+            <button class="btn btn-outline" onclick="goBack()">Артқа</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Тапсырыс беру</button>
         </div>
     </div>
 
@@ -473,9 +473,9 @@
     <div class="success-section" id="successStep">
         <div class="success-icon">✅</div>
         <h2>ИншаАллах!</h2>
-        <p>Ваш заказ принят. Исполнитель свяжется с вами в течение 24 часов. После выполнения вы получите фотоотчёт
-            «До/После».</p>
-        <a href="index.html" class="btn btn-primary">На главную</a>
+        <p>Сіздің тапсырысыңыз қабылданды. Орындаушы сізбен 24 сағат ішінде хабарласады. Орындалғаннан кейін
+            «Дейін/Кейін» фотоесебін аласыз.</p>
+        <a href="index.html" class="btn btn-primary">Басты бетке</a>
     </div>
 
     <script>
@@ -511,10 +511,10 @@
             const phone = document.getElementById('phoneInput').value.trim();
             const profileRef = document.getElementById('profileInput').value.trim();
             const comment = document.getElementById('commentInput').value.trim();
-            if (!name || !phone) { alert('Заполните имя и телефон'); return; }
+            if (!name || !phone) { alert('Атыңызды және телефоныңызды толтырыңыз'); return; }
 
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.textContent = '⏳ Отправляем...';
+            submitBtn.textContent = '⏳ Жіберілуде...';
             submitBtn.disabled = true;
 
             try {

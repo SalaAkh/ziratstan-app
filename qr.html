@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QR-Мемориал | Зиратстан</title>
-    <meta name="description" content="Сканирование QR-кода на надгробии — Зиратстан, цифровая память Казахстана." />
+    <title>QR-Ескерткіш | Зиратстан</title>
+    <meta name="description" content="Құлпытастағы QR-кодты сканерлеу — Зиратстан, Қазақстанның цифрлық жады." />
     <link rel="icon" href="ziratstan-app/src/app/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -214,57 +214,55 @@
 <body>
     <div class="container">
 
-        <!-- State: Loading -->
         <div class="state active" id="stateLoading">
             <div class="loader"></div>
-            <div class="loading-text">Загружаем мемориал <span class="slug-val" id="loadingSlug">...</span></div>
+            <div class="loading-text">Мемориал жүктелуде <span class="slug-val" id="loadingSlug">...</span></div>
         </div>
 
         <!-- State: Not Found / Unlinked -->
         <div class="state" id="stateNotFound">
             <div class="err-icon">☽</div>
-            <h1 class="err-title">QR-код не привязан</h1>
+            <h1 class="err-title">QR-код байланыстырылмаған</h1>
             <p class="err-desc">
-                Этот QR-код ещё не привязан к мемориальному профилю.<br>
-                Если вы — родственник усопшего, вы можете создать цифровой мемориал прямо сейчас.
+                Бұл QR-код әлі мемориалдық профильге байланыстырылмаған.<br>
+                Егер сіз марқұмның туысы болсаңыз, сандық мемориалды дәл қазір жасай аласыз.
             </p>
             <div class="err-slug" id="errSlug"></div>
             <div class="actions">
-                <a href="index.html" class="btn btn-gold">🕌 Создать мемориал</a>
-                <a href="map.html" class="btn btn-outline">🗺️ Открыть карту</a>
+                <a href="index.html" class="btn btn-gold">🕌 Мемориал жасау</a>
+                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
             </div>
             <div class="brand">
-                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Цифровая память Казахстана
+                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Қазақстанның цифрлық жады
             </div>
         </div>
 
         <!-- State: Error -->
         <div class="state" id="stateError">
             <div class="err-icon">⚠️</div>
-            <h1 class="err-title">Ошибка загрузки</h1>
+            <h1 class="err-title">Жүктеу қатесі</h1>
             <p class="err-desc">
-                Не удалось загрузить данные мемориала. Проверьте интернет-соединение и попробуйте снова.
+                Мемориал деректерін жүктеу мүмкін болмады. Интернет қосылымын тексеріп, қайталап көріңіз.
             </p>
             <div class="actions">
-                <button class="btn btn-gold" onclick="location.reload()">🔄 Попробовать снова</button>
-                <a href="index.html" class="btn btn-outline">🏠 На главную</a>
+                <button class="btn btn-gold" onclick="location.reload()">🔄 Қайталап көру</button>
+                <a href="index.html" class="btn btn-outline">🏠 Басты бетке</a>
             </div>
         </div>
 
         <!-- State: No Slug -->
         <div class="state" id="stateNoSlug">
             <div class="err-icon">📲</div>
-            <h1 class="err-title">Отсканируйте QR-код</h1>
+            <h1 class="err-title">QR-кодты сканерлеңіз</h1>
             <p class="err-desc">
-                Наведите камеру телефона на QR-код, расположенный на надгробной табличке, чтобы открыть мемориальную
-                страницу.
+                Мемориалдық бетті ашу үшін телефон камерасын құлпытаста орналасқан QR-кодқа бағыттаңыз.
             </p>
             <div class="actions">
-                <a href="index.html" class="btn btn-gold">🕌 Узнать больше</a>
-                <a href="map.html" class="btn btn-outline">🗺️ Открыть карту</a>
+                <a href="index.html" class="btn btn-gold">🕌 Толығырақ білу</a>
+                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
             </div>
             <div class="brand">
-                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Цифровая память Казахстана
+                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Қазақстанның цифрлық жады
             </div>
         </div>
 
