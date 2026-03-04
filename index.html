@@ -435,6 +435,170 @@
       color: var(--muted);
     }
 
+    /* ─── KHANS OF KAZAKHSTAN ─── */
+    .khans-section {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 0 6rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .khans-subtitle {
+      text-align: center;
+      color: var(--muted);
+      max-width: 560px;
+      margin: -2rem auto 4rem;
+      font-size: 1rem;
+      line-height: 1.65;
+      padding: 0 2rem;
+    }
+
+    .khans-timeline-wrap {
+      width: 100%;
+      overflow-x: auto;
+      padding: 1rem 2rem 3rem;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+
+    .khans-timeline-wrap::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .khans-timeline-wrap::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .khans-timeline-wrap::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.4);
+      border-radius: 4px;
+    }
+
+    .khans-timeline {
+      display: inline-flex;
+      gap: 1.5rem;
+      position: relative;
+      padding-top: 2rem;
+    }
+
+    /* The continuous golden line */
+    .khans-timeline::before {
+      content: '';
+      position: absolute;
+      top: 48px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-border) 10%, var(--gold-border) 90%, transparent);
+      z-index: 0;
+    }
+
+    .khan-card {
+      position: relative;
+      z-index: 1;
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem 1.5rem 1.75rem;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scroll-snap-align: center;
+    }
+
+    .khan-card:hover {
+      border-color: rgba(212, 175, 55, 0.3);
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.1);
+    }
+
+    .khan-era {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      border: 1px solid var(--gold-border);
+      color: var(--gold);
+      padding: 0.25em 0.75em;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .khan-card--gold {
+      border-color: rgba(212, 175, 55, 0.2);
+      background: linear-gradient(180deg, var(--surface) 0%, rgba(212, 175, 55, 0.05) 100%);
+    }
+
+    .khan-card--gold:hover {
+      border-color: var(--gold);
+    }
+
+    .khan-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 0 6px var(--bg);
+      transition: border-color 0.3s;
+      z-index: 2;
+      color: var(--gold);
+    }
+
+    .khan-card:hover .khan-icon {
+      border-color: var(--gold);
+      transform: scale(1.1);
+    }
+
+    .khan-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .khan-dates {
+      font-size: 0.85rem;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .khan-place {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      transition: color 0.3s;
+    }
+
+    .khan-card:hover .khan-place {
+      color: var(--text);
+    }
+
     /* ─── SERVICES ─── */
     .services {
       position: relative;
@@ -808,6 +972,197 @@
         <h3>Генеалогическое древо</h3>
         <p>Свяжите профили между собой. Изучайте историю семьи через поколения с визуальным родословным деревом.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- KHANS OF KAZAKHSTAN -->
+  <section class="khans-section" id="khans">
+    <div class="section-label">Тарих · История</div>
+    <h2 class="section-title">Ханы Қазақ хандығы</h2>
+    <p class="khans-subtitle">
+      От основателей — Керея и Жәнібека (1465) до последнего хана Кенесары (1847).
+      Все известные захоронения правителей Великой Степи.
+    </p>
+
+    <div class="khans-timeline-wrap">
+      <div class="khans-timeline" id="khansTimeline">
+
+        <a href="map.html#kerey_khan_200" class="khan-card">
+          <div class="khan-era">Основание</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Керей хан</div>
+          <div class="khan-dates">1425 – 1482</div>
+          <div class="khan-place">📍 Хантау тауы, Жамбыл обл.</div>
+        </a>
+
+        <a href="map.html#zhanibek_khan_7" class="khan-card">
+          <div class="khan-era">Основание</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Жәнібек хан</div>
+          <div class="khan-dates">XV ғасыр</div>
+          <div class="khan-place">📍 Сарайшық, Атырау</div>
+        </a>
+
+        <a href="map.html#burunduk_khan_201" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Бурундук хан</div>
+          <div class="khan-dates">1474 – 1513</div>
+          <div class="khan-place">📍 Сарайшық, Атырау обл.</div>
+        </a>
+
+        <a href="map.html#kasym_khan_6" class="khan-card khan-card--gold">
+          <div class="khan-era">Алтын ғасыр</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Қасым хан</div>
+          <div class="khan-dates">1445 – 1521</div>
+          <div class="khan-place">📍 Сарайшық, Атырау</div>
+        </a>
+
+        <a href="map.html#mamash_khan_202" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Мамаш хан</div>
+          <div class="khan-dates">~1495 – 1522</div>
+          <div class="khan-place">📍 Сарайшық, Атырау обл.</div>
+        </a>
+
+        <a href="map.html#tahir_khan_203" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Тахир хан</div>
+          <div class="khan-dates">~1490 – 1535</div>
+          <div class="khan-place">📍 Белгісіз (Моғолстан)</div>
+        </a>
+
+        <a href="map.html#buydash_khan_204" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Буйдаш хан</div>
+          <div class="khan-dates">~1500 – 1560</div>
+          <div class="khan-place">📍 Түркістан обл.</div>
+        </a>
+
+        <a href="map.html#tugum_khan_205" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Тұғым хан</div>
+          <div class="khan-dates">~1495 – 1537</div>
+          <div class="khan-place">📍 Түркістан обл.</div>
+        </a>
+
+        <a href="map.html#haknazar_khan_206" class="khan-card khan-card--gold">
+          <div class="khan-era">Қуатты кезең</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Хақназар хан</div>
+          <div class="khan-dates">1509 – 1580</div>
+          <div class="khan-place">📍 Түркістан маңы</div>
+        </a>
+
+        <a href="map.html#shygai_khan_207" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Шығай хан</div>
+          <div class="khan-dates">~1500 – 1582</div>
+          <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
+        </a>
+
+        <a href="map.html#taukel_khan_208" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Тәуекел хан</div>
+          <div class="khan-dates">1545 – 1598</div>
+          <div class="khan-place">📍 Түркістан</div>
+        </a>
+
+        <a href="map.html#esim_khan_209" class="khan-card khan-card--gold">
+          <div class="khan-era">«Есім ханның ескі жолы»</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Есім хан</div>
+          <div class="khan-dates">1565 – 1628</div>
+          <div class="khan-place">📍 Мавзолей Есім хан, Түркістан</div>
+        </a>
+
+        <a href="map.html#salqam_117" class="khan-card khan-card--gold">
+          <div class="khan-era">Орбұлақ шайқасы</div>
+          <div class="khan-icon">⚔️</div>
+          <div class="khan-name">Салқам Жәңгір хан</div>
+          <div class="khan-dates">1610 – 1652</div>
+          <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
+        </a>
+
+        <a href="map.html#tauke_khan_5" class="khan-card khan-card--gold">
+          <div class="khan-era">«Жеті Жарғы»</div>
+          <div class="khan-icon">📜</div>
+          <div class="khan-name">Тәуке хан</div>
+          <div class="khan-dates">1635 – 1715</div>
+          <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
+        </a>
+
+        <a href="map.html#kaiyp_khan_210" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Кайып хан</div>
+          <div class="khan-dates">~1660 – 1718</div>
+          <div class="khan-place">📍 Түркістан обл.</div>
+        </a>
+
+        <a href="map.html#bolat_khan_211" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Болат хан</div>
+          <div class="khan-dates">~1670 – 1724</div>
+          <div class="khan-place">📍 Түркістан</div>
+        </a>
+
+        <a href="map.html#sameke_khan_212" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Сәмеке хан</div>
+          <div class="khan-dates">~1685 – 1737</div>
+          <div class="khan-place">📍 Сарайшық маңы, Атырау обл.</div>
+        </a>
+
+        <a href="map.html#abulkhair_khan_213" class="khan-card khan-card--gold">
+          <div class="khan-era">Кіші жүз ханы</div>
+          <div class="khan-icon">👑</div>
+          <div class="khan-name">Абулхайыр хан</div>
+          <div class="khan-dates">1693 – 1748</div>
+          <div class="khan-place">📍 Хан моласы, Ақтөбе обл.</div>
+        </a>
+
+        <a href="map.html#abylai_khan_4" class="khan-card khan-card--gold">
+          <div class="khan-era">Ұлттық батыр</div>
+          <div class="khan-icon">⚔️</div>
+          <div class="khan-name">Абылай хан</div>
+          <div class="khan-dates">1711 – 1781</div>
+          <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
+        </a>
+
+        <a href="map.html#uali_khan_214" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Уәли хан</div>
+          <div class="khan-dates">1741 – 1819</div>
+          <div class="khan-place">📍 Бұхара маңы (Өзб)</div>
+        </a>
+
+        <a href="map.html#nura_new_87" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Нұралы хан</div>
+          <div class="khan-dates">1710 – 1790</div>
+          <div class="khan-place">📍 Уфа (РФ)</div>
+        </a>
+
+        <a href="map.html#zhantore_new_88" class="khan-card">
+          <div class="khan-icon">☽</div>
+          <div class="khan-name">Жантөре хан</div>
+          <div class="khan-dates">1759 – 1809</div>
+          <div class="khan-place">📍 Орынбор (РФ)</div>
+        </a>
+
+        <a href="map.html#kenesary_khan_215" class="khan-card khan-card--gold">
+          <div class="khan-era">Последний хан</div>
+          <div class="khan-icon">🏴</div>
+          <div class="khan-name">Кенесары хан</div>
+          <div class="khan-dates">1802 – 1847</div>
+          <div class="khan-place">📍 Белгісіз (Қырғызстан)</div>
+        </a>
+
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2.5rem;">
+      <a href="map.html" class="btn-gold">🗺️ Барлық хандарды картадан көру</a>
     </div>
   </section>
 

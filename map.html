@@ -703,7 +703,7 @@
         <div id="map"></div>
 
         <!-- Region Back Button (appears on drill-down) -->
-        <div id="regionBackBtn" onclick="resetToAllRegions(); map.flyTo([48.0196, 66.9237], 5, {duration:1});" style="
+        <div id="regionBackBtn" style="
             display:none; position:fixed; top:70px; left:50%; transform:translateX(-50%);
             z-index:400; cursor:pointer;
             background:rgba(9,9,11,0.92); backdrop-filter:blur(12px);
@@ -821,28 +821,28 @@
         const regionsLayer = L.layerGroup();
         const KZ_REGIONS = [
             // Города республиканского значения
-            { id: 'almaty', n: "Алматы", lt: 43.2380, ln: 76.9458, count: 0 },
-            { id: 'astana', n: "Астана", lt: 51.1282, ln: 71.4307, count: 0 },
-            { id: 'shymkent', n: "Шымкент", lt: 42.3154, ln: 69.5967, count: 0 },
-            // Области → координаты облцентров
-            { id: 'abai', n: "Абайская обл.", lt: 50.4111, ln: 80.2275, count: 0 },         // Семей
-            { id: 'akmola', n: "Акмолинская обл.", lt: 53.2833, ln: 69.3833, count: 0 },    // Кокшетау
-            { id: 'aktobe', n: "Актюбинская обл.", lt: 50.2839, ln: 57.1670, count: 0 },    // Актобе
-            { id: 'almaty_obl', n: "Алматинская обл.", lt: 44.8488, ln: 77.0900, count: 0 }, // Конаев (Капшагай)
-            { id: 'atyrau', n: "Атырауская обл.", lt: 47.1076, ln: 51.9139, count: 0 },     // Атырау
-            { id: 'vko', n: "ВКО", lt: 49.9481, ln: 82.6282, count: 0 },                    // Усть-Каменогорск
-            { id: 'zhambyl', n: "Жамбылская обл.", lt: 42.9000, ln: 71.3667, count: 0 },    // Тараз
-            { id: 'zhetysu', n: "Жетысуская обл.", lt: 45.0178, ln: 78.3738, count: 0 },    // Талдыкорган
-            { id: 'zko', n: "ЗКО", lt: 51.2333, ln: 51.3667, count: 0 },                    // Уральск (Орал)
-            { id: 'karaganda', n: "Карагандинская обл.", lt: 49.8019, ln: 73.1021, count: 0 }, // Караганда
-            { id: 'kostanay', n: "Костанайская обл.", lt: 53.2144, ln: 63.6246, count: 0 }, // Костанай
-            { id: 'kyzylorda', n: "Кызылординская обл.", lt: 44.8531, ln: 65.5092, count: 0 }, // Кызылорда
-            { id: 'mangystau', n: "Мангистауская обл.", lt: 43.6353, ln: 51.1479, count: 0 }, // Актау
-            { id: 'pavlodar', n: "Павлодарская обл.", lt: 52.2873, ln: 76.9674, count: 0 }, // Павлодар
-            { id: 'sko', n: "СКО", lt: 54.8756, ln: 69.1419, count: 0 },                    // Петропавловск
-            { id: 'turkestan', n: "Туркестанская обл.", lt: 43.3017, ln: 68.2522, count: 0 }, // Туркестан
-            { id: 'ulytau', n: "Улытауская обл.", lt: 47.7845, ln: 67.7144, count: 0 },    // Жезказган
-            { id: 'zarubezh', n: "Зарубежье", lt: 55.75, ln: 37.61, count: 0 }              // Москва (условно)
+            { id: 'almaty', n: "Алматы", lt: 43.2380, ln: 76.9458, geo_lt: 43.2, geo_ln: 76.8, count: 0 },
+            { id: 'astana', n: "Астана", lt: 51.1282, ln: 71.4307, geo_lt: 51.16, geo_ln: 71.44, count: 0 },
+            { id: 'shymkent', n: "Шымкент", lt: 42.3154, ln: 69.5967, geo_lt: 42.34, geo_ln: 69.59, count: 0 },
+            // Области → координаты облцентров с сохранением гео-центра области
+            { id: 'abai', n: "Абайская обл.", lt: 50.4111, ln: 80.2275, geo_lt: 48.9, geo_ln: 80.2, count: 0 },         // Семей
+            { id: 'akmola', n: "Акмолинская обл.", lt: 52.9500, ln: 69.3833, geo_lt: 51.8, geo_ln: 69.4, count: 0 },    // Кокшетау
+            { id: 'aktobe', n: "Актюбинская обл.", lt: 50.2839, ln: 57.2100, geo_lt: 48.8, geo_ln: 58.3, count: 0 },    // Актобе
+            { id: 'almaty_obl', n: "Алматинская обл.", lt: 44.8488, ln: 77.0900, geo_lt: 44.5, geo_ln: 77.8, count: 0 }, // Конаев
+            { id: 'atyrau', n: "Атырауская обл.", lt: 47.1076, ln: 51.9139, geo_lt: 47.1, geo_ln: 51.9, count: 0 },     // Атырау
+            { id: 'vko', n: "ВКО", lt: 49.9481, ln: 82.6282, geo_lt: 49.9, geo_ln: 82.6, count: 0 },                    // Оскемен
+            { id: 'zhambyl', n: "Жамбылская обл.", lt: 42.9000, ln: 71.3667, geo_lt: 43.8, geo_ln: 72.8, count: 0 },    // Тараз
+            { id: 'zhetysu', n: "Жетысуская обл.", lt: 45.0178, ln: 78.3738, geo_lt: 45.0, geo_ln: 79.0, count: 0 },    // Талдыкорган
+            { id: 'zko', n: "ЗКО", lt: 51.1500, ln: 51.3700, geo_lt: 50.0, geo_ln: 50.5, count: 0 },                    // Орал
+            { id: 'karaganda', n: "Карагандинская обл.", lt: 49.8019, ln: 73.1021, geo_lt: 48.5, geo_ln: 72.0, count: 0 }, // Караганда
+            { id: 'kostanay', n: "Костанайская обл.", lt: 52.9000, ln: 63.6246, geo_lt: 52.5, geo_ln: 63.6, count: 0 }, // Костанай
+            { id: 'kyzylorda', n: "Кызылординская обл.", lt: 44.8531, ln: 65.5092, geo_lt: 44.8, geo_ln: 63.5, count: 0 }, // Кызылорда
+            { id: 'mangystau', n: "Мангистауская обл.", lt: 43.6353, ln: 51.1479, geo_lt: 44.0, geo_ln: 53.0, count: 0 }, // Актау
+            { id: 'pavlodar', n: "Павлодарская обл.", lt: 52.2873, ln: 76.9674, geo_lt: 52.3, geo_ln: 76.0, count: 0 }, // Павлодар
+            { id: 'sko', n: "СКО", lt: 54.4000, ln: 69.1419, geo_lt: 53.5, geo_ln: 68.5, count: 0 },                    // Петропавл
+            { id: 'turkestan', n: "Туркестанская обл.", lt: 43.3017, ln: 68.2522, geo_lt: 42.8, geo_ln: 68.3, count: 0 }, // Туркестан
+            { id: 'ulytau', n: "Улытауская обл.", lt: 47.7845, ln: 67.7144, geo_lt: 47.8, geo_ln: 66.0, count: 0 },    // Жезказган
+            { id: 'zarubezh', n: "Зарубежье", lt: 55.75, ln: 37.61, geo_lt: 55.7, geo_ln: 37.6, count: 0 }              // Москва (условно)
         ];
 
         function makeRegionLabelIcon(name, count) {
@@ -902,8 +902,8 @@
                     let minD = Infinity;
                     KZ_REGIONS.forEach(r => {
                         if (r.id === 'zarubezh') return;
-                        const dx = (r.ln - c.ln) * Math.cos((r.lt + c.lt) * Math.PI / 360);
-                        const dy = (r.lt - c.lt);
+                        const dx = (r.geo_ln - c.ln) * Math.cos((r.geo_lt + c.lt) * Math.PI / 360);
+                        const dy = (r.geo_lt - c.lt);
                         const d = dx * dx + dy * dy;
                         if (d < minD) { minD = d; bestR = r; }
                     });
@@ -947,6 +947,10 @@
             }
             // Делаем доступной глобально для кнопки
             window.resetToAllRegions = resetToAllRegions;
+            document.getElementById('regionBackBtn').addEventListener('click', () => {
+                resetToAllRegions();
+                map.flyTo([48.0196, 66.9237], 5, { duration: 1 });
+            });
 
             // Наполняем sidebar dropdown регионами
             const regionSel = document.getElementById('regionSelect');
@@ -994,6 +998,9 @@
             });
 
             // Рендер видимых кластеров/точек из Supercluster
+            // Граница Казахстана (bounding box)
+            const KZ_BOUNDS = { latMin: 40.5, latMax: 55.5, lngMin: 46.5, lngMax: 87.5 };
+
             function renderClusters() {
                 cemeteriesLayer.clearLayers();
                 const bounds = map.getBounds();
@@ -1003,6 +1010,8 @@
 
                 clusters.forEach(f => {
                     const [lng, lat] = f.geometry.coordinates;
+                    // Фильтр: пропускаем точки за пределами КЗ
+                    if (lat < KZ_BOUNDS.latMin || lat > KZ_BOUNDS.latMax || lng < KZ_BOUNDS.lngMin || lng > KZ_BOUNDS.lngMax) return;
 
                     if (f.properties.cluster) {
                         const count = f.properties.point_count;
@@ -1041,15 +1050,21 @@
 
             // Динамическое переключение слоев
             function updateMapLayers() {
-                if (map.getZoom() < 7) {
-                    // Автосброс если пользователь "улетел" назад
+                const z = map.getZoom();
+                if (z < 7) {
+                    // Режим обзора всей страны: показываем ТОЛЬКО маркеры областей
                     if (activeRegionId) resetToAllRegions();
+
+                    // Жесткая очистка кластеров
+                    cemeteriesLayer.clearLayers();
                     if (map.hasLayer(cemeteriesLayer)) {
                         map.removeLayer(cemeteriesLayer);
-                        cemeteriesLayer.clearLayers();
                     }
-                    if (!map.hasLayer(regionsLayer)) map.addLayer(regionsLayer);
+                    if (!map.hasLayer(regionsLayer)) {
+                        map.addLayer(regionsLayer);
+                    }
                 } else {
+                    // Режим зума: прячем текстовые маркеры, рисуем Supercluster точки
                     if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
                     if (!map.hasLayer(cemeteriesLayer)) map.addLayer(cemeteriesLayer);
                     renderClusters();
