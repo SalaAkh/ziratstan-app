@@ -661,7 +661,8 @@
                 <div class="search-wrap">
                     <span class="search-icon">🔍</span>
                     <label for="searchInput" style="display:none;">Поиск</label>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Поиск по имени, региону..." />
+                    <input type="text" id="searchInput" class="search-input"
+                        placeholder="Поиск по имени, кладбищу..." />
                 </div>
                 <button class="geo-btn" onclick="geolocate()" id="geoBtn">
                     <span>📡</span> <span id="geoBtnText">Моё местоположение</span>
@@ -673,7 +674,7 @@
             <div class="filter-tabs">
                 <button class="tab active" onclick="setFilter('all', this)">Все</button>
                 <button class="tab" onclick="setFilter('historical', this)">Личности</button>
-                <button class="tab" onclick="setFilter('cemeteries', this)">Области / Регионы</button>
+                <button class="tab" onclick="setFilter('cemeteries', this)">Общие кладбища</button>
             </div>
 
             <!-- Results -->
@@ -749,7 +750,7 @@
         }
 
         const cemIconOpts = {
-            radius: 8,
+            radius: 5,
             fillColor: '#71717a',
             color: '#09090b',
             weight: 2,
@@ -781,10 +782,94 @@
             maxClusterRadius: 50,
             disableClusteringAtZoom: 15
         });
+        // ── REGIONS & CLUSTERS ──
+        const regionsLayer = L.layerGroup();
+        const KZ_REGIONS = [
+            { id: 'almaty', n: "Алматы", lt: 43.222, ln: 76.851, count: 0 },
+            { id: 'astana', n: "Астана", lt: 51.169, ln: 71.449, count: 0 },
+            { id: 'shymkent', n: "Шымкент", lt: 42.341, ln: 69.590, count: 0 },
+            { id: 'abai', n: "Абайская обл.", lt: 48.9, ln: 80.2, count: 0 },
+            { id: 'akmola', n: "Акмолинская обл.", lt: 51.8, ln: 69.4, count: 0 },
+            { id: 'aktobe', n: "Актюбинская обл.", lt: 48.8, ln: 58.3, count: 0 },
+            { id: 'almaty_obl', n: "Алматинская обл.", lt: 44.5, ln: 77.8, count: 0 },
+            { id: 'atyrau', n: "Атырауская обл.", lt: 47.1, ln: 51.9, count: 0 },
+            { id: 'vko', n: "ВКО", lt: 49.9, ln: 82.6, count: 0 },
+            { id: 'zhambyl', n: "Жамбылская обл.", lt: 43.8, ln: 72.8, count: 0 },
+            { id: 'zhetysu', n: "Жетысуская обл.", lt: 45.0, ln: 79.0, count: 0 },
+            { id: 'zko', n: "ЗКО", lt: 50.0, ln: 50.5, count: 0 },
+            { id: 'karaganda', n: "Карагандинская обл.", lt: 48.5, ln: 72.0, count: 0 },
+            { id: 'kostanay', n: "Костанайская обл.", lt: 52.5, ln: 63.6, count: 0 },
+            { id: 'kyzylorda', n: "Кызылординская обл.", lt: 44.8, ln: 63.5, count: 0 },
+            { id: 'mangystau', n: "Мангистауская обл.", lt: 44.0, ln: 53.0, count: 0 },
+            { id: 'pavlodar', n: "Павлодарская обл.", lt: 52.3, ln: 76.0, count: 0 },
+            { id: 'sko', n: "СКО", lt: 53.5, ln: 68.5, count: 0 },
+            { id: 'turkestan', n: "Туркестанская обл.", lt: 42.8, ln: 68.3, count: 0 },
+            { id: 'ulytau', n: "Улытауская обл.", lt: 47.8, ln: 66.0, count: 0 },
+            { id: 'zarubezh', n: "Зарубежье", lt: 55.75, ln: 37.61, count: 0 }
+        ];
+
+        function makeRegionLabelIcon(name, count) {
+            const size = count > 300 ? 54 : count > 100 ? 46 : 40;
+            const fontSize = count > 300 ? 14 : count > 100 ? 12 : 11;
+            return L.divIcon({
+                html: `<div style="
+                    display:flex; flex-direction:column; align-items:center; gap:3px;
+                    transform: translate(-50%, -50%); cursor:pointer;
+                ">
+                    <div style="
+                        width:${size}px; height:${size}px; border-radius:50%;
+                        background: linear-gradient(135deg, #d4af37, #b8941e);
+                        border: 3px solid #09090b;
+                        display:flex; align-items:center; justify-content:center;
+                        font-family:'Inter',sans-serif; font-weight:800;
+                        font-size:${fontSize}px; color:#09090b;
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.5), 0 0 0 2px rgba(212,175,55,0.3);
+                        transition: transform 0.2s;
+                    ">${count}</div>
+                    <div style="
+                        background: rgba(9,9,11,0.85);
+                        color: #e4e4e7;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-family:'Inter',sans-serif;
+                        font-size: 9px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        letter-spacing: 0.02em;
+                        max-width: 100px;
+                        text-align: center;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    ">${name}</div>
+                </div>`,
+                className: '',
+                iconSize: [size + 10, size + 20],
+                iconAnchor: [(size + 10) / 2, (size + 20) / 2]
+            });
+        }
+
         // Добавляем обычные кладбища пакетом
         if (typeof CEMETERIES_DATA !== 'undefined') {
             const cemMarkers = [];
+
+            // Считаем кол-во для каждого региона
             CEMETERIES_DATA.forEach(c => {
+                let bestR = null;
+                if (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88) {
+                    bestR = KZ_REGIONS.find(x => x.id === 'zarubezh');
+                } else {
+                    let minD = Infinity;
+                    KZ_REGIONS.forEach(r => {
+                        if (r.id === 'zarubezh') return;
+                        // Эвристика эвклидова расстояния на плоскости (для Казахстана этого хватит)
+                        const dx = (r.ln - c.ln) * Math.cos((r.lt + c.lt) * Math.PI / 360);
+                        const dy = (r.lt - c.lt);
+                        const d = dx * dx + dy * dy;
+                        if (d < minD) { minD = d; bestR = r; }
+                    });
+                }
+                if (bestR) bestR.count++;
+
                 const m = L.circleMarker([c.lt, c.ln], cemIconOpts);
                 m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
                     <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
@@ -796,8 +881,33 @@
                 </div>`);
                 cemMarkers.push(m);
             });
+
             markersCluster.addLayers(cemMarkers);
-            map.addLayer(markersCluster);
+
+            // Создаем маркеры регионов
+            KZ_REGIONS.forEach(r => {
+                if (r.count > 0) {
+                    const m = L.marker([r.lt, r.ln], { icon: makeRegionLabelIcon(r.n, r.count) });
+                    m.on('click', () => {
+                        map.flyTo([r.lt, r.ln], 8, { duration: 1.2 });
+                    });
+                    regionsLayer.addLayer(m);
+                }
+            });
+
+            // Динамическое переключение слоев
+            function updateMapLayers() {
+                if (map.getZoom() < 7) {
+                    if (map.hasLayer(markersCluster)) map.removeLayer(markersCluster);
+                    if (!map.hasLayer(regionsLayer)) map.addLayer(regionsLayer);
+                } else {
+                    if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
+                    if (!map.hasLayer(markersCluster)) map.addLayer(markersCluster);
+                }
+            }
+
+            map.on('zoomend', updateMapLayers);
+            updateMapLayers(); // Инициализация
         }
 
         // ── RENDER SIDEBAR ──
@@ -844,23 +954,23 @@
       </a>`;
             });
 
-            // Лимит на 50 регионов в панели, иначе зависнет DOM
+            // Лимит на 50 общих кладбищ в панели, иначе зависнет DOM
             const genLimit = Math.min(filteredGen.length, 50);
             for (let i = 0; i < genLimit; i++) {
                 const c = filteredGen[i];
                 displayList += `
-      <a class="profile-card" onclick="map.flyTo([${c.lt}, ${c.ln}], 7); return false;" href="#">
-        <div class="card-avatar" style="color:var(--muted); border-color:var(--border);">🌍</div>
+      <a class="profile-card" onclick="map.flyTo([${c.lt}, ${c.ln}], 16); return false;" href="#">
+        <div class="card-avatar" style="color:var(--muted); border-color:var(--border);">🪦</div>
         <div class="card-info">
           <div class="card-name" style="color:var(--text);">${c.n}</div>
-          <div class="card-meta">Регион (Координаты: ${c.lt}, ${c.ln})</div>
+          <div class="card-meta">Общее кладбище (Координаты: ${c.lt}, ${c.ln})</div>
         </div>
         <span class="card-arrow">›</span>
       </a>`;
             }
 
             if (filteredGen.length > 50) {
-                displayList += `<div style="text-align:center; padding:15px; color:var(--muted); font-size:0.8rem; border-bottom:1px solid var(--border);">Показано 50 из ${filteredGen.length} регионов. Уточните поиск.</div>`;
+                displayList += `<div style="text-align:center; padding:15px; color:var(--muted); font-size:0.8rem; border-bottom:1px solid var(--border);">Показано 50 из ${filteredGen.length} общих кладбищ. Уточните поиск.</div>`;
             }
 
             document.getElementById('resultsList').innerHTML = displayList;
@@ -898,11 +1008,32 @@
 
             // Рендерим загруженные маркеры пакетом
             const vipMarkersBatch = [];
+            let foreignVipCount = 0;
             PROFILES.forEach(p => {
                 const m = addVipMarker(p, false); // false for delay add
                 vipMarkersBatch.push(m);
+                // Проверяем, находится ли VIP-профиль за пределами КЗ
+                if (p.lat > 56 || p.lat < 39 || p.lng < 45 || p.lng > 88) {
+                    foreignVipCount++;
+                }
             });
             markersCluster.addLayers(vipMarkersBatch);
+
+            // Обновляем маркер Зарубежья с VIP-профилями
+            if (foreignVipCount > 0) {
+                const zr = KZ_REGIONS.find(x => x.id === 'zarubezh');
+                if (zr) {
+                    zr.count += foreignVipCount;
+                    // Удалить старый маркер если был
+                    regionsLayer.eachLayer(layer => {
+                        if (layer._zarubezh) regionsLayer.removeLayer(layer);
+                    });
+                    const zm = L.marker([zr.lt, zr.ln], { icon: makeRegionLabelIcon('🌍 ' + zr.n, zr.count) });
+                    zm._zarubezh = true;
+                    zm.on('click', () => map.flyTo([zr.lt, zr.ln], 5, { duration: 1.2 }));
+                    regionsLayer.addLayer(zm);
+                }
+            }
 
             // Рендер общих кладбищ (остаются из статического cemeteries_data.js)
             renderList();
@@ -957,11 +1088,22 @@
             const p = PROFILES.find(x => x.id === id);
             if (!p) return;
 
+            if (map.getZoom() < 7) {
+                if (typeof updateMapLayers === 'function') {
+                    // Temporarily force add markers layer so popup logic doesn't crash
+                    if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
+                    if (!map.hasLayer(markersCluster)) map.addLayer(markersCluster);
+                }
+            }
+
             if (flyTo) {
                 map.flyTo([p.lat, p.lng], 16, { duration: 1 });
+                map.once('moveend', () => {
+                    if (pMarkers[id]) markersCluster.zoomToShowLayer(pMarkers[id], () => pMarkers[id].openPopup());
+                });
+            } else {
+                if (pMarkers[id]) markersCluster.zoomToShowLayer(pMarkers[id], () => pMarkers[id].openPopup());
             }
-            // Simply tell the marker to open its popup; events will handle styling
-            pMarkers[id].openPopup();
         }
 
         // ── FILTER ──
