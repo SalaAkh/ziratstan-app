@@ -12,6 +12,12 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var createClient = supabase.createClient || supabase.createClient;
 var db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Helper для получения текущей сессии
+async function getSession() {
+  const { data, error } = await db.auth.getSession();
+  return data?.session;
+}
+
 // ============================================================
 //  API Helpers
 // ============================================================

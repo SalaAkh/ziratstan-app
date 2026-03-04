@@ -487,11 +487,13 @@
         <div class="gate-box">
             <div class="gate-logo"><span>З</span>иратстан</div>
             <div class="gate-sub">Панель модерации UGC контента</div>
-            <label for="gateInput" style="display:none;">Пароль</label>
-            <input type="password" class="gate-input" id="gateInput" placeholder="••••••••"
-                onkeydown="if(event.key==='Enter') checkPassword()" />
-            <button class="gate-btn" onclick="checkPassword()">Войти</button>
-            <div class="gate-error" id="gateError">Неверный пароль. Попробуйте снова.</div>
+            <label for="emailInput" style="display:none;">Электронная почта</label>
+            <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz" />
+            <label for="passwordInput" style="display:none;">Пароль</label>
+            <input type="password" class="gate-input" id="passwordInput" placeholder="••••••••"
+                onkeydown="if(event.key==='Enter') loginUser()" />
+            <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
+            <div class="gate-error" id="gateError">Неверный логин или пароль.</div>
         </div>
     </div>
 
@@ -532,29 +534,59 @@
     <script src="supabase/client.js"></script>
     <script>
         // ── CONFIG ──
-        const ADMIN_PASSWORD = 'zirat2025'; // Простой пароль — потом заменить на Supabase Auth
-
         let currentTab = 'names';
         let allData = { names: [], profiles: [], bios: [] };
 
-        // ── GATE ──
-        function checkPassword() {
-            const val = document.getElementById('gateInput').value;
-            if (val === ADMIN_PASSWORD) {
+        // ── INIT AUTH ──
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await getSession(); // From supabase/client.js
+            if (session) {
                 document.getElementById('gate').style.display = 'none';
                 document.getElementById('panel').style.display = 'block';
                 loadAllData();
+            }
+        });
+
+        // ── GATE ──
+        async function loginUser() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('gateError');
+
+            if (!email || !password) {
+                err.textContent = 'Введите email и пароль';
+                err.style.display = 'block';
+                return;
+            }
+
+            btn.textContent = 'Вход...';
+            btn.disabled = true;
+
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                err.textContent = error.message === 'Invalid login credentials' ? 'Неверный логин или пароль.' : error.message;
+                err.style.display = 'block';
+                document.getElementById('passwordInput').style.borderColor = 'var(--red)';
+                btn.textContent = 'Войти';
+                btn.disabled = false;
             } else {
-                document.getElementById('gateError').style.display = 'block';
-                document.getElementById('gateInput').style.borderColor = 'var(--red)';
+                err.style.display = 'none';
+                document.getElementById('gate').style.display = 'none';
+                document.getElementById('panel').style.display = 'block';
+                loadAllData();
             }
         }
 
-        function logout() {
+        async function logout() {
+            await db.auth.signOut();
             document.getElementById('gate').style.display = 'flex';
             document.getElementById('panel').style.display = 'none';
-            document.getElementById('gateInput').value = '';
+            document.getElementById('passwordInput').value = '';
             document.getElementById('gateError').style.display = 'none';
+            document.getElementById('loginBtn').textContent = 'Войти';
+            document.getElementById('loginBtn').disabled = false;
         }
 
         // ── TABS ──
