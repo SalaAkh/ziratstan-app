@@ -4,6 +4,9 @@ node_modules/
 # Next.js build output
 .next/
 out/
+ziratstan-app/out/
+ziratstan-app/.next/
+ziratstan-app/node_modules/
 
 # PWA generated files
 public/sw.js
@@ -13,13 +16,17 @@ public/sw.js.map
 public/workbox-*.js.map
 
 # Переменные окружения — НИКОГДА не коммить ключи!
+.env
 .env.local
 .env*.local
 
-# Системные файлы
+# Системные файлы macOS / Windows
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Логи
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

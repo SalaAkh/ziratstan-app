@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Услуги по уходу за могилой | Зиратстан</title>
+    <meta name="description"
+        content="Закажите уборку, покраску или чтение Корана у могилы из любого города. Фотоотчёт после выполнения." />
+    <meta name="keywords"
+        content="уборка могил, уход за захоронениями, чтение корана онлайн, реставрация памятников, зиратстан услуги" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Услуги по уходу за могилой | Зиратстан" />
+    <meta property="og:description" content="Дистанционный заказ услуг по уходу за захоронениями с фотоотчётом." />
+    <meta property="og:site_name" content="Зиратстан" />
+    <meta property="og:image" content="https://ziratstan.kz/og-services.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="ziratstan-app/src/app/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #09090b;
+            --surface: #111113;
+            --border: rgba(255, 255, 255, 0.06);
+            --text: #f4f4f5;
+            --muted: #71717a;
+            --gold: #d4af37;
+            --gold-dim: rgba(212, 175, 55, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 1.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(9, 9, 11, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-logo span {
+            color: var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-links a.active {
+            color: var(--gold);
+        }
+
+        .header {
+            padding: 2rem 1.5rem 1.5rem;
+            margin-top: 64px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            cursor: pointer;
+            transition: border-color 0.25s, transform 0.15s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-card:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .service-card.selected {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.04);
+            box-shadow: 0 0 24px rgba(212, 175, 55, 0.08);
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gold-dim);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-card.selected .service-icon {
+            background: var(--gold);
+        }
+
+        .service-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-card .desc {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+
+        .service-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .price-val {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .price-time {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        .next-btn {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--text);
+            color: var(--bg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--bg);
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Form */
+        .form-section {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-selected {
+            background: var(--gold-dim);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-selected-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .form-selected-title {
+            font-weight: 700;
+        }
+
+        .form-selected-price {
+            color: var(--gold);
+            font-size: 0.85rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        label .optional {
+            font-weight: 400;
+            color: var(--muted);
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 1rem;
+            transition: border-color 0.15s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--gold);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--muted);
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        .form-btns {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-btns .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* Success */
+        .success-section {
+            display: none;
+            text-align: center;
+            padding: 6rem 2rem;
+        }
+
+        .success-section.active {
+            display: block;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(74, 222, 128, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        .success-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .success-section p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            max-width: 400px;
+            margin: 0 auto 2rem;
+            line-height: 1.65;
+        }
+
+        @media (max-width:640px) {
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase/client.js"></script>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
+        <div class="nav-links">
+            <a href="index.html">Главная</a>
+            <a href="map.html">Карта</a>
+            <a href="services.html" class="active">Услуги</a>
+            <a href="profile.html">Демо</a>
+        </div>
+    </nav>
+
+    <div class="header">
+        <h1>Услуги по уходу за могилой</h1>
+        <p>Заказывайте из любой точки мира. Исполнитель пришлёт фотоотчёт.</p>
+    </div>
+
+    <!-- Step 1: Select -->
+    <div class="container" id="selectStep">
+        <div class="services-grid">
+            <div class="service-card" data-id="cleaning" data-price="5000" data-icon="🧹" onclick="selectService(this)">
+                <div class="service-icon">🧹</div>
+                <h3>Уборка могилы</h3>
+                <p class="desc">Профессиональная уборка территории, прополка, подметание, мытьё памятника.</p>
+                <div class="service-price">
+                    <span class="price-val">5 000 ₸</span>
+                    <span class="price-time">1–2 часа</span>
+                </div>
+            </div>
+            <div class="service-card" data-id="painting" data-price="12000" data-icon="🎨"
+                onclick="selectService(this)">
+                <div class="service-icon">🎨</div>
+                <h3>Покраска ограды</h3>
+                <p class="desc">Покраска металлической оградки, обновление цвета памятника, нанесение защитного лака.
+                </p>
+                <div class="service-price">
+                    <span class="price-val">12 000 ₸</span>
+                    <span class="price-time">2–4 часа</span>
+                </div>
+            </div>
+            <div class="service-card" data-id="quran" data-price="8000" data-icon="📖" onclick="selectService(this)">
+                <div class="service-icon">📖</div>
+                <h3>Чтение Корана</h3>
+                <p class="desc">Приглашение имама для чтения Корана и молитвы у могилы с видео-подтверждением.</p>
+                <div class="service-price">
+                    <span class="price-val">8 000 ₸</span>
+                    <span class="price-time">30–60 минут</span>
+                </div>
+            </div>
+        </div>
+        <div class="next-btn">
+            <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()">Далее →</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Form -->
+    <div class="container form-section" id="formStep">
+        <div class="form-selected" id="formSelected"></div>
+        <div>
+            <label for="nameInput">Ваше имя</label>
+            <input type="text" id="nameInput" placeholder="Ахмед Сейткали" />
+            <label for="phoneInput">Номер телефона</label>
+            <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" />
+            <label for="profileInput">ID профиля усопшего <span class="optional">(необязательно)</span></label>
+            <input type="text" id="profileInput" placeholder="ZRT-1234 или ссылка на профиль" />
+            <label for="commentInput">Комментарий</label>
+            <textarea rows="3" id="commentInput" placeholder="Дополнительные пожелания..."></textarea>
+        </div>
+        <div class="form-btns">
+            <button class="btn btn-outline" onclick="goBack()">Назад</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Оформить заказ</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div class="success-section" id="successStep">
+        <div class="success-icon">✅</div>
+        <h2>ИншаАллах!</h2>
+        <p>Ваш заказ принят. Исполнитель свяжется с вами в течение 24 часов. После выполнения вы получите фотоотчёт
+            «До/После».</p>
+        <a href="index.html" class="btn btn-primary">На главную</a>
+    </div>
+
+    <script>
+        let selected = null;
+
+        function selectService(el) {
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selected = { id: el.dataset.id, price: el.dataset.price, icon: el.dataset.icon, title: el.querySelector('h3').textContent };
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function goToForm() {
+            if (!selected) return;
+            document.getElementById('selectStep').style.display = 'none';
+            document.getElementById('formStep').classList.add('active');
+            document.getElementById('formSelected').innerHTML = `
+      <div class="form-selected-icon">${selected.icon}</div>
+      <div>
+        <div class="form-selected-title">${selected.title}</div>
+        <div class="form-selected-price">${Number(selected.price).toLocaleString()} ₸</div>
+      </div>
+    `;
+        }
+
+        function goBack() {
+            document.getElementById('formStep').classList.remove('active');
+            document.getElementById('selectStep').style.display = 'block';
+        }
+
+        async function submitOrder() {
+            const name = document.getElementById('nameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const profileRef = document.getElementById('profileInput').value.trim();
+            const comment = document.getElementById('commentInput').value.trim();
+            if (!name || !phone) { alert('Заполните имя и телефон'); return; }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = '⏳ Отправляем...';
+            submitBtn.disabled = true;
+
+            try {
+                await createServicesLead({
+                    service_type: selected.id,
+                    customer_name: name,
+                    customer_phone: phone,
+                    profile_ref: profileRef || null,
+                    comment: comment || null,
+                    price: parseFloat(selected.price)
+                });
+            } catch (err) {
+                console.warn('[Services] Supabase error, saving lead locally:', err);
+                // Fail gracefully — store in localStorage as backup
+                const leads = JSON.parse(localStorage.getItem('zrt_pending_leads') || '[]');
+                leads.push({ name, phone, profileRef, comment, service: selected, ts: Date.now() });
+                localStorage.setItem('zrt_pending_leads', JSON.stringify(leads));
+            }
+
+            document.getElementById('formStep').classList.remove('active');
+            document.getElementById('successStep').classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

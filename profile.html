@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="pageTitle">Профиль | Зиратстан</title>
+    <meta name="description" id="pageDesc" content="Мемориальная страница на Зиратстан — цифровая память предков." />
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="Зиратстан" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="ziratstan-app/src/app/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@700;800&family=Playfair+Display:ital@1&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #09090b;
+            --surface: #111113;
+            --border: rgba(255, 255, 255, 0.06);
+            --text: #f4f4f5;
+            --muted: #71717a;
+            --gold: #d4af37;
+            --gold-dim: rgba(212, 175, 55, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 1.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .nav-logo span {
+            color: var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .nav-links a {
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-links a.active {
+            color: var(--gold);
+        }
+
+        /* HERO */
+        .hero-photo {
+            position: relative;
+            height: 55vh;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 64px;
+        }
+
+        .hero-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+
+        .hero-no-photo {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0e0e10 0%, #1a1a20 50%, #0d0d0f 100%);
+            font-size: 8rem;
+            color: var(--gold);
+            opacity: 0.3;
+        }
+
+        .hero-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, var(--bg) 0%, rgba(9, 9, 11, 0.5) 60%, transparent 100%);
+        }
+
+        .hero-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem 2rem;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--gold-dim);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--gold);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 99px;
+            margin-bottom: 10px;
+        }
+
+        .hero-info h1 {
+            font-size: clamp(1.8rem, 5vw, 3.2rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .hero-info h1 .accent {
+            color: var(--gold);
+        }
+
+        .hero-dates {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            opacity: 0.85;
+            font-weight: 500;
+            font-size: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .hero-location {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            opacity: 0.65;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        /* CONTENT */
+        .content {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 6rem;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2.5rem;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-action:hover {
+            opacity: 0.85;
+        }
+
+        .btn-fill {
+            background: var(--gold);
+            color: var(--bg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        /* SECTIONS */
+        section {
+            margin-bottom: 3rem;
+        }
+
+        section h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        section h2 .s-icon {
+            color: var(--gold);
+        }
+
+        section p.bio {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text);
+            opacity: 0.82;
+            white-space: pre-wrap;
+        }
+
+        /* INFO GRID */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .info-cell {
+            background: var(--surface);
+            padding: 1rem 1.25rem;
+        }
+
+        .info-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* EPITAPH */
+        .epitaph-block {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: var(--text);
+            opacity: 0.65;
+            padding: 2rem 1rem;
+            position: relative;
+            margin-bottom: 2rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .epitaph-block::before {
+            content: '"';
+            position: absolute;
+            top: 0;
+            left: 1rem;
+            font-size: 4rem;
+            color: var(--gold);
+            opacity: 0.2;
+            line-height: 1;
+        }
+
+        .epitaph-block::after {
+            content: '"';
+            position: absolute;
+            bottom: -1rem;
+            right: 1rem;
+            font-size: 4rem;
+            color: var(--gold);
+            opacity: 0.2;
+            line-height: 1;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: none;
+            z-index: 200;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* RESPONSIVE MOBILE */
+        @media (max-width: 640px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-photo {
+                height: 42vh;
+            }
+
+            .hero-info {
+                padding: 1rem 1.25rem 1.5rem;
+            }
+
+            .content {
+                padding: 1.25rem 1rem 4rem;
+            }
+
+            .actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 1rem 0;
+            }
+
+            .actions .btn-action {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.78rem;
+                justify-content: center;
+                border-radius: 10px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .modal-box {
+                padding: 18px;
+                border-radius: 12px;
+            }
+
+            .modal-footer button {
+                padding: 11px 10px;
+            }
+
+            .epitaph-block {
+                font-size: 1rem;
+                padding: 1.25rem 0.75rem;
+            }
+        }
+
+        /* NOT FOUND */
+        .not-found {
+            text-align: center;
+            padding: 5rem 2rem;
+        }
+
+        .not-found h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--muted);
+        }
+
+        .not-found p {
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+
+        /* UGC ADD BIO MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+        }
+
+        .modal-box {
+            background: var(--surface);
+            padding: 28px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 1.5rem;
+            line-height: 1;
+            background: none;
+            border: none;
+            color: var(--muted);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            background: #18181b;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--gold);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-footer button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 9px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-photo {
+                height: 42vh;
+            }
+        }
+
+        /* FAMILY TREE (ШЕЖІРЕ) */
+        .tree-container {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            min-width: 600px;
+        }
+
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        .tree-node {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            width: 140px;
+            text-align: center;
+            position: relative;
+            transition: all 0.2s;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .tree-node:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .tree-node.active {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .node-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--surface2);
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--gold);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .node-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .node-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .node-dates {
+            font-size: 0.65rem;
+            color: var(--muted);
+        }
+
+        .tree-connector {
+            position: absolute;
+            background: var(--border);
+            z-index: 1;
+        }
+
+        .connector-vertical {
+            width: 2px;
+            height: 40px;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
+        <div class="nav-links">
+            <a href="index.html">Главная</a>
+            <a href="map.html">Карта</a>
+            <a href="services.html">Услуги</a>
+        </div>
+    </nav>
+
+    <div id="heroSection" class="hero-photo">
+        <div class="hero-no-photo" id="heroPlaceholder">☽</div>
+        <img id="heroImg" class="hero-img" style="display:none;" alt="" />
+        <div class="hero-gradient"></div>
+        <div class="hero-info">
+            <div id="heroBadge" class="hero-badge">Личность</div>
+            <h1 id="heroName"></h1>
+            <div id="heroDates" class="hero-dates"></div>
+            <div id="heroLocation" class="hero-location"></div>
+        </div>
+    </div>
+
+    <div id="profileContent" class="content">
+        <div class="actions">
+            <button class="btn-action btn-fill" onclick="openAddBioModal()">✍️ Дополнить биографию</button>
+            <button class="btn-action btn-outline" onclick="shareProfile()">🔗 Поделиться</button>
+            <a href="map.html" class="btn-action btn-back">🗺️ Назад к карте</a>
+        </div>
+
+        <!-- Info Grid -->
+        <section>
+            <h2><span class="s-icon">📋</span> Сведения</h2>
+            <div class="info-grid">
+                <div class="info-cell">
+                    <div class="info-label">Полное имя</div>
+                    <div class="info-value" id="infoFullName">—</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Дата рождения</div>
+                    <div class="info-value" id="infoBirth">—</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Дата смерти</div>
+                    <div class="info-value" id="infoDeath">—</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Место захоронения</div>
+                    <div class="info-value" id="infoCemetery">—</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Город / Регион</div>
+                    <div class="info-value" id="infoCity">—</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Epitaph -->
+        <div class="epitaph-block" id="epitaphBlock" style="display:none;">
+            <span id="epitaphText"></span>
+        </div>
+
+        <!-- Biography -->
+        <section>
+            <h2><span class="s-icon">📖</span> Биография</h2>
+            <p class="bio" id="biographyText"></p>
+        </section>
+
+        <!-- Family Tree (Шежіре) -->
+        <section id="familySection" style="display:none;">
+            <h2><span class="s-icon">🌳</span> Шежіре (Семейное древо)</h2>
+            <div class="tree-container">
+                <div class="tree" id="familyTree">
+                    <!-- Будет заполнено JS -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Not Found -->
+    <div id="notFound" class="not-found" style="display:none; margin-top:64px;">
+        <h2>😔 Профиль не найден</h2>
+        <p>Личность с таким ID не существует в базе данных.</p>
+        <a href="map.html" class="btn-action btn-fill" style="display:inline-flex; margin-top:1rem;">← Вернуться на
+            карту</a>
+    </div>
+
+    <!-- Add Bio Modal -->
+    <div class="modal-overlay" id="addBioModal" style="display:none; display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>✍️ Дополнить биографию</h3>
+                <button class="modal-close" onclick="closeModal('addBioModal')">&times;</button>
+            </div>
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5;">Знаете об этой
+                личности больше? Добавьте биографические сведения, цитаты или фото. После модерации они появятся на этой
+                странице.</p>
+            <form onsubmit="submitBio(event)">
+                <div class="form-group">
+                    <label for="bioAuthorName">Ваше ФИО (необязательно)</label>
+                    <input type="text" id="bioAuthorName" placeholder="Например: Нурлан Ахметов" />
+                </div>
+                <div class="form-group">
+                    <label for="bioText">Биографические сведения / Воспоминания</label>
+                    <textarea id="bioText" rows="5"
+                        placeholder="Напишите всё, что знаете об этой личности. Даты, факты, воспоминания..."
+                        required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('addBioModal')"
+                        style="background:transparent; color:var(--muted);">Отмена</button>
+                    <button type="submit"
+                        style="background:var(--gold); color:var(--bg); border:none;">Отправить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase/client.js"></script>
+    <script>
+        // ── LOAD PROFILE ──
+        async function initProfile() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+
+            if (!id) {
+                showError();
+                return;
+            }
+
+            // Пока идет загрузка, можно показать лоадер, но мы просто дождемся данных
+            let p = null;
+            try {
+                if (typeof fetchProfileById === 'function') {
+                    p = await fetchProfileById(id);
+                } else {
+                    console.error('[Ziratstan] fetchProfileById missing');
+                }
+            } catch (err) {
+                console.error('[Ziratstan] Error fetching profile:', err);
+            }
+
+            if (!p) {
+                showError();
+                return;
+            }
+
+            // Set SEO tags
+            document.getElementById('pageTitle').textContent = `${p.fullName} | Зиратстан`;
+            document.getElementById('pageDesc').setAttribute('content', `Мемориальная страница: ${p.fullName} (${p.birth}–${p.death}). ${p.cemetery}, ${p.city}.`);
+
+            // Hero section
+            if (p.photo) {
+                document.getElementById('heroImg').src = p.photo;
+                document.getElementById('heroImg').alt = p.fullName;
+                document.getElementById('heroImg').style.display = 'block';
+                document.getElementById('heroPlaceholder').style.display = 'none';
+            }
+
+            const nameParts = p.fullName.split(' ');
+            const lastName = nameParts[0];
+            const restName = nameParts.slice(1).join(' ');
+            document.getElementById('heroName').innerHTML = `${lastName}<br><span class="accent">${restName}</span>`;
+            document.getElementById('heroDates').textContent = `📅 ${p.birth} — ${p.death}`;
+            document.getElementById('heroLocation').textContent = `📍 ${p.cemetery}, ${p.city}`;
+
+            // Info Grid
+            document.getElementById('infoFullName').textContent = p.fullName;
+            document.getElementById('infoBirth').textContent = p.birth;
+            document.getElementById('infoDeath').textContent = p.death;
+            document.getElementById('infoCemetery').textContent = p.cemetery;
+            document.getElementById('infoCity').textContent = p.city;
+
+            // Biography placeholder
+            const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — выдающийся деятель, покоящийся в ${p.cemetery}, ${p.city}.
+
+Подробная историческая биография находится в процессе оцифровки. Если вы владеете сведениями об этой личности — нажмите кнопку «Дополнить биографию» и помогите нам сохранить историческую память.`;
+            document.getElementById('biographyText').textContent = p.bio || bioDefault;
+
+            // Badge
+            const badge = document.getElementById('heroBadge');
+            if (p.filter === 'almaty') badge.textContent = 'Алматы';
+            else if (p.filter === 'historical') badge.textContent = 'Историческая личность';
+
+            document.getElementById('profileContent').style.display = '';
+            document.getElementById('notFound').style.display = 'none';
+
+            // Load Family Tree
+            loadFamilyTree(id, p);
+        }
+
+        async function loadFamilyTree(profileId, currentProfile) {
+            try {
+                if (typeof fetchFamilyRelations !== 'function') return;
+                const relations = await fetchFamilyRelations(profileId);
+
+                if (!relations || relations.length === 0) {
+                    document.getElementById('familySection').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('familySection').style.display = 'block';
+                renderTree(relations, currentProfile);
+            } catch (err) {
+                console.error('[Ziratstan] Family tree error:', err);
+                document.getElementById('familySection').style.display = 'none';
+            }
+        }
+
+        function renderTree(relations, self) {
+            const treeEl = document.getElementById('familyTree');
+            treeEl.innerHTML = '';
+
+            const parents = relations.filter(r => r.relation_type === 'parent');
+            const children = relations.filter(r => r.relation_type === 'child');
+
+            // Level 1: Parents
+            if (parents.length > 0) {
+                const pLevel = document.createElement('div');
+                pLevel.className = 'tree-level';
+                parents.forEach(r => pLevel.appendChild(createNode(r.profiles, 'Родитель')));
+                treeEl.appendChild(pLevel);
+            }
+
+            // Level 2: Self
+            const selfLevel = document.createElement('div');
+            selfLevel.className = 'tree-level';
+            const selfNode = createNode(self, 'Бул');
+            selfNode.classList.add('active');
+            selfLevel.appendChild(selfNode);
+            treeEl.appendChild(selfLevel);
+
+            // Level 3: Children
+            if (children.length > 0) {
+                const cLevel = document.createElement('div');
+                cLevel.className = 'tree-level';
+                children.forEach(r => cLevel.appendChild(createNode(r.profiles, 'Баласы')));
+                treeEl.appendChild(cLevel);
+            }
+        }
+
+        function createNode(p, role) {
+            const node = document.createElement('div');
+            node.className = 'tree-node';
+            node.onclick = () => { window.location.href = `profile.html?id=${p.id}`; };
+
+            const birth = p.birth_date ? p.birth_date.substring(0, 4) : (p.birth || '?');
+            const death = p.death_date ? p.death_date.substring(0, 4) : (p.death || '?');
+            const initials = p.fullName ? p.fullName.split(' ').map(n => n[0]).join('') : (p.name ? p.name[0] : '?');
+
+            node.innerHTML = `
+                <div class="node-avatar">
+                    ${p.main_photo_url || p.photo ? `<img src="${p.main_photo_url || p.photo}" />` : initials}
+                </div>
+                <div class="node-name">${p.fullName || p.name}</div>
+                <div class="node-dates">${birth} — ${death}</div>
+                <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.7;">${role}</div>
+            `;
+            return node;
+        }
+
+        function showError() {
+            document.getElementById('heroSection').style.display = 'none';
+            document.getElementById('profileContent').style.display = 'none';
+            document.getElementById('notFound').style.display = 'block';
+        }
+
+        // ── UGC ──
+        function openAddBioModal() {
+            document.getElementById('addBioModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        async function submitBio(event) {
+            event.preventDefault();
+            const text = document.getElementById('bioText').value.trim();
+            const authorName = document.getElementById('bioAuthorName').value.trim();
+            const profileId = new URLSearchParams(window.location.search).get('id');
+
+            if (!text || !profileId) return;
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = 'Отправка...';
+            submitBtn.disabled = true;
+
+            try {
+                if (typeof submitUgcBio === 'function') {
+                    await submitUgcBio({ profileId, authorName, text });
+                } else {
+                    console.warn('[Ziratstan] submitUgcBio function not found. Did you forget to include supabase/client.js?');
+                }
+
+                document.getElementById('addBioModal').innerHTML = `
+                    <div style="background:var(--surface); padding:32px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:460px; text-align:center;">
+                        <div style="font-size:3rem; margin-bottom:12px;">✨</div>
+                        <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">МашаАллах, Рахмет!</h3>
+                        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Ваши сведения отправлены на проверку. После модерации они появятся на этой странице.</p>
+                        <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Закрыть</button>
+                    </div>`;
+            } catch (err) {
+                console.error('[Ziratstan] Error submitting bio:', err);
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+                const toast = document.getElementById('toast');
+                toast.textContent = '❌ Ошибка при отправке. Пожалуйста, попробуйте позже.';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+        }
+
+        // ── SHARE ──
+        function shareProfile() {
+            const url = window.location.href;
+            const title = document.getElementById('pageTitle').textContent;
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => { });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    const toast = document.getElementById('toast');
+                    toast.textContent = '✅ Ссылка скопирована!';
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 2500);
+                }).catch(() => { prompt('Скопируйте ссылку:', url); });
+            }
+        }
+
+        // Run
+        initProfile();
+    </script>
+</body>
+
+</html>

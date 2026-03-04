@@ -1,0 +1,25 @@
+# Зависимости
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# PWA generated files
+public/sw.js
+public/workbox-*.js
+public/worker.js
+public/sw.js.map
+public/workbox-*.js.map
+
+# Переменные окружения — НИКОГДА не коммить ключи!
+.env.local
+.env*.local
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
+npm-debug.log*
