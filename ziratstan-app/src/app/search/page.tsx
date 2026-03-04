@@ -76,7 +76,7 @@ export default async function SearchPage({
                         >
                             <div className="w-16 h-16 rounded-full bg-[#18181b] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 text-[#d4af37] font-bold text-xl">
                                 {profile.main_photo_url ? (
-                                    <Image src={profile.main_photo_url} alt="Photo" width={64} height={64} className="w-full h-full object-cover" />
+                                    <Image src={profile.main_photo_url} alt="Photo" width={64} height={64} className="w-full h-full object-cover" unoptimized />
                                 ) : (
                                     profile.first_name?.[0] || '?'
                                 )}
