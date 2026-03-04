@@ -34,7 +34,7 @@ function ProfileNode({ data }: NodeProps<Node>) {
             <Handle type="target" position={Position.Top} className="w-2 h-2 !bg-[#d4af37]" />
             <div className="w-10 h-10 rounded-full border border-white/10 bg-[#18181b] flex items-center justify-center shrink-0 overflow-hidden text-[#d4af37] font-bold text-sm">
                 {data['photo'] ? (
-                    <Image src={String(data['photo'])} alt="P" width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                    <Image src={String(data['photo'])} alt="P" width={40} height={40} className="w-full h-full object-cover" />
                 ) : (
                     data['name'] ? String(data['name'])[0] : '?'
                 )}
