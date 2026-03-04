@@ -635,6 +635,26 @@
                 box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
             }
         }
+
+        .region-select {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%2371717a" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
     </style>
 </head>
 
@@ -671,18 +691,7 @@
                 <div class="geo-status" id="geoStatus"></div>
 
                 <!-- Выбор области -->
-                <select id="regionSelect" style="
-                    width:100%; margin-top:0.5rem; padding:0.6rem 0.75rem;
-                    background:var(--surface); border:1px solid var(--border); border-radius:10px;
-                    color:var(--text); font-family:inherit; font-size:0.82rem; font-weight:600;
-                    cursor:pointer; outline:none; appearance:none;
-                    background-image:url('data:image/svg+xml;utf8,<svg fill=" %2371717a" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>');
-                    background-repeat:no-repeat; background-position:right 10px center; background-size:16px;
-                    " onchange="handleRegionSelect(this.value)">
+                <select id="regionSelect" class="region-select" onchange="handleRegionSelect(this.value)">
                     <option value="">🗺️ Все области Казахстана</option>
                 </select>
             </div>
