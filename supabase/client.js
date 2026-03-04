@@ -174,3 +174,107 @@ async function fetchFamilyRelations(profileId) {
   }
   return data;
 }
+
+// ============================================================
+//  QR Code Helpers (QR-Мемориал)
+// ============================================================
+
+/**
+ * Резолвить slug QR-кода → profile_id.
+ * Также инкрементирует scan_count для аналитики.
+ * @param {string} slug - Короткий код (например: ZRT-A7B8)
+ * @returns {object|null} - { id, slug, profile_id, scan_count } или null
+ */
+async function resolveQrSlug(slug) {
+  const { data, error } = await db
+    .from('qr_codes')
+    .select('id, slug, profile_id, status, scan_count')
+    .eq('slug', slug.toUpperCase())
+    .eq('status', 'active')
+    .single();
+
+  if (error || !data) {
+    console.warn('[Ziratstan QR] Slug not found:', slug, error?.message);
+    return null;
+  }
+
+  // Инкремент scan_count (fire-and-forget, не блокируем пользователя)
+  db.from('qr_codes')
+    .update({ scan_count: (data.scan_count || 0) + 1 })
+    .eq('id', data.id)
+    .then(() => { })
+    .catch(err => console.warn('[Ziratstan QR] scan_count update failed:', err));
+
+  return data;
+}
+
+/**
+ * Генерирует новый уникальный QR-slug и привязывает к профилю.
+ * Формат: ZRT-XXXX (где X = alphanumeric uppercase)
+ * @param {string} profileId - UUID профиля
+ * @returns {object} - { slug, id } созданной записи
+ */
+async function generateQrSlug(profileId) {
+  // Генерируем уникальный slug
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без 0,O,1,I для читабельности
+  let slug;
+  let attempts = 0;
+
+  do {
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    slug = 'ZRT-' + code;
+    attempts++;
+
+    // Проверяем уникальность
+    const { data: existing } = await db
+      .from('qr_codes')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (!existing) break;
+  } while (attempts < 10);
+
+  if (attempts >= 10) {
+    throw new Error('Не удалось сгенерировать уникальный QR-slug после 10 попыток');
+  }
+
+  const { data, error } = await db
+    .from('qr_codes')
+    .insert([{
+      slug: slug,
+      profile_id: profileId,
+      status: 'active',
+      scan_count: 0,
+      activated_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }])
+    .select('id, slug')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Получить QR-запись для профиля (если есть).
+ * @param {string} profileId - UUID профиля
+ * @returns {object|null} - { id, slug, scan_count, status } или null
+ */
+async function fetchQrByProfile(profileId) {
+  const { data, error } = await db
+    .from('qr_codes')
+    .select('id, slug, scan_count, status, activated_at')
+    .eq('profile_id', profileId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[Ziratstan QR] Could not fetch QR for profile:', error.message);
+    return null;
+  }
+  return data;
+}

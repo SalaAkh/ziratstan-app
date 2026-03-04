@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR-Мемориал | Зиратстан</title>
+    <meta name="description" content="Сканирование QR-кода на надгробии — Зиратстан, цифровая память Казахстана." />
+    <link rel="icon" href="ziratstan-app/src/app/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #09090b;
+            --surface: #111113;
+            --border: rgba(255, 255, 255, 0.06);
+            --text: #f4f4f5;
+            --muted: #71717a;
+            --gold: #d4af37;
+            --gold-dim: rgba(212, 175, 55, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 175, 55, 0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(45, 55, 72, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        /* Loading state */
+        .state {
+            display: none;
+        }
+
+        .state.active {
+            display: block;
+        }
+
+        .loader {
+            width: 56px;
+            height: 56px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .loading-text .slug-val {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        /* Not found / Error state */
+        .err-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gold-dim);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .err-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+        }
+
+        .err-desc {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .err-slug {
+            display: inline-block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 2rem;
+            font-family: monospace;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--bg);
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            margin-top: 0.75rem;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* Scan counter badge */
+        .scan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--gold-dim);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .brand {
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .brand a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .brand a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- State: Loading -->
+        <div class="state active" id="stateLoading">
+            <div class="loader"></div>
+            <div class="loading-text">Загружаем мемориал <span class="slug-val" id="loadingSlug">...</span></div>
+        </div>
+
+        <!-- State: Not Found / Unlinked -->
+        <div class="state" id="stateNotFound">
+            <div class="err-icon">☽</div>
+            <h1 class="err-title">QR-код не привязан</h1>
+            <p class="err-desc">
+                Этот QR-код ещё не привязан к мемориальному профилю.<br>
+                Если вы — родственник усопшего, вы можете создать цифровой мемориал прямо сейчас.
+            </p>
+            <div class="err-slug" id="errSlug"></div>
+            <div class="actions">
+                <a href="index.html" class="btn btn-gold">🕌 Создать мемориал</a>
+                <a href="map.html" class="btn btn-outline">🗺️ Открыть карту</a>
+            </div>
+            <div class="brand">
+                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Цифровая память Казахстана
+            </div>
+        </div>
+
+        <!-- State: Error -->
+        <div class="state" id="stateError">
+            <div class="err-icon">⚠️</div>
+            <h1 class="err-title">Ошибка загрузки</h1>
+            <p class="err-desc">
+                Не удалось загрузить данные мемориала. Проверьте интернет-соединение и попробуйте снова.
+            </p>
+            <div class="actions">
+                <button class="btn btn-gold" onclick="location.reload()">🔄 Попробовать снова</button>
+                <a href="index.html" class="btn btn-outline">🏠 На главную</a>
+            </div>
+        </div>
+
+        <!-- State: No Slug -->
+        <div class="state" id="stateNoSlug">
+            <div class="err-icon">📲</div>
+            <h1 class="err-title">Отсканируйте QR-код</h1>
+            <p class="err-desc">
+                Наведите камеру телефона на QR-код, расположенный на надгробной табличке, чтобы открыть мемориальную
+                страницу.
+            </p>
+            <div class="actions">
+                <a href="index.html" class="btn btn-gold">🕌 Узнать больше</a>
+                <a href="map.html" class="btn btn-outline">🗺️ Открыть карту</a>
+            </div>
+            <div class="brand">
+                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Цифровая память Казахстана
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase/client.js"></script>
+    <script>
+        (async function () {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('s') || params.get('slug');
+
+            // No slug at all — show instructions
+            if (!slug) {
+                showState('stateNoSlug');
+                return;
+            }
+
+            // Show loading with the slug
+            document.getElementById('loadingSlug').textContent = slug;
+
+            try {
+                // Resolve slug → profile via Supabase
+                const result = await resolveQrSlug(slug);
+
+                if (!result || !result.profile_id) {
+                    // QR exists but not linked, or doesn't exist
+                    document.getElementById('errSlug').textContent = slug;
+                    showState('stateNotFound');
+                    return;
+                }
+
+                // Success! Redirect to profile page
+                window.location.replace('profile.html?id=' + result.profile_id + '&from=qr');
+
+            } catch (err) {
+                console.error('[Ziratstan QR] Error resolving slug:', err);
+                showState('stateError');
+            }
+        })();
+
+        function showState(id) {
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -639,6 +639,124 @@
             left: 50%;
             transform: translateX(-50%);
         }
+
+        /* QR MEMORIAL SECTION */
+        .qr-memorial {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-memorial::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .qr-memorial h2 {
+            justify-content: center;
+            font-size: 1.15rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .qr-code-wrapper {
+            display: inline-block;
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-code-wrapper canvas,
+        .qr-code-wrapper img {
+            display: block;
+            width: 180px;
+            height: 180px;
+        }
+
+        .qr-slug-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gold-dim);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 10px;
+            padding: 0.5rem 1.25rem;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+        }
+
+        .qr-scan-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .qr-scan-count strong {
+            color: var(--gold);
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .qr-actions .btn-action {
+            font-size: 0.8rem;
+            padding: 0.55rem 1.2rem;
+        }
+
+        .qr-create-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 2rem;
+            background: var(--gold);
+            color: var(--bg);
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.2s, transform 0.15s;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+        }
+
+        .qr-create-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .qr-create-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .qr-hint {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
     </style>
 </head>
 
@@ -670,6 +788,13 @@
             <button class="btn-action btn-outline" onclick="shareProfile()">🔗 Поделиться</button>
             <a href="map.html" class="btn-action btn-back">🗺️ Назад к карте</a>
         </div>
+
+        <!-- QR Memorial Section -->
+        <section class="qr-memorial" id="qrSection" style="display:none;">
+            <h2><span class="s-icon">📲</span> QR-Мемориал</h2>
+            <!-- Filled by JS: either QR display or create button -->
+            <div id="qrContent"></div>
+        </section>
 
         <!-- Info Grid -->
         <section>
@@ -762,6 +887,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="supabase/client.js"></script>
     <script>
         // ── LOAD PROFILE ──
@@ -833,6 +959,9 @@
 
             // Load Family Tree
             loadFamilyTree(id, p);
+
+            // Load QR Code
+            loadQrSection(id);
         }
 
         async function loadFamilyTree(profileId, currentProfile) {
@@ -972,6 +1101,139 @@
                     setTimeout(() => toast.classList.remove('show'), 2500);
                 }).catch(() => { prompt('Скопируйте ссылку:', url); });
             }
+        }
+
+        // ── QR MEMORIAL ──
+        async function loadQrSection(profileId) {
+            try {
+                if (typeof fetchQrByProfile !== 'function') return;
+                const qr = await fetchQrByProfile(profileId);
+                const section = document.getElementById('qrSection');
+                const content = document.getElementById('qrContent');
+                section.style.display = 'block';
+
+                if (qr && qr.slug) {
+                    // QR exists — render it
+                    renderQrDisplay(content, qr, profileId);
+                } else {
+                    // No QR — offer to create
+                    renderQrCreate(content, profileId);
+                }
+            } catch (err) {
+                console.warn('[Ziratstan QR] Error loading QR section:', err);
+            }
+        }
+
+        function renderQrDisplay(container, qr, profileId) {
+            const qrUrl = window.location.origin + '/qr.html?s=' + qr.slug;
+
+            container.innerHTML = `
+                <div class="qr-code-wrapper">
+                    <canvas id="qrCanvas"></canvas>
+                </div>
+                <br>
+                <div class="qr-slug-display">📲 ${qr.slug}</div>
+                <br>
+                <div class="qr-scan-count">
+                    👁️ Отсканировано: <strong>${qr.scan_count || 0}</strong> раз
+                </div>
+                <div class="qr-actions">
+                    <button class="btn-action btn-fill" onclick="downloadQrPng()">📥 Скачать PNG</button>
+                    <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">📐 Скачать SVG</button>
+                    <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">🔗 Копировать ссылку</button>
+                </div>
+                <p class="qr-hint">
+                    Распечатайте QR-код и закажите изготовление таблички для надгробия.<br>
+                    При сканировании откроется эта страница памяти.
+                </p>
+            `;
+
+            // Generate QR on canvas
+            if (typeof QRCode !== 'undefined') {
+                QRCode.toCanvas(document.getElementById('qrCanvas'), qrUrl, {
+                    width: 180,
+                    margin: 2,
+                    color: { dark: '#000000', light: '#ffffff' },
+                    errorCorrectionLevel: 'H'
+                });
+            }
+        }
+
+        function renderQrCreate(container, profileId) {
+            container.innerHTML = `
+                <p style="color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; line-height:1.7;">
+                    У этого профиля ещё нет QR-кода. Создайте его, чтобы разместить на надгробной табличке.
+                    При сканировании камерой откроется эта мемориальная страница.
+                </p>
+                <button class="qr-create-btn" id="createQrBtn" onclick="createQrForProfile('${profileId}')">
+                    📲 Создать QR-код
+                </button>
+            `;
+        }
+
+        async function createQrForProfile(profileId) {
+            const btn = document.getElementById('createQrBtn');
+            btn.textContent = '⏳ Генерация...';
+            btn.disabled = true;
+
+            try {
+                const result = await generateQrSlug(profileId);
+                const content = document.getElementById('qrContent');
+                renderQrDisplay(content, { slug: result.slug, scan_count: 0 }, profileId);
+
+                const toast = document.getElementById('toast');
+                toast.textContent = '✅ QR-код создан: ' + result.slug;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            } catch (err) {
+                console.error('[Ziratstan QR] Create error:', err);
+                btn.textContent = '❌ Ошибка, попробуйте снова';
+                btn.disabled = false;
+                setTimeout(() => {
+                    btn.textContent = '📲 Создать QR-код';
+                }, 2000);
+            }
+        }
+
+        function downloadQrPng() {
+            const canvas = document.getElementById('qrCanvas');
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = 'ziratstan-qr-memorial.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        async function downloadQrSvg(url, slug) {
+            if (typeof QRCode === 'undefined') return;
+            try {
+                const svgString = await QRCode.toString(url, {
+                    type: 'svg',
+                    width: 300,
+                    margin: 2,
+                    color: { dark: '#000000', light: '#ffffff' },
+                    errorCorrectionLevel: 'H'
+                });
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                const link = document.createElement('a');
+                link.download = 'ziratstan-qr-' + slug + '.svg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (e) {
+                console.error('[Ziratstan QR] SVG generation error:', e);
+            }
+        }
+
+        function copyQrLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = '✅ Ссылка скопирована!';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            }).catch(() => {
+                prompt('Скопируйте ссылку:', url);
+            });
         }
 
         // Run

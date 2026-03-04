@@ -669,6 +669,22 @@
                     <span>📡</span> <span id="geoBtnText">Моё местоположение</span>
                 </button>
                 <div class="geo-status" id="geoStatus"></div>
+
+                <!-- Выбор области -->
+                <select id="regionSelect" style="
+                    width:100%; margin-top:0.5rem; padding:0.6rem 0.75rem;
+                    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+                    color:var(--text); font-family:inherit; font-size:0.82rem; font-weight:600;
+                    cursor:pointer; outline:none; appearance:none;
+                    background-image:url('data:image/svg+xml;utf8,<svg fill=" %2371717a" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>');
+                    background-repeat:no-repeat; background-position:right 10px center; background-size:16px;
+                    " onchange="handleRegionSelect(this.value)">
+                    <option value="">🗺️ Все области Казахстана</option>
+                </select>
             </div>
 
             <!-- Filter tabs -->
@@ -685,6 +701,23 @@
 
         <!-- Map -->
         <div id="map"></div>
+
+        <!-- Region Back Button (appears on drill-down) -->
+        <div id="regionBackBtn" onclick="resetToAllRegions(); map.flyTo([48.0196, 66.9237], 5, {duration:1});" style="
+            display:none; position:fixed; top:70px; left:50%; transform:translateX(-50%);
+            z-index:400; cursor:pointer;
+            background:rgba(9,9,11,0.92); backdrop-filter:blur(12px);
+            border:1px solid rgba(212,175,55,0.3); border-radius:12px;
+            padding:8px 18px; gap:8px;
+            align-items:center; justify-content:center;
+            box-shadow:0 4px 20px rgba(0,0,0,0.5);
+            font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
+            color:#d4af37; transition:all 0.2s;
+        ">
+            <span style="font-size:1rem;">←</span>
+            <span id="regionBackLabel">Регион</span>
+            <span style="color:#71717a; font-weight:400; margin-left:4px;">· ко всем регионам</span>
+        </div>
 
     </div>
 
@@ -787,27 +820,29 @@
         // ── REGIONS & CLUSTERS ──
         const regionsLayer = L.layerGroup();
         const KZ_REGIONS = [
-            { id: 'almaty', n: "Алматы", lt: 43.222, ln: 76.851, count: 0 },
-            { id: 'astana', n: "Астана", lt: 51.169, ln: 71.449, count: 0 },
-            { id: 'shymkent', n: "Шымкент", lt: 42.341, ln: 69.590, count: 0 },
-            { id: 'abai', n: "Абайская обл.", lt: 48.9, ln: 80.2, count: 0 },
-            { id: 'akmola', n: "Акмолинская обл.", lt: 51.8, ln: 69.4, count: 0 },
-            { id: 'aktobe', n: "Актюбинская обл.", lt: 48.8, ln: 58.3, count: 0 },
-            { id: 'almaty_obl', n: "Алматинская обл.", lt: 44.5, ln: 77.8, count: 0 },
-            { id: 'atyrau', n: "Атырауская обл.", lt: 47.1, ln: 51.9, count: 0 },
-            { id: 'vko', n: "ВКО", lt: 49.9, ln: 82.6, count: 0 },
-            { id: 'zhambyl', n: "Жамбылская обл.", lt: 43.8, ln: 72.8, count: 0 },
-            { id: 'zhetysu', n: "Жетысуская обл.", lt: 45.0, ln: 79.0, count: 0 },
-            { id: 'zko', n: "ЗКО", lt: 50.0, ln: 50.5, count: 0 },
-            { id: 'karaganda', n: "Карагандинская обл.", lt: 48.5, ln: 72.0, count: 0 },
-            { id: 'kostanay', n: "Костанайская обл.", lt: 52.5, ln: 63.6, count: 0 },
-            { id: 'kyzylorda', n: "Кызылординская обл.", lt: 44.8, ln: 63.5, count: 0 },
-            { id: 'mangystau', n: "Мангистауская обл.", lt: 44.0, ln: 53.0, count: 0 },
-            { id: 'pavlodar', n: "Павлодарская обл.", lt: 52.3, ln: 76.0, count: 0 },
-            { id: 'sko', n: "СКО", lt: 53.5, ln: 68.5, count: 0 },
-            { id: 'turkestan', n: "Туркестанская обл.", lt: 42.8, ln: 68.3, count: 0 },
-            { id: 'ulytau', n: "Улытауская обл.", lt: 47.8, ln: 66.0, count: 0 },
-            { id: 'zarubezh', n: "Зарубежье", lt: 55.75, ln: 37.61, count: 0 }
+            // Города республиканского значения
+            { id: 'almaty', n: "Алматы", lt: 43.2380, ln: 76.9458, count: 0 },
+            { id: 'astana', n: "Астана", lt: 51.1282, ln: 71.4307, count: 0 },
+            { id: 'shymkent', n: "Шымкент", lt: 42.3154, ln: 69.5967, count: 0 },
+            // Области → координаты облцентров
+            { id: 'abai', n: "Абайская обл.", lt: 50.4111, ln: 80.2275, count: 0 },         // Семей
+            { id: 'akmola', n: "Акмолинская обл.", lt: 53.2833, ln: 69.3833, count: 0 },    // Кокшетау
+            { id: 'aktobe', n: "Актюбинская обл.", lt: 50.2839, ln: 57.1670, count: 0 },    // Актобе
+            { id: 'almaty_obl', n: "Алматинская обл.", lt: 44.8488, ln: 77.0900, count: 0 }, // Конаев (Капшагай)
+            { id: 'atyrau', n: "Атырауская обл.", lt: 47.1076, ln: 51.9139, count: 0 },     // Атырау
+            { id: 'vko', n: "ВКО", lt: 49.9481, ln: 82.6282, count: 0 },                    // Усть-Каменогорск
+            { id: 'zhambyl', n: "Жамбылская обл.", lt: 42.9000, ln: 71.3667, count: 0 },    // Тараз
+            { id: 'zhetysu', n: "Жетысуская обл.", lt: 45.0178, ln: 78.3738, count: 0 },    // Талдыкорган
+            { id: 'zko', n: "ЗКО", lt: 51.2333, ln: 51.3667, count: 0 },                    // Уральск (Орал)
+            { id: 'karaganda', n: "Карагандинская обл.", lt: 49.8019, ln: 73.1021, count: 0 }, // Караганда
+            { id: 'kostanay', n: "Костанайская обл.", lt: 53.2144, ln: 63.6246, count: 0 }, // Костанай
+            { id: 'kyzylorda', n: "Кызылординская обл.", lt: 44.8531, ln: 65.5092, count: 0 }, // Кызылорда
+            { id: 'mangystau', n: "Мангистауская обл.", lt: 43.6353, ln: 51.1479, count: 0 }, // Актау
+            { id: 'pavlodar', n: "Павлодарская обл.", lt: 52.2873, ln: 76.9674, count: 0 }, // Павлодар
+            { id: 'sko', n: "СКО", lt: 54.8756, ln: 69.1419, count: 0 },                    // Петропавловск
+            { id: 'turkestan', n: "Туркестанская обл.", lt: 43.3017, ln: 68.2522, count: 0 }, // Туркестан
+            { id: 'ulytau', n: "Улытауская обл.", lt: 47.7845, ln: 67.7144, count: 0 },    // Жезказган
+            { id: 'zarubezh', n: "Зарубежье", lt: 55.75, ln: 37.61, count: 0 }              // Москва (условно)
         ];
 
         function makeRegionLabelIcon(name, count) {
@@ -853,11 +888,12 @@
         // Добавляем обычные кладбища пакетом через Supercluster
         const cemeteriesLayer = L.layerGroup();
         let superclusterIndex = null;
+        let allFeatures = []; // Храним все точки для перезагрузки
+        let activeRegionId = null; // Текущий выбранный регион
 
-        if (typeof CEMETERIES_DATA !== 'undefined' && typeof supercluster !== 'undefined') {
-            const features = [];
+        if (typeof CEMETERIES_DATA !== 'undefined' && typeof Supercluster !== 'undefined') {
 
-            // Считаем кол-во для каждого региона
+            // Считаем кол-во для каждого региона + вшиваем region_id
             CEMETERIES_DATA.forEach(c => {
                 let bestR = null;
                 if (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88) {
@@ -866,7 +902,6 @@
                     let minD = Infinity;
                     KZ_REGIONS.forEach(r => {
                         if (r.id === 'zarubezh') return;
-                        // Эвристика эвклидова расстояния на плоскости
                         const dx = (r.ln - c.ln) * Math.cos((r.lt + c.lt) * Math.PI / 360);
                         const dy = (r.lt - c.lt);
                         const d = dx * dx + dy * dy;
@@ -875,34 +910,140 @@
                 }
                 if (bestR) bestR.count++;
 
-                features.push({
+                allFeatures.push({
                     type: "Feature",
-                    properties: { id: c.id, n: c.n, cluster: false },
-                    geometry: { type: "Point", coordinates: [c.ln, c.lt] } // Supercluster ждет [lng, lat]
+                    properties: { id: c.id, n: c.n, region_id: bestR ? bestR.id : 'unknown' },
+                    geometry: { type: "Point", coordinates: [c.ln, c.lt] }
                 });
             });
 
             // Инициализация Supercluster
-            superclusterIndex = new supercluster({
-                radius: 50,
-                maxZoom: 15
-            });
-            superclusterIndex.load(features);
+            superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
+            superclusterIndex.load(allFeatures);
+
+            // Функция загрузки только точек выбранного региона
+            function drillIntoRegion(regionId) {
+                activeRegionId = regionId;
+                const filtered = allFeatures.filter(f => f.properties.region_id === regionId);
+                superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
+                superclusterIndex.load(filtered);
+                const r = KZ_REGIONS.find(x => x.id === regionId);
+                console.log(`[Ziratstan] Drill-down: ${r ? r.n : regionId} → ${filtered.length} точек`);
+                // Показать кнопку "назад"
+                document.getElementById('regionBackBtn').style.display = 'flex';
+                document.getElementById('regionBackLabel').textContent = r ? r.n : regionId;
+            }
+
+            // Функция сброса на все регионы
+            function resetToAllRegions() {
+                activeRegionId = null;
+                superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
+                superclusterIndex.load(allFeatures);
+                document.getElementById('regionBackBtn').style.display = 'none';
+                // Сброс dropdown
+                const sel = document.getElementById('regionSelect');
+                if (sel) sel.value = '';
+                console.log('[Ziratstan] Reset to all regions');
+            }
+            // Делаем доступной глобально для кнопки
+            window.resetToAllRegions = resetToAllRegions;
+
+            // Наполняем sidebar dropdown регионами
+            const regionSel = document.getElementById('regionSelect');
+            if (regionSel) {
+                KZ_REGIONS.forEach(r => {
+                    if (r.count > 0) {
+                        const opt = document.createElement('option');
+                        opt.value = r.id;
+                        opt.textContent = `${r.n} (${r.count})`;
+                        regionSel.appendChild(opt);
+                    }
+                });
+            }
+
+            // Глобальный обработчик выбора из dropdown
+            window.handleRegionSelect = function (regionId) {
+                if (regionId) {
+                    drillIntoRegion(regionId);
+                    const r = KZ_REGIONS.find(x => x.id === regionId);
+                    if (r) map.flyTo([r.lt, r.ln], 8, { duration: 1.2 });
+                } else {
+                    resetToAllRegions();
+                    map.flyTo([48.0196, 66.9237], 5, { duration: 1 });
+                }
+            };
+
+            // Синхронизуем dropdown при клике на карте
+            const origDrill = drillIntoRegion;
+            drillIntoRegion = function (regionId) {
+                origDrill(regionId);
+                const sel = document.getElementById('regionSelect');
+                if (sel) sel.value = regionId;
+            };
 
             // Создаем маркеры регионов
             KZ_REGIONS.forEach(r => {
                 if (r.count > 0) {
                     const m = L.marker([r.lt, r.ln], { icon: makeRegionLabelIcon(r.n, r.count) });
                     m.on('click', () => {
+                        drillIntoRegion(r.id);
                         map.flyTo([r.lt, r.ln], 8, { duration: 1.2 });
                     });
                     regionsLayer.addLayer(m);
                 }
             });
 
+            // Рендер видимых кластеров/точек из Supercluster
+            function renderClusters() {
+                cemeteriesLayer.clearLayers();
+                const bounds = map.getBounds();
+                const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+                const zoom = map.getZoom();
+                const clusters = superclusterIndex.getClusters(bbox, zoom);
+
+                clusters.forEach(f => {
+                    const [lng, lat] = f.geometry.coordinates;
+
+                    if (f.properties.cluster) {
+                        const count = f.properties.point_count;
+                        let sizeClass = 'marker-cluster-small';
+                        let size = 40;
+                        if (count > 100) { sizeClass = 'marker-cluster-large'; size = 60; }
+                        else if (count > 20) { sizeClass = 'marker-cluster-medium'; size = 50; }
+
+                        const icon = L.divIcon({
+                            html: `<div><span>${count}</span></div>`,
+                            className: `marker-cluster-custom ${sizeClass}`,
+                            iconSize: L.point(size, size)
+                        });
+
+                        const m = L.marker([lat, lng], { icon });
+                        m.on('click', () => {
+                            const expZoom = superclusterIndex.getClusterExpansionZoom(f.properties.cluster_id);
+                            map.flyTo([lat, lng], expZoom, { duration: 0.8 });
+                        });
+                        cemeteriesLayer.addLayer(m);
+                    } else {
+                        const c = f.properties;
+                        const m = L.circleMarker([lat, lng], cemIconOpts);
+                        m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
+                            <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
+                            <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Координаты: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                            <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+                              <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">✍️ Уточнить название / Оцифровать</a>
+                              <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ Добавить профиль</a>
+                            </div>
+                        </div>`);
+                        cemeteriesLayer.addLayer(m);
+                    }
+                });
+            }
+
             // Динамическое переключение слоев
             function updateMapLayers() {
                 if (map.getZoom() < 7) {
+                    // Автосброс если пользователь "улетел" назад
+                    if (activeRegionId) resetToAllRegions();
                     if (map.hasLayer(cemeteriesLayer)) {
                         map.removeLayer(cemeteriesLayer);
                         cemeteriesLayer.clearLayers();
@@ -911,51 +1052,7 @@
                 } else {
                     if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
                     if (!map.hasLayer(cemeteriesLayer)) map.addLayer(cemeteriesLayer);
-
-                    cemeteriesLayer.clearLayers();
-
-                    const bounds = map.getBounds();
-                    const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
-                    const zoom = map.getZoom();
-
-                    const clusters = superclusterIndex.getClusters(bbox, zoom);
-
-                    clusters.forEach(f => {
-                        const [lng, lat] = f.geometry.coordinates;
-
-                        if (f.properties.cluster) {
-                            const count = f.properties.point_count;
-                            let sizeClass = 'marker-cluster-small';
-                            let size = 40;
-                            if (count > 100) { sizeClass = 'marker-cluster-large'; size = 60; }
-                            else if (count > 20) { sizeClass = 'marker-cluster-medium'; size = 50; }
-
-                            const icon = L.divIcon({
-                                html: `<div><span>${count}</span></div>`,
-                                className: `marker-cluster-custom ${sizeClass}`,
-                                iconSize: L.point(size, size)
-                            });
-
-                            const m = L.marker([lat, lng], { icon });
-                            m.on('click', () => {
-                                const expZoom = superclusterIndex.getClusterExpansionZoom(f.properties.cluster_id);
-                                map.flyTo([lat, lng], expZoom, { duration: 0.8 });
-                            });
-                            cemeteriesLayer.addLayer(m);
-                        } else {
-                            const c = f.properties;
-                            const m = L.circleMarker([lat, lng], cemIconOpts);
-                            m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
-                                <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
-                                <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Координаты: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
-                                <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                                  <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">✍️ Уточнить название / Оцифровать</a>
-                                  <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ Добавить профиль</a>
-                                </div>
-                            </div>`);
-                            cemeteriesLayer.addLayer(m);
-                        }
-                    });
+                    renderClusters();
                 }
             }
 
