@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/supercluster@8.0.1/dist/supercluster.min.js"></script>
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase/client.js"></script>
@@ -782,6 +783,7 @@
             maxClusterRadius: 50,
             disableClusteringAtZoom: 15
         });
+        markersCluster.addTo(map); // VIP markers are always visible
         // ── REGIONS & CLUSTERS ──
         const regionsLayer = L.layerGroup();
         const KZ_REGIONS = [
@@ -848,9 +850,12 @@
             });
         }
 
-        // Добавляем обычные кладбища пакетом
-        if (typeof CEMETERIES_DATA !== 'undefined') {
-            const cemMarkers = [];
+        // Добавляем обычные кладбища пакетом через Supercluster
+        const cemeteriesLayer = L.layerGroup();
+        let superclusterIndex = null;
+
+        if (typeof CEMETERIES_DATA !== 'undefined' && typeof supercluster !== 'undefined') {
+            const features = [];
 
             // Считаем кол-во для каждого региона
             CEMETERIES_DATA.forEach(c => {
@@ -861,7 +866,7 @@
                     let minD = Infinity;
                     KZ_REGIONS.forEach(r => {
                         if (r.id === 'zarubezh') return;
-                        // Эвристика эвклидова расстояния на плоскости (для Казахстана этого хватит)
+                        // Эвристика эвклидова расстояния на плоскости
                         const dx = (r.ln - c.ln) * Math.cos((r.lt + c.lt) * Math.PI / 360);
                         const dy = (r.lt - c.lt);
                         const d = dx * dx + dy * dy;
@@ -870,19 +875,19 @@
                 }
                 if (bestR) bestR.count++;
 
-                const m = L.circleMarker([c.lt, c.ln], cemIconOpts);
-                m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
-                    <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
-                    <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Координаты: ${c.lt}, ${c.ln}</div>
-                    <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                      <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${c.lt}, ${c.ln}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">✍️ Уточнить название / Оцифровать</a>
-                      <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${c.lt}, ${c.ln}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ Добавить профиль</a>
-                    </div>
-                </div>`);
-                cemMarkers.push(m);
+                features.push({
+                    type: "Feature",
+                    properties: { id: c.id, n: c.n, cluster: false },
+                    geometry: { type: "Point", coordinates: [c.ln, c.lt] } // Supercluster ждет [lng, lat]
+                });
             });
 
-            markersCluster.addLayers(cemMarkers);
+            // Инициализация Supercluster
+            superclusterIndex = new supercluster({
+                radius: 50,
+                maxZoom: 15
+            });
+            superclusterIndex.load(features);
 
             // Создаем маркеры регионов
             KZ_REGIONS.forEach(r => {
@@ -898,15 +903,63 @@
             // Динамическое переключение слоев
             function updateMapLayers() {
                 if (map.getZoom() < 7) {
-                    if (map.hasLayer(markersCluster)) map.removeLayer(markersCluster);
+                    if (map.hasLayer(cemeteriesLayer)) {
+                        map.removeLayer(cemeteriesLayer);
+                        cemeteriesLayer.clearLayers();
+                    }
                     if (!map.hasLayer(regionsLayer)) map.addLayer(regionsLayer);
                 } else {
                     if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
-                    if (!map.hasLayer(markersCluster)) map.addLayer(markersCluster);
+                    if (!map.hasLayer(cemeteriesLayer)) map.addLayer(cemeteriesLayer);
+
+                    cemeteriesLayer.clearLayers();
+
+                    const bounds = map.getBounds();
+                    const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+                    const zoom = map.getZoom();
+
+                    const clusters = superclusterIndex.getClusters(bbox, zoom);
+
+                    clusters.forEach(f => {
+                        const [lng, lat] = f.geometry.coordinates;
+
+                        if (f.properties.cluster) {
+                            const count = f.properties.point_count;
+                            let sizeClass = 'marker-cluster-small';
+                            let size = 40;
+                            if (count > 100) { sizeClass = 'marker-cluster-large'; size = 60; }
+                            else if (count > 20) { sizeClass = 'marker-cluster-medium'; size = 50; }
+
+                            const icon = L.divIcon({
+                                html: `<div><span>${count}</span></div>`,
+                                className: `marker-cluster-custom ${sizeClass}`,
+                                iconSize: L.point(size, size)
+                            });
+
+                            const m = L.marker([lat, lng], { icon });
+                            m.on('click', () => {
+                                const expZoom = superclusterIndex.getClusterExpansionZoom(f.properties.cluster_id);
+                                map.flyTo([lat, lng], expZoom, { duration: 0.8 });
+                            });
+                            cemeteriesLayer.addLayer(m);
+                        } else {
+                            const c = f.properties;
+                            const m = L.circleMarker([lat, lng], cemIconOpts);
+                            m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
+                                <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
+                                <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Координаты: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                                <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+                                  <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">✍️ Уточнить название / Оцифровать</a>
+                                  <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ Добавить профиль</a>
+                                </div>
+                            </div>`);
+                            cemeteriesLayer.addLayer(m);
+                        }
+                    });
                 }
             }
 
-            map.on('zoomend', updateMapLayers);
+            map.on('moveend', updateMapLayers);
             updateMapLayers(); // Инициализация
         }
 
@@ -1087,14 +1140,6 @@
         function selectProfile(id, flyTo = true) {
             const p = PROFILES.find(x => x.id === id);
             if (!p) return;
-
-            if (map.getZoom() < 7) {
-                if (typeof updateMapLayers === 'function') {
-                    // Temporarily force add markers layer so popup logic doesn't crash
-                    if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
-                    if (!map.hasLayer(markersCluster)) map.addLayer(markersCluster);
-                }
-            }
 
             if (flyTo) {
                 map.flyTo([p.lat, p.lng], 16, { duration: 1 });

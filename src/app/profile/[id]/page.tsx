@@ -87,7 +87,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         alt={`${firstName} ${lastName} `}
                         fill
                         className="object-cover opacity-80"
-                        unoptimized // Для Википедии
                     />
                 </div>
 
@@ -160,7 +159,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                                                 alt={m.title || 'Фотография'}
                                                 fill
                                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                                unoptimized
                                             />
                                             {m.title && (
                                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
