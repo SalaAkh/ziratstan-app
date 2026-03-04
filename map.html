@@ -263,10 +263,29 @@
             border-color: rgba(255, 255, 255, 0.15);
         }
 
-        .tab.active {
+        .filter-btn.active {
             background: var(--gold-dim);
             border-color: var(--gold-border);
             color: var(--gold);
+        }
+
+        /* Era Filter Styles */
+        .era-select {
+            width: calc(100% - 2rem);
+            margin: 0.5rem 1rem;
+            padding: 0.5rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.75rem;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .era-select:focus {
+            border-color: var(--gold);
         }
 
         /* Results list */
@@ -698,10 +717,20 @@
 
             <!-- Filter tabs -->
             <div class="filter-tabs">
-                <button class="tab active" onclick="setFilter('all', this)">Все</button>
-                <button class="tab" onclick="setFilter('historical', this)">Личности</button>
-                <button class="tab" onclick="setFilter('cemeteries', this)">Общие кладбища</button>
+                <button class="filter-btn active" data-filter="all">Барлығы</button>
+                <button class="filter-btn" data-filter="historical">Тарихи шертпелер</button>
+                <button class="filter-btn" data-filter="cemeteries">Зираттар</button>
             </div>
+
+            <!-- New Era Filter (Hidden by default, shown only when historical is selected) -->
+            <select class="era-select" id="eraSelect" style="display: none;">
+                <option value="all">Барлық дәуірлер (Все эпохи)</option>
+                <option value="ancient">Ежелгі дәуір (Сақ, Ғұн)</option>
+                <option value="medieval">Орта ғасырлар (Алтын Орда)</option>
+                <option value="khanate">Қазақ хандығы (Хандар, Билер)</option>
+                <option value="alash">Алаш Орда (Ағартушылар)</option>
+                <option value="soviet">XX ғасыр (Кеңес, Тәуелсіздік)</option>
+            </select>
 
             <!-- Results -->
             <div class="results-count" id="resultsCount">Загрузка...</div>
@@ -765,9 +794,14 @@
             document.getElementById('mapNavBtn').classList.remove('active');
         }
 
-        // ── MAP ──
         // Центр Казахстана
-        const map = L.map('map', { zoomControl: false, preferCanvas: true }).setView([48.0196, 66.9237], 5);
+        const map = L.map('map', {
+            zoomControl: false,
+            preferCanvas: true,
+            minZoom: 5,  // Запрет отдаления (чтобы не улетать в космос)
+            maxZoom: 16  // Вернул глубокий зум, так как проблема была в отдалении
+        }).setView([48.0196, 66.9237], 5);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
             maxZoom: 19
@@ -1088,12 +1122,18 @@
         function renderList() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             const filteredVip = PROFILES.filter(p => {
+                // Base filter matching
                 const matchFilter = currentFilter === 'all' || (currentFilter === 'historical' && p.filter === 'historical');
+
+                // Era matching (only applies if we are in historical tab and an era is selected)
+                const matchEra = (currentFilter === 'all') || (currentEra === 'all') || (p.era === currentEra);
+
                 const pName = (p.name || p.fullName || '').toLowerCase();
                 const pCem = (p.cemetery || '').toLowerCase();
                 const pCity = (p.city || '').toLowerCase();
                 const searchQ = !q || pName.includes(q) || pCem.includes(q) || pCity.includes(q);
-                return matchFilter && searchQ;
+
+                return matchFilter && matchEra && searchQ;
             }).filter(p => currentFilter !== 'cemeteries');
 
             const filteredGen = [];
@@ -1273,12 +1313,38 @@
         }
 
         // ── FILTER ──
+        let currentEra = 'all';
+
         function setFilter(f, el) {
             currentFilter = f;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
+            document.querySelectorAll('.filter-btn').forEach(t => t.classList.remove('active'));
+            if (el) el.classList.add('active');
+
+            // Show/hide era select
+            const eraSelect = document.getElementById('eraSelect');
+            if (f === 'historical') {
+                eraSelect.style.display = 'block';
+            } else {
+                eraSelect.style.display = 'none';
+                currentEra = 'all'; // reset era when switching main tabs
+                eraSelect.value = 'all';
+            }
+
             renderList();
         }
+
+        // Add click listeners to filter buttons since we removed onclick from HTML
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                setFilter(e.target.dataset.filter, e.target);
+            });
+        });
+
+        // Era select change listener
+        document.getElementById('eraSelect').addEventListener('change', (e) => {
+            currentEra = e.target.value;
+            renderList();
+        });
 
         // ── SEARCH ──
         let debounceTimer;

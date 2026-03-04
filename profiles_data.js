@@ -623,27 +623,71 @@ const PROFILES_STATIC = [
     { id: 'aisha_new_94', name: 'Айша бибі', fullName: 'Айша бибі', birth: 'XII', death: 'XII', cemetery: 'Айша бибі', city: 'Жамбыл обл', filter: 'historical', lat: 42.897889, lng: 71.39632, photo: null },
     { id: 'babazha_new_95', name: 'Бабаджа қатун', fullName: 'Бабаджа қатун', birth: 'XII', death: 'XII', cemetery: 'Айша бибі', city: 'Жамбыл обл', filter: 'historical', lat: 42.89785, lng: 71.396333, photo: null },
     { id: 'karakhan_new_96', name: 'Қарахан', fullName: 'Қарахан баба', birth: 'XI', death: 'XII', cemetery: 'Тараз', city: 'Жамбыл обл', filter: 'historical', lat: 42.899435, lng: 71.397481, photo: null },
-    { id: 'alasha_new_97', name: 'Алаша хан', fullName: 'Алаша хан', birth: 'XV', death: 'XV', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.3847, lng: 67.8286, photo: null },
-    { id: 'zhoshy_new_98', name: 'Жошы хан', fullName: 'Жошы хан', birth: '1182', death: '1227', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.1561, lng: 67.8189, photo: null },
-    { id: 'dombaul_new_99', name: 'Домбауыл', fullName: 'Домбауыл', birth: 'XIII', death: 'XIII', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.158, lng: 67.82, photo: null },
+    { id: 'alasha_new_97', name: 'Алаша хан', fullName: 'Алаша хан', era: 'medieval', birth: 'XV', death: 'XV', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.3847, lng: 67.8286, photo: null },
+    { id: 'zhoshy_new_98', name: 'Жошы хан', fullName: 'Жошы хан', era: 'medieval', birth: '1182', death: '1227', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.1561, lng: 67.8189, photo: null },
+    { id: 'dombaul_new_99', name: 'Домбауыл', fullName: 'Домбауыл', era: 'ancient', birth: 'XIII', death: 'XIII', cemetery: 'Ұлытау', city: 'Ұлытау обл', filter: 'historical', lat: 48.158, lng: 67.82, photo: null },
 
     // ═══════════════════════════════════════════
-    // ХАНЫ ҚАЗАҚ ХАНДЫҒЫ — Полный список
+    // ЕЖЕЛГІ ДӘУІР (Древность: Саки, Ғұндар) - era: 'ancient'
     // ═══════════════════════════════════════════
-    { id: 'kerey_khan_200', name: 'Керей хан', fullName: 'Керей хан', birth: '1425', death: '1482', cemetery: 'Хантау тауы', city: 'Жамбыл обл', filter: 'historical', lat: 44.05, lng: 69.78, photo: null },
-    { id: 'burunduk_khan_201', name: 'Бурундук хан', fullName: 'Бурундук хан', birth: '1474', death: '1513', cemetery: 'Сарайшық (болжамды)', city: 'Атырау обл', filter: 'historical', lat: 47.1163, lng: 51.8838, photo: null },
-    { id: 'mamash_khan_202', name: 'Мамаш хан', fullName: 'Мамаш хан', birth: '1495', death: '1522', cemetery: 'Сарайшық (болжамды)', city: 'Атырау обл', filter: 'historical', lat: 47.1165, lng: 51.8845, photo: null },
-    { id: 'tahir_khan_203', name: 'Тахир хан', fullName: 'Тахир хан', birth: '1490', death: '1535', cemetery: 'Белгісіз (Моғолстан)', city: 'Түркістан обл', filter: 'historical', lat: 43.30, lng: 68.27, photo: null },
-    { id: 'buydash_khan_204', name: 'Буйдаш хан', fullName: 'Буйдаш хан', birth: '1500', death: '1560', cemetery: 'Белгісіз', city: 'Түркістан обл', filter: 'historical', lat: 43.301, lng: 68.271, photo: null },
-    { id: 'tugum_khan_205', name: 'Тұғым хан', fullName: 'Тұғым хан', birth: '1495', death: '1537', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.302, lng: 68.272, photo: null },
-    { id: 'haknazar_khan_206', name: 'Хақназар хан', fullName: 'Хақназар хан', birth: '1509', death: '1580', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.298, lng: 68.269, photo: null },
-    { id: 'shygai_khan_207', name: 'Шығай хан', fullName: 'Шығай хан', birth: '1500', death: '1582', cemetery: 'Мавзолей Яссауи', city: 'Түркістан', filter: 'historical', lat: 43.2974, lng: 68.2709, photo: null },
-    { id: 'taukel_khan_208', name: 'Тәуекел хан', fullName: 'Тәуекел хан', birth: '1545', death: '1598', cemetery: 'Түркістан', city: 'Түркістан', filter: 'historical', lat: 43.2975, lng: 68.2712, photo: null },
-    { id: 'esim_khan_209', name: 'Есім хан', fullName: 'Есім хан', birth: '1565', death: '1628', cemetery: 'Мавзолей Есім хан', city: 'Түркістан', filter: 'historical', lat: 43.2969, lng: 68.2719, photo: null },
-    { id: 'kaiyp_khan_210', name: 'Кайып хан', fullName: 'Кайып хан', birth: '1660', death: '1718', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.299, lng: 68.273, photo: null },
-    { id: 'bolat_khan_211', name: 'Болат хан', fullName: 'Болат хан', birth: '1670', death: '1724', cemetery: 'Белгісіз (Түркістан)', city: 'Түркістан', filter: 'historical', lat: 43.2976, lng: 68.2714, photo: null },
-    { id: 'sameke_khan_212', name: 'Сәмеке хан', fullName: 'Сәмеке хан', birth: '1685', death: '1737', cemetery: 'Белгісіз (Сарайшық маңы)', city: 'Атырау обл', filter: 'historical', lat: 47.1168, lng: 51.885, photo: null },
-    { id: 'abulkhair_khan_213', name: 'Абулхайыр хан', fullName: 'Абулхайыр хан', birth: '1693', death: '1748', cemetery: 'Хан моласы', city: 'Ақтөбе обл', filter: 'historical', lat: 49.9548, lng: 62.8904, photo: null },
-    { id: 'uali_khan_214', name: 'Уәли хан', fullName: 'Уәли хан', birth: '1741', death: '1819', cemetery: 'Бұхара маңы', city: 'Бұхара (Өзб)', filter: 'historical', lat: 39.77, lng: 64.42, photo: null },
-    { id: 'kenesary_khan_215', name: 'Кенесары хан', fullName: 'Кенесары Қасымұлы', birth: '1802', death: '1847', cemetery: 'Белгісіз (Қырғызстан)', city: 'Бішкек маңы', filter: 'historical', lat: 42.87, lng: 74.59, photo: null },
+    { id: 'golden_man_issyk_300', name: 'Алтын Адам (Есік)', fullName: 'Алтын Адам', era: 'ancient', birth: 'V ғ. б.з.д.', death: 'IV ғ. б.з.д.', cemetery: 'Есік қорғаны', city: 'Алматы обл', filter: 'historical', lat: 43.40, lng: 77.40, photo: null },
+    { id: 'shilikti_golden_man_301', name: 'Шілікті Алтын Адамы', fullName: 'Бәйгетөбе қорғаны', era: 'ancient', birth: 'VIII ғ. б.з.д.', death: 'VIII ғ. б.з.д.', cemetery: 'Шілікті қорымы', city: 'Шығыс ҚЗ', filter: 'historical', lat: 47.188793, lng: 84.537249, photo: null },
+    { id: 'berel_kurgans_302', name: 'Берел қорғандары', fullName: 'Патша қорғандары', era: 'ancient', birth: 'V ғ. б.з.д.', death: 'IV ғ. б.з.д.', cemetery: 'Берел', city: 'Шығыс ҚЗ', filter: 'historical', lat: 49.3739, lng: 86.4272, photo: null },
+
+    // ═══════════════════════════════════════════
+    // ОРТА ҒАСЫРЛАР (Средневековье) - era: 'medieval'
+    // ═══════════════════════════════════════════
+    { id: 'karakhan_303', name: 'Қарахан (Әулие Ата)', fullName: 'Қарахан', era: 'medieval', birth: 'XI ғ.', death: 'XI ғ.', cemetery: 'Мавзолей Қарахан', city: 'Тараз', filter: 'historical', lat: 42.8986, lng: 71.385, photo: null },
+    { id: 'arystan_bab_304', name: 'Арыстан Баб', fullName: 'Арыстан Баб', era: 'medieval', birth: 'XII ғ.', death: 'XII ғ.', cemetery: 'Мавзолей Арыстан Баб', city: 'Түркістан обл', filter: 'historical', lat: 42.8513, lng: 68.268, photo: null },
+    { id: 'aisha_bibi_305', name: 'Айша бибі', fullName: 'Айша бибі', era: 'medieval', birth: 'XI ғ.', death: 'XII ғ.', cemetery: 'Мавзолей Айша бибі', city: 'Жамбыл обл', filter: 'historical', lat: 42.8339, lng: 71.2105, photo: null },
+    { id: 'babaji_khatun_306', name: 'Бабаджи қатын', fullName: 'Бабаджи қатын', era: 'medieval', birth: 'XI ғ.', death: 'XI ғ.', cemetery: 'Мавзолей Бабаджи қатын', city: 'Жамбыл обл', filter: 'historical', lat: 42.834, lng: 71.2107, photo: null },
+    { id: 'koja_akhmet_yasawi_307', name: 'Қожа Ахмет Ясауи', fullName: 'Қожа Ахмет Ясауи', era: 'medieval', birth: '1093', death: '1166', cemetery: 'Мавзолей Ясауи', city: 'Түркістан', filter: 'historical', lat: 43.297, lng: 68.270, photo: null },
+
+    // ═══════════════════════════════════════════
+    // ХАНДАР МЕН БАТЫРЛАР (Казахское ханство) - era: 'khanate'
+    // ═══════════════════════════════════════════
+    { id: 'kerey_khan_200', name: 'Керей хан', fullName: 'Керей хан', era: 'khanate', birth: '1425', death: '1482', cemetery: 'Хантау тауы', city: 'Жамбыл обл', filter: 'historical', lat: 44.05, lng: 69.78, photo: null },
+    { id: 'burunduk_khan_201', name: 'Бурундук хан', fullName: 'Бурундук хан', era: 'khanate', birth: '1474', death: '1513', cemetery: 'Сарайшық (болжамды)', city: 'Атырау обл', filter: 'historical', lat: 47.1163, lng: 51.8838, photo: null },
+    { id: 'mamash_khan_202', name: 'Мамаш хан', fullName: 'Мамаш хан', era: 'khanate', birth: '1495', death: '1522', cemetery: 'Сарайшық (болжамды)', city: 'Атырау обл', filter: 'historical', lat: 47.1165, lng: 51.8845, photo: null },
+    { id: 'tahir_khan_203', name: 'Тахир хан', fullName: 'Тахир хан', era: 'khanate', birth: '1490', death: '1535', cemetery: 'Белгісіз (Моғолстан)', city: 'Түркістан обл', filter: 'historical', lat: 43.30, lng: 68.27, photo: null },
+    { id: 'buydash_khan_204', name: 'Буйдаш хан', fullName: 'Буйдаш хан', era: 'khanate', birth: '1500', death: '1560', cemetery: 'Белгісіз', city: 'Түркістан обл', filter: 'historical', lat: 43.301, lng: 68.271, photo: null },
+    { id: 'tugum_khan_205', name: 'Тұғым хан', fullName: 'Тұғым хан', era: 'khanate', birth: '1495', death: '1537', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.302, lng: 68.272, photo: null },
+    { id: 'haknazar_khan_206', name: 'Хақназар хан', fullName: 'Хақназар хан', era: 'khanate', birth: '1509', death: '1580', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.298, lng: 68.269, photo: null },
+    { id: 'shygai_khan_207', name: 'Шығай хан', fullName: 'Шығай хан', era: 'khanate', birth: '1500', death: '1582', cemetery: 'Мавзолей Яссауи', city: 'Түркістан', filter: 'historical', lat: 43.2974, lng: 68.2709, photo: null },
+    { id: 'taukel_khan_208', name: 'Тәуекел хан', fullName: 'Тәуекел хан', era: 'khanate', birth: '1545', death: '1598', cemetery: 'Түркістан', city: 'Түркістан', filter: 'historical', lat: 43.2975, lng: 68.2712, photo: null },
+    { id: 'esim_khan_209', name: 'Есім хан', fullName: 'Есім хан', era: 'khanate', birth: '1565', death: '1628', cemetery: 'Мавзолей Есім хан', city: 'Түркістан', filter: 'historical', lat: 43.2969, lng: 68.2719, photo: null },
+    { id: 'kaiyp_khan_210', name: 'Кайып хан', fullName: 'Кайып хан', era: 'khanate', birth: '1660', death: '1718', cemetery: 'Белгісіз (Түркістан маңы)', city: 'Түркістан обл', filter: 'historical', lat: 43.299, lng: 68.273, photo: null },
+    { id: 'bolat_khan_211', name: 'Болат хан', fullName: 'Болат хан', era: 'khanate', birth: '1670', death: '1724', cemetery: 'Белгісіз (Түркістан)', city: 'Түркістан', filter: 'historical', lat: 43.2976, lng: 68.2714, photo: null },
+    { id: 'sameke_khan_212', name: 'Сәмеке хан', fullName: 'Сәмеке хан', era: 'khanate', birth: '1685', death: '1737', cemetery: 'Белгісіз (Сарайшық маңы)', city: 'Атырау обл', filter: 'historical', lat: 47.1168, lng: 51.885, photo: null },
+    { id: 'abulkhair_khan_213', name: 'Абулхайыр хан', fullName: 'Абулхайыр хан', era: 'khanate', birth: '1693', death: '1748', cemetery: 'Хан моласы', city: 'Ақтөбе обл', filter: 'historical', lat: 49.9548, lng: 62.8904, photo: null },
+    { id: 'uali_khan_214', name: 'Уәли хан', fullName: 'Уәли хан', era: 'khanate', birth: '1741', death: '1819', cemetery: 'Бұхара маңы', city: 'Бұхара (Өзб)', filter: 'historical', lat: 39.77, lng: 64.42, photo: null },
+    { id: 'kenesary_khan_215', name: 'Кенесары хан', fullName: 'Кенесары Қасымұлы', era: 'khanate', birth: '1802', death: '1847', cemetery: 'Белгісіз (Қырғызстан)', city: 'Бішкек маңы', filter: 'historical', lat: 42.87, lng: 74.59, photo: null },
+    { id: 'tole_bi_308', name: 'Төле би', fullName: 'Төле би', era: 'khanate', birth: '1663', death: '1756', cemetery: 'Ташкент', city: 'Өзбекстан', filter: 'historical', lat: 41.320, lng: 69.255, photo: null },
+    { id: 'kazybek_bi_309', name: 'Қазыбек би', fullName: 'Қазыбек би', era: 'khanate', birth: '1667', death: '1764', cemetery: 'Мавзолей Ясауи', city: 'Түркістан', filter: 'historical', lat: 43.297, lng: 68.270, photo: null },
+    { id: 'aiteke_bi_310', name: 'Әйтеке би', fullName: 'Әйтеке би', era: 'khanate', birth: '1644', death: '1700', cemetery: 'Нұрата', city: 'Өзбекстан', filter: 'historical', lat: 40.56, lng: 65.68, photo: null },
+    { id: 'raiymbek_batyr_311', name: 'Райымбек батыр', fullName: 'Райымбек батыр', era: 'khanate', birth: '1705', death: '1785', cemetery: 'Кесенесі', city: 'Алматы', filter: 'historical', lat: 43.271, lng: 76.953, photo: null },
+    { id: 'kabanbai_batyr_312', name: 'Қабанбай батыр', fullName: 'Қаракерей Қабанбай', era: 'khanate', birth: '1692', death: '1770', cemetery: 'Пантеон маңы', city: 'Астана', filter: 'historical', lat: 50.872, lng: 71.409, photo: null },
+    { id: 'bogenbai_batyr_313', name: 'Бөгенбай батыр', fullName: 'Қанжығалы Бөгенбай', era: 'khanate', birth: '1680', death: '1778', cemetery: 'Мавзолей Ясауи', city: 'Түркістан', filter: 'historical', lat: 43.297, lng: 68.270, photo: null },
+
+    // ═══════════════════════════════════════════
+    // АЛАШ ОРДА ЖӘНЕ АҒАРТУШЫЛАР - era: 'alash'
+    // ═══════════════════════════════════════════
+    { id: 'chokan_valikhanov_314', name: 'Шоқан Уәлиханов', fullName: 'Шоқан Уәлиханов', era: 'alash', birth: '1835', death: '1865', cemetery: 'Алтынемел', city: 'Жетісу обл', filter: 'historical', lat: 44.155, lng: 78.432, photo: null },
+    { id: 'abai_kunanbaev_315', name: 'Абай Құнанбайұлы', fullName: 'Абай Құнанбайұлы', era: 'alash', birth: '1845', death: '1904', cemetery: 'Жидебай', city: 'Абай обл', filter: 'historical', lat: 48.940, lng: 79.544, photo: null },
+    { id: 'shakarim_316', name: 'Шәкәрім Құдайбердіұлы', fullName: 'Шәкәрім Құдайбердіұлы', era: 'alash', birth: '1858', death: '1931', cemetery: 'Жидебай', city: 'Абай обл', filter: 'historical', lat: 48.941, lng: 79.545, photo: null },
+    { id: 'alikhan_bokeikhanov_317', name: 'Әлихан Бөкейханов', fullName: 'Әлихан Бөкейханов', era: 'alash', birth: '1866', death: '1937', cemetery: 'Донское зираты', city: 'Мәскеу (Ресей)', filter: 'historical', lat: 55.712, lng: 37.601, photo: null },
+    { id: 'akhmet_baitursynov_318', name: 'Ахмет Байтұрсынұлы', fullName: 'Ахмет Байтұрсынұлы', era: 'alash', birth: '1872', death: '1937', cemetery: 'Белгісіз (Ақкөл)', city: 'Қостанай обл', filter: 'historical', lat: 48.853, lng: 63.907, photo: null },
+    { id: 'mirzhakyp_dulatov_319', name: 'Міржақып Дулатұлы', fullName: 'Міржақып Дулатұлы', era: 'alash', birth: '1885', death: '1935', cemetery: 'Бидайық', city: 'Қостанай обл', filter: 'historical', lat: 48.950, lng: 64.050, photo: null },
+
+    // ═══════════════════════════════════════════
+    // XX ҒАСЫР ЖӘНЕ ҚАЗІРГІ ЗАМАН - era: 'soviet'
+    // ═══════════════════════════════════════════
+    { id: 'dinmukhamed_kunayev_320', name: 'Дінімұхамед Қонаев', fullName: 'Дінімұхамед Қонаев', era: 'soviet', birth: '1912', death: '1993', cemetery: 'Кеңсай-1', city: 'Алматы', filter: 'historical', lat: 43.262, lng: 76.995, photo: null },
+    { id: 'kanysh_satpayev_321', name: 'Қаныш Сәтбаев', fullName: 'Қаныш Сәтбаев', era: 'soviet', birth: '1899', death: '1964', cemetery: 'Орталық зират', city: 'Алматы', filter: 'historical', lat: 43.275, lng: 76.933, photo: null },
+    { id: 'bauyrzhan_momyshuly_322', name: 'Бауыржан Момышұлы', fullName: 'Бауыржан Момышұлы', era: 'soviet', birth: '1910', death: '1982', cemetery: 'Кеңсай-1', city: 'Алматы', filter: 'historical', lat: 43.263, lng: 76.996, photo: null },
+    { id: 'mukhtar_auezov_323', name: 'Мұхтар Әуезов', fullName: 'Мұхтар Әуезов', era: 'soviet', birth: '1897', death: '1961', cemetery: 'Орталық зират', city: 'Алматы', filter: 'historical', lat: 43.274, lng: 76.932, photo: null },
+    { id: 'aliya_moldagulova_324', name: 'Әлия Молдағұлова', fullName: 'Әлия Молдағұлова', era: 'soviet', birth: '1925', death: '1944', cemetery: 'Новосокольники', city: 'Ресей', filter: 'historical', lat: 56.32, lng: 29.93, photo: null },
+    { id: 'manshuk_mametova_325', name: 'Мәншүк Мәметова', fullName: 'Мәншүк Мәметова', era: 'soviet', birth: '1922', death: '1943', cemetery: 'Невель', city: 'Ресей', filter: 'historical', lat: 56.02, lng: 29.93, photo: null },
+    { id: 'abish_kekilbaev_326', name: 'Әбіш Кекілбаев', fullName: 'Әбіш Кекілбаев', era: 'soviet', birth: '1939', death: '2015', cemetery: 'Ұлттық Пантеон', city: 'Астана', filter: 'historical', lat: 50.8722, lng: 71.4094, photo: null },
+    { id: 'fariza_ongarsynova_327', name: 'Фариза Оңғарсынова', fullName: 'Фариза Оңғарсынова', era: 'soviet', birth: '1939', death: '2014', cemetery: 'Ұлттық Пантеон', city: 'Астана', filter: 'historical', lat: 50.8723, lng: 71.4095, photo: null },
 ];
