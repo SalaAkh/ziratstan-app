@@ -1,447 +1,447 @@
 // Ziratstan VIP Profiles Database
 const PROFILES_STATIC = [
     {
-        id: 'beket_ata_2', name: 'Бекет ата', fullName: 'Бекет Мырзағұлұлы',
+        id: 'beket_ata_2', name: 'Бекет ата', fullName: 'Бекет Мырзағұлұлы', era: 'khanate',
         birth: '1750', death: '1813', cemetery: 'Оғланды мешіті', city: 'Маңғыстау',
         filter: 'historical', lat: 43.5936, lng: 54.0677, photo: null
     },
     {
-        id: 'korkyt_ata_3', name: 'Қорқыт ата', fullName: 'Қорқыт ата',
+        id: 'korkyt_ata_3', name: 'Қорқыт ата', fullName: 'Қорқыт ата', era: 'medieval',
         birth: 'VIII', death: 'IX', cemetery: 'Мемориал Қорқыт ата', city: 'Қызылорда',
         filter: 'historical', lat: 44.849279, lng: 65.500233, photo: null
     },
     {
-        id: 'abylai_khan_4', name: 'Абылай хан', fullName: 'Абылай (Әбілмансұр) хан',
+        id: 'abylai_khan_4', name: 'Абылай хан', fullName: 'Абылай (Әбілмансұр) хан', era: 'khanate',
         birth: '1711', death: '1781', cemetery: 'Мавзолей Яссауи', city: 'Түркістан',
         filter: 'historical', lat: 43.297544, lng: 68.270819, photo: null
     },
     {
-        id: 'tauke_khan_5', name: 'Тәуке хан', fullName: 'Тәуке хан',
+        id: 'tauke_khan_5', name: 'Тәуке хан', fullName: 'Тәуке хан', era: 'khanate',
         birth: '1635', death: '1715', cemetery: 'Мавзолей Яссауи', city: 'Түркістан',
         filter: 'historical', lat: 43.297406, lng: 68.270842, photo: null
     },
     {
-        id: 'kasym_khan_6', name: 'Қасым хан', fullName: 'Қасым хан',
+        id: 'kasym_khan_6', name: 'Қасым хан', fullName: 'Қасым хан', era: 'khanate',
         birth: '1445', death: '1521', cemetery: 'Сарайшық көне қаласы', city: 'Атырау',
         filter: 'historical', lat: 47.116265, lng: 51.883812, photo: null
     },
     {
-        id: 'zhanibek_khan_7', name: 'Жәнібек хан', fullName: 'Керей мен Жәнібек',
+        id: 'zhanibek_khan_7', name: 'Жәнібек хан', fullName: 'Керей мен Жәнібек', era: 'khanate',
         birth: 'XV', death: 'XV', cemetery: 'Сарайшық көне қаласы', city: 'Атырау',
         filter: 'historical', lat: 47.117124, lng: 51.884271, photo: null
     },
     {
-        id: 'tole_bi_8', name: 'Төле би', fullName: 'Төле би Әлібекұлы',
+        id: 'tole_bi_8', name: 'Төле би', fullName: 'Төле би Әлібекұлы', era: 'khanate',
         birth: '1663', death: '1756', cemetery: 'Қарлығаш би кесенесі', city: 'Ташкент (Узб)',
         filter: 'historical', lat: 41.3197, lng: 69.2558, photo: null
     },
     {
-        id: 'kazybek_bi_9', name: 'Қазыбек би', fullName: 'Қаз дауысты Қазыбек би',
+        id: 'kazybek_bi_9', name: 'Қазыбек би', fullName: 'Қаз дауысты Қазыбек би', era: 'khanate',
         birth: '1667', death: '1764', cemetery: 'Мавзолей Яссауи', city: 'Түркістан',
         filter: 'historical', lat: 43.297575, lng: 68.270558, photo: null
     },
     {
-        id: 'aiteke_bi_10', name: 'Әйтеке би', fullName: 'Әйтеке би Бәйбекұлы',
+        id: 'aiteke_bi_10', name: 'Әйтеке би', fullName: 'Әйтеке би Бәйбекұлы', era: 'khanate',
         birth: '1644', death: '1700', cemetery: 'Нурата кесенесі', city: 'Нурата (Узб)',
         filter: 'historical', lat: 40.5636, lng: 65.6881, photo: null
     },
     {
-        id: 'raiymbek_batyr_11', name: 'Райымбек батыр', fullName: 'Райымбек Түкеұлы',
+        id: 'raiymbek_batyr_11', name: 'Райымбек батыр', fullName: 'Райымбек Түкеұлы', era: 'khanate',
         birth: '1705', death: '1785', cemetery: 'Кесенесі', city: 'Алматы',
         filter: 'historical', lat: 43.2731, lng: 76.9535, photo: null
     },
     {
-        id: 'qabanbay_batyr_12', name: 'Қабанбай батыр', fullName: 'Қаракерей Қабанбай',
+        id: 'qabanbay_batyr_12', name: 'Қабанбай батыр', fullName: 'Қаракерей Қабанбай', era: 'khanate',
         birth: '1692', death: '1770', cemetery: 'Ұлттық Пантеон', city: 'Астана',
         filter: 'historical', lat: 51.011385, lng: 71.373677, photo: null
     },
     {
-        id: 'bogenbay_batyr_13', name: 'Бөгенбай батыр', fullName: 'Қанжығалы Бөгенбай',
+        id: 'bogenbay_batyr_13', name: 'Бөгенбай батыр', fullName: 'Қанжығалы Бөгенбай', era: 'khanate',
         birth: '1680', death: '1778', cemetery: 'Ерейментау', city: 'Ақмола обл',
         filter: 'historical', lat: 51.6214, lng: 73.0789, photo: null
     },
     {
-        id: 'sirim_datuly_14', name: 'Сырым Датұлы', fullName: 'Сырым Датұлы',
+        id: 'sirim_datuly_14', name: 'Сырым Датұлы', fullName: 'Сырым Датұлы', era: 'khanate',
         birth: '1742', death: '1802', cemetery: 'Гюрлен', city: 'Хорезм (Узб)',
         filter: 'historical', lat: 41.8411, lng: 60.3953, photo: null
     },
     {
-        id: 'makhambet_15', name: 'Өтемісұлы М.', fullName: 'Махамбет Өтемісұлы',
+        id: 'makhambet_15', name: 'Өтемісұлы М.', fullName: 'Махамбет Өтемісұлы', era: 'khanate',
         birth: '1803', death: '1846', cemetery: 'Индер ауданы', city: 'Атырау',
         filter: 'historical', lat: 47.116296, lng: 51.884958, photo: null
     },
     {
-        id: 'isatay_16', name: 'Тайманов И.', fullName: 'Исатай Тайманов',
+        id: 'isatay_16', name: 'Тайманов И.', fullName: 'Исатай Тайманов', era: 'khanate',
         birth: '1791', death: '1838', cemetery: 'Қобда ауданы', city: 'Ақтөбе',
         filter: 'historical', lat: 50.285066, lng: 57.168238, photo: null
     },
     {
-        id: 'amangeldi_17', name: 'Иманов А.', fullName: 'Амангелді Иманов',
+        id: 'amangeldi_17', name: 'Иманов А.', fullName: 'Амангелді Иманов', era: 'alash',
         birth: '1873', death: '1919', cemetery: 'Амангелді ауданы', city: 'Қостанай',
         filter: 'historical', lat: 50.1808, lng: 65.1583, photo: null
     },
     {
-        id: 'abai_18', name: 'Құнанбаев А.', fullName: 'Абай Құнанбайұлы',
+        id: 'abai_18', name: 'Құнанбаев А.', fullName: 'Абай Құнанбайұлы', era: 'alash',
         birth: '1845', death: '1904', cemetery: 'Жидебай кесенесі', city: 'Абай обл',
         filter: 'historical', lat: 49.12712, lng: 79.323946, photo: null
     },
     {
-        id: 'shakarim_19', name: 'Құдайбердіұлы Ш.', fullName: 'Шәкәрім Құдайбердіұлы',
+        id: 'shakarim_19', name: 'Құдайбердіұлы Ш.', fullName: 'Шәкәрім Құдайбердіұлы', era: 'alash',
         birth: '1858', death: '1931', cemetery: 'Жидебай кесенесі', city: 'Абай обл',
         filter: 'historical', lat: 49.126642, lng: 79.324386, photo: null
     },
     {
-        id: 'chokan_20', name: 'Уәлиханов Ш.', fullName: 'Шоқан Уәлиханов',
+        id: 'chokan_20', name: 'Уәлиханов Ш.', fullName: 'Шоқан Уәлиханов', era: 'alash',
         birth: '1835', death: '1865', cemetery: 'Алтынемел', city: 'Жетісу обл',
         filter: 'historical', lat: 44.1167, lng: 78.5333, photo: null
     },
     {
-        id: 'altynsarin_21', name: 'Алтынсарин Ы.', fullName: 'Ыбырай Алтынсарин',
+        id: 'altynsarin_21', name: 'Алтынсарин Ы.', fullName: 'Ыбырай Алтынсарин', era: 'alash',
         birth: '1841', death: '1889', cemetery: 'Кесенесі', city: 'Қостанай',
         filter: 'historical', lat: 53.1833, lng: 63.6333, photo: null
     },
     {
-        id: 'zhambyl_22', name: 'Жабаев Ж.', fullName: 'Жамбыл Жабаев',
+        id: 'zhambyl_22', name: 'Жабаев Ж.', fullName: 'Жамбыл Жабаев', era: 'alash',
         birth: '1846', death: '1945', cemetery: 'Кесенесі', city: 'Алматы обл',
         filter: 'historical', lat: 43.1442, lng: 76.1803, photo: null
     },
     {
-        id: 'akhmet_b_23', name: 'Байтұрсынұлы А.', fullName: 'Ахмет Байтұрсынұлы',
+        id: 'akhmet_b_23', name: 'Байтұрсынұлы А.', fullName: 'Ахмет Байтұрсынұлы', era: 'alash',
         birth: '1872', death: '1937', cemetery: 'Жаңалық (жаппай зират)', city: 'Алматы обл',
         filter: 'historical', lat: 43.440635, lng: 77.172334, photo: null
     },
     {
-        id: 'mirzhakyp_24', name: 'Дулатұлы М.', fullName: 'Міржақып Дулатұлы',
+        id: 'mirzhakyp_24', name: 'Дулатұлы М.', fullName: 'Міржақып Дулатұлы', era: 'alash',
         birth: '1885', death: '1935', cemetery: 'Торғай (перезахор.)', city: 'Қостанай обл',
         filter: 'historical', lat: 49.6333, lng: 63.4833, photo: null
     },
     {
-        id: 'magzhan_25', name: 'Жұмабаев М.', fullName: 'Мағжан Жұмабаев',
+        id: 'magzhan_25', name: 'Жұмабаев М.', fullName: 'Мағжан Жұмабаев', era: 'alash',
         birth: '1893', death: '1938', cemetery: 'Белгісіз (Жаңалық/Магадан)', city: 'Алматы обл',
         filter: 'historical', lat: 43.440857, lng: 77.171757, photo: null
     },
     {
-        id: 'saken_s_26', name: 'Сейфуллин С.', fullName: 'Сәкен Сейфуллин',
+        id: 'saken_s_26', name: 'Сейфуллин С.', fullName: 'Сәкен Сейфуллин', era: 'alash',
         birth: '1894', death: '1938', cemetery: 'Жаңалық (жаппай зират)', city: 'Алматы обл',
         filter: 'historical', lat: 43.44137, lng: 77.171768, photo: null
     },
     {
-        id: 'beimbet_27', name: 'Майлин Б.', fullName: 'Бейімбет Майлин',
+        id: 'beimbet_27', name: 'Майлин Б.', fullName: 'Бейімбет Майлин', era: 'alash',
         birth: '1894', death: '1938', cemetery: 'Жаңалық', city: 'Алматы обл',
         filter: 'historical', lat: 43.441184, lng: 77.171873, photo: null
     },
     {
-        id: 'iliyas_zh_28', name: 'Жансүгіров І.', fullName: 'Ілияс Жансүгіров',
+        id: 'iliyas_zh_28', name: 'Жансүгіров І.', fullName: 'Ілияс Жансүгіров', era: 'alash',
         birth: '1894', death: '1938', cemetery: 'Жаңалық', city: 'Алматы обл',
         filter: 'historical', lat: 43.44058, lng: 77.171537, photo: null
     },
     {
-        id: 'zhusupbek_29', name: 'Аймауытов Ж.', fullName: 'Жүсіпбек Аймауытов',
+        id: 'zhusupbek_29', name: 'Аймауытов Ж.', fullName: 'Жүсіпбек Аймауытов', era: 'alash',
         birth: '1889', death: '1930', cemetery: 'Ваганьковское', city: 'Москва (РФ)',
         filter: 'historical', lat: 55.767824, lng: 37.549072, photo: null
     },
     {
-        id: 'sultanmahmut_30', name: 'Торайғыров С.', fullName: 'Сұлтанмахмұт Торайғыров',
+        id: 'sultanmahmut_30', name: 'Торайғыров С.', fullName: 'Сұлтанмахмұт Торайғыров', era: 'alash',
         birth: '1893', death: '1920', cemetery: 'Баянауыл', city: 'Павлодар обл',
         filter: 'historical', lat: 50.785, lng: 75.6983, photo: null
     },
     {
-        id: 'mashhur_31', name: 'Көпейұлы М.Ж.', fullName: 'Мәшһүр Жүсіп Көпейұлы',
+        id: 'mashhur_31', name: 'Көпейұлы М.Ж.', fullName: 'Мәшһүр Жүсіп Көпейұлы', era: 'alash',
         birth: '1858', death: '1931', cemetery: 'Ескелді', city: 'Павлодар обл',
         filter: 'historical', lat: 51.275, lng: 75.385, photo: null
     },
     {
-        id: 'kurmangazy_32', name: 'Сағырбайұлы Қ.', fullName: 'Құрманғазы Сағырбайұлы',
+        id: 'kurmangazy_32', name: 'Сағырбайұлы Қ.', fullName: 'Құрманғазы Сағырбайұлы', era: 'khanate',
         birth: '1818', death: '1896', cemetery: 'Алтынжар', city: 'Астрахань (РФ)',
         filter: 'historical', lat: 46.2553, lng: 48.435, photo: null
     },
     {
-        id: 'dauletkerei_33', name: 'Шығайұлы Д.', fullName: 'Дәулеткерей Шығайұлы',
+        id: 'dauletkerei_33', name: 'Шығайұлы Д.', fullName: 'Дәулеткерей Шығайұлы', era: 'khanate',
         birth: '1820', death: '1887', cemetery: 'Бөкей ордасы', city: 'БҚО',
         filter: 'historical', lat: 51.232415, lng: 51.365904, photo: null
     },
     {
-        id: 'tattimbet_34', name: 'Қазанғапұлы Т.', fullName: 'Тәттімбет Қазанғапұлы',
+        id: 'tattimbet_34', name: 'Қазанғапұлы Т.', fullName: 'Тәттімбет Қазанғапұлы', era: 'khanate',
         birth: '1815', death: '1862', cemetery: 'Қарқаралы', city: 'Қарағанды обл',
         filter: 'historical', lat: 49.928537, lng: 73.081222, photo: null
     },
     {
-        id: 'dina_35', name: 'Нұрпейісова Д.', fullName: 'Дина Нұрпейісова',
+        id: 'dina_35', name: 'Нұрпейісова Д.', fullName: 'Дина Нұрпейісова', era: 'alash',
         birth: '1861', death: '1955', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.283009, lng: 76.923578, photo: null
     },
     {
-        id: 'akan_seri_36', name: 'Қорамсаұлы А.', fullName: 'Ақан сері',
+        id: 'akan_seri_36', name: 'Қорамсаұлы А.', fullName: 'Ақан сері', era: 'khanate',
         birth: '1843', death: '1913', cemetery: 'Көкшетау', city: 'Ақмола обл',
         filter: 'historical', lat: 53.2833, lng: 69.3833, photo: null
     },
     {
-        id: 'birzhan_sal_37', name: 'Қожағұлұлы Б.', fullName: 'Біржан сал',
+        id: 'birzhan_sal_37', name: 'Қожағұлұлы Б.', fullName: 'Біржан сал', era: 'khanate',
         birth: '1834', death: '1897', cemetery: 'Еңбекшілдер', city: 'Ақмола обл',
         filter: 'historical', lat: 52.8333, lng: 70.0833, photo: null
     },
     {
-        id: 'kunayev_38', name: 'Қонаев Д.А.', fullName: 'Дінмұхамед Ахмедұлы Қонаев',
+        id: 'kunayev_38', name: 'Қонаев Д.А.', fullName: 'Дінмұхамед Ахмедұлы Қонаев', era: 'soviet',
         birth: '1912', death: '1993', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'almaty', lat: 43.266121, lng: 76.997036, photo: null
     },
     {
-        id: 'bokeykhan_39', name: 'Бөкейхан Ә.', fullName: 'Әлихан Бөкейхан',
+        id: 'bokeykhan_39', name: 'Бөкейхан Ә.', fullName: 'Әлихан Бөкейхан', era: 'alash',
         birth: '1866', death: '1937', cemetery: 'Донское зираты', city: 'Москва (РФ)',
         filter: 'historical', lat: 55.7119, lng: 37.6019, photo: null
     },
     {
-        id: 'mustafa_40', name: 'Шоқай М.', fullName: 'Мұстафа Шоқай',
+        id: 'mustafa_40', name: 'Шоқай М.', fullName: 'Мұстафа Шоқай', era: 'alash',
         birth: '1890', death: '1941', cemetery: 'Темпельхоф', city: 'Берлин (Германия)',
         filter: 'historical', lat: 52.4727, lng: 13.4061, photo: null
     },
     {
-        id: 'turar_41', name: 'Рысқұлов Т.', fullName: 'Тұрар Рысқұлов',
+        id: 'turar_41', name: 'Рысқұлов Т.', fullName: 'Тұрар Рысқұлов', era: 'alash',
         birth: '1894', death: '1938', cemetery: 'Коммунарка', city: 'Москва (РФ)',
         filter: 'historical', lat: 55.5786, lng: 37.4561, photo: null
     },
     {
-        id: 'oraz_42', name: 'Жандосов О.', fullName: 'Ораз Жандосов',
+        id: 'oraz_42', name: 'Жандосов О.', fullName: 'Ораз Жандосов', era: 'alash',
         birth: '1899', death: '1938', cemetery: 'Жаңалық', city: 'Алматы обл',
         filter: 'historical', lat: 43.441285, lng: 77.171562, photo: null
     },
     {
-        id: 'khalel_43', name: 'Досмұхамедұлы Х.', fullName: 'Халел Досмұхамедұлы',
+        id: 'khalel_43', name: 'Досмұхамедұлы Х.', fullName: 'Халел Досмұхамедұлы', era: 'alash',
         birth: '1883', death: '1939', cemetery: 'Белгісіз (Воронеж)', city: 'Воронеж (РФ)',
         filter: 'historical', lat: 51.6608, lng: 39.2003, photo: null
     },
     {
-        id: 'sanzhar_44', name: 'Асфендияров С.', fullName: 'Санжар Асфендияров',
+        id: 'sanzhar_44', name: 'Асфендияров С.', fullName: 'Санжар Асфендияров', era: 'alash',
         birth: '1889', death: '1938', cemetery: 'Жаңалық', city: 'Алматы обл',
         filter: 'historical', lat: 43.441182, lng: 77.172269, photo: null
     },
     {
-        id: 'zhumabay_45', name: 'Шаяхметов Ж.', fullName: 'Жұмабай Шаяхметов',
+        id: 'zhumabay_45', name: 'Шаяхметов Ж.', fullName: 'Жұмабай Шаяхметов', era: 'soviet',
         birth: '1902', death: '1966', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.282491, lng: 76.92557, photo: null
     },
     {
-        id: 'zhumabek_46', name: 'Тәшенов Ж.', fullName: 'Жұмабек Тәшенов',
+        id: 'zhumabek_46', name: 'Тәшенов Ж.', fullName: 'Жұмабек Тәшенов', era: 'soviet',
         birth: '1915', death: '1986', cemetery: 'Шымкент қаласы', city: 'Шымкент',
         filter: 'historical', lat: 42.3417, lng: 69.5901, photo: null
     },
     {
-        id: 'ozbekali_47', name: 'Жәнібеков Ө.', fullName: 'Өзбекәлі Жәнібеков',
+        id: 'ozbekali_47', name: 'Жәнібеков Ө.', fullName: 'Өзбекәлі Жәнібеков', era: 'soviet',
         birth: '1931', death: '1998', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'almaty', lat: 43.267065, lng: 76.998569, photo: null
     },
     {
-        id: 'bauyrzhan_48', name: 'Момышұлы Б.', fullName: 'Бауыржан Момышұлы',
+        id: 'bauyrzhan_48', name: 'Момышұлы Б.', fullName: 'Бауыржан Момышұлы', era: 'soviet',
         birth: '1910', death: '1982', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.26544, lng: 76.997193, photo: null
     },
     {
-        id: 'aliya_49', name: 'Молдағұлова Ә.', fullName: 'Әлия Молдағұлова',
+        id: 'aliya_49', name: 'Молдағұлова Ә.', fullName: 'Әлия Молдағұлова', era: 'soviet',
         birth: '1925', death: '1944', cemetery: 'Монаково', city: 'Псков обл (РФ)',
         filter: 'historical', lat: 56.321, lng: 29.9822, photo: null
     },
     {
-        id: 'manshuk_50', name: 'Мәметова М.', fullName: 'Мәншүк Мәметова',
+        id: 'manshuk_50', name: 'Мәметова М.', fullName: 'Мәншүк Мәметова', era: 'soviet',
         birth: '1922', death: '1943', cemetery: 'Невель', city: 'Псков обл (РФ)',
         filter: 'historical', lat: 56.021, lng: 29.9272, photo: null
     },
     {
-        id: 'talgat_51', name: 'Бигелдинов Т.', fullName: 'Талғат Бигелдинов',
+        id: 'talgat_51', name: 'Бигелдинов Т.', fullName: 'Талғат Бигелдинов', era: 'soviet',
         birth: '1922', death: '2014', cemetery: 'Кеңсай-2', city: 'Алматы',
         filter: 'historical', lat: 43.260447, lng: 77.004425, photo: null
     },
     {
-        id: 'sagadat_52', name: 'Нұрмағамбетов С.', fullName: 'Сағадат Нұрмағамбетов',
+        id: 'sagadat_52', name: 'Нұрмағамбетов С.', fullName: 'Сағадат Нұрмағамбетов', era: 'soviet',
         birth: '1924', death: '2013', cemetery: 'Кеңсай-2', city: 'Алматы',
         filter: 'historical', lat: 43.260071, lng: 77.004373, photo: null
     },
     {
-        id: 'rakhymzhan_53', name: 'Қошқарбаев Р.', fullName: 'Рахымжан Қошқарбаев',
+        id: 'rakhymzhan_53', name: 'Қошқарбаев Р.', fullName: 'Рахымжан Қошқарбаев', era: 'soviet',
         birth: '1924', death: '1988', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265186, lng: 76.99831, photo: null
     },
     {
-        id: 'kasym_54', name: 'Қайсенов Қ.', fullName: 'Қасым Қайсенов',
+        id: 'kasym_54', name: 'Қайсенов Қ.', fullName: 'Қасым Қайсенов', era: 'soviet',
         birth: '1918', death: '2006', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.266991, lng: 76.998389, photo: null
     },
     {
-        id: 'hiuaz_55', name: 'Доспанова Х.', fullName: 'Хиуаз Доспанова',
+        id: 'hiuaz_55', name: 'Доспанова Х.', fullName: 'Хиуаз Доспанова', era: 'soviet',
         birth: '1922', death: '2008', cemetery: 'Атырау қорымы', city: 'Атырау',
         filter: 'historical', lat: 47.116402, lng: 51.884478, photo: null
     },
     {
-        id: 'nurken_56', name: 'Әбдіров Н.', fullName: 'Нұркен Әбдіров',
+        id: 'nurken_56', name: 'Әбдіров Н.', fullName: 'Нұркен Әбдіров', era: 'soviet',
         birth: '1919', death: '1942', cemetery: 'Боковская сп', city: 'Ростов обл (РФ)',
         filter: 'historical', lat: 49.2272, lng: 41.8317, photo: null
     },
     {
-        id: 'kanysh_57', name: 'Сәтбаев Қ.', fullName: 'Қаныш Сәтбаев',
+        id: 'kanysh_57', name: 'Сәтбаев Қ.', fullName: 'Қаныш Сәтбаев', era: 'soviet',
         birth: '1899', death: '1964', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.282495, lng: 76.924981, photo: null
     },
     {
-        id: 'ermukhan_58', name: 'Бекмаханов Е.', fullName: 'Ермұхан Бекмаханов',
+        id: 'ermukhan_58', name: 'Бекмаханов Е.', fullName: 'Ермұхан Бекмаханов', era: 'soviet',
         birth: '1915', death: '1966', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.285853, lng: 76.923344, photo: null
     },
     {
-        id: 'alkei_59', name: 'Марғұлан Ә.', fullName: 'Әлкей Марғұлан',
+        id: 'alkei_59', name: 'Марғұлан Ә.', fullName: 'Әлкей Марғұлан', era: 'soviet',
         birth: '1904', death: '1985', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.282061, lng: 76.923661, photo: null
     },
     {
-        id: 'evney_60', name: 'Букетов Е.', fullName: 'Евней Букетов',
+        id: 'evney_60', name: 'Букетов Е.', fullName: 'Евней Букетов', era: 'soviet',
         birth: '1925', death: '1983', cemetery: 'Қарағанды', city: 'Қарағанды',
         filter: 'historical', lat: 49.92845, lng: 73.083131, photo: null
     },
     {
-        id: 'salyk_61', name: 'Зиманов С.', fullName: 'Салық Зиманов',
+        id: 'salyk_61', name: 'Зиманов С.', fullName: 'Салық Зиманов', era: 'soviet',
         birth: '1921', death: '2011', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265427, lng: 76.99837, photo: null
     },
     {
-        id: 'auezov_62', name: 'Әуезов М.', fullName: 'Мұхтар Әуезов',
+        id: 'auezov_62', name: 'Әуезов М.', fullName: 'Мұхтар Әуезов', era: 'soviet',
         birth: '1897', death: '1961', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'almaty', lat: 43.26639, lng: 76.997161, photo: null
     },
     {
-        id: 'gabit_63', name: 'Мүсірепов Ғ.', fullName: 'Ғабит Мүсірепов',
+        id: 'gabit_63', name: 'Мүсірепов Ғ.', fullName: 'Ғабит Мүсірепов', era: 'soviet',
         birth: '1902', death: '1985', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265312, lng: 76.997843, photo: null
     },
     {
-        id: 'sabit_64', name: 'Мұқанов С.', fullName: 'Сәбит Мұқанов',
+        id: 'sabit_64', name: 'Мұқанов С.', fullName: 'Сәбіт Мұқанов', era: 'soviet',
         birth: '1900', death: '1973', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265891, lng: 76.998281, photo: null
     },
     {
-        id: 'iliyas_e_65', name: 'Есенберлин І.', fullName: 'Ілияс Есенберлин',
+        id: 'iliyas_e_65', name: 'Есенберлин І.', fullName: 'Ілияс Есенберлин', era: 'soviet',
         birth: '1915', death: '1983', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.266173, lng: 76.998191, photo: null
     },
     {
-        id: 'mukagali_66', name: 'Мақатаев М.', fullName: 'Мұқағали Мақатаев',
+        id: 'mukagali_66', name: 'Мақатаев М.', fullName: 'Мұқағали Мақатаев', era: 'soviet',
         birth: '1931', death: '1976', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.26687, lng: 76.997244, photo: null
     },
     {
-        id: 'tumanbay_67', name: 'Молдағалиев Т.', fullName: 'Тұманбай Молдағалиев',
+        id: 'tumanbay_67', name: 'Молдағалиев Т.', fullName: 'Тұманбай Молдағалиев', era: 'soviet',
         birth: '1935', death: '2011', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.267839, lng: 76.998838, photo: null
     },
     {
-        id: 'fariza_68', name: 'Оңғарсынова Ф.', fullName: 'Фариза Оңғарсынова',
+        id: 'fariza_68', name: 'Оңғарсынова Ф.', fullName: 'Фариза Оңғарсынова', era: 'soviet',
         birth: '1939', death: '2014', cemetery: 'Ұлттық Пантеон', city: 'Астана',
         filter: 'historical', lat: 51.010961, lng: 71.374455, photo: null
     },
     {
-        id: 'abish_69', name: 'Кекілбайұлы Ә.', fullName: 'Әбіш Кекілбайұлы',
+        id: 'abish_69', name: 'Кекілбайұлы Ә.', fullName: 'Әбіш Кекілбайұлы', era: 'soviet',
         birth: '1939', death: '2015', cemetery: 'Ұлттық Пантеон', city: 'Астана',
         filter: 'historical', lat: 51.011162, lng: 71.373506, photo: null
     },
     {
-        id: 'sherkhan_70', name: 'Мұртаза Ш.', fullName: 'Шерхан Мұртаза',
+        id: 'sherkhan_70', name: 'Мұртаза Ш.', fullName: 'Шерхан Мұртаза', era: 'soviet',
         birth: '1932', death: '2018', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.267009, lng: 76.998356, photo: null
     },
     {
-        id: 'abdizhamil_71', name: 'Нұрпейісов Ә.', fullName: 'Әбдіжәміл Нұрпейісов',
+        id: 'abdizhamil_71', name: 'Нұрпейісов Ә.', fullName: 'Әбдіжәміл Нұрпейісов', era: 'soviet',
         birth: '1924', death: '2022', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.26762, lng: 76.999851, photo: null
     },
     {
-        id: 'qadyr_72', name: 'Мырза Әлі Қ.', fullName: 'Қадыр Мырза Әлі',
+        id: 'qadyr_72', name: 'Мырза Әлі Қ.', fullName: 'Қадыр Мырза Әлі', era: 'soviet',
         birth: '1935', death: '2011', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.266085, lng: 76.998478, photo: null
     },
     {
-        id: 'gerold_73', name: 'Бельгер Г.', fullName: 'Герольд Бельгер',
+        id: 'gerold_73', name: 'Бельгер Г.', fullName: 'Герольд Бельгер', era: 'soviet',
         birth: '1934', death: '2015', cemetery: 'Кеңсай (христ. бөлім)', city: 'Алматы',
         filter: 'historical', lat: 43.266518, lng: 76.999353, photo: null
     },
     {
-        id: 'shamshi_74', name: 'Қалдаяқов Ш.', fullName: 'Шәмші Қалдаяқов',
+        id: 'shamshi_74', name: 'Қалдаяқов Ш.', fullName: 'Шәмші Қалдаяқов', era: 'soviet',
         birth: '1930', death: '1992', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265884, lng: 76.997652, photo: null
     },
     {
-        id: 'nurgisa_75', name: 'Тілендиев Н.', fullName: 'Нұрғиса Тілендиев',
+        id: 'nurgisa_75', name: 'Тілендиев Н.', fullName: 'Нұрғиса Тілендиев', era: 'soviet',
         birth: '1925', death: '1998', cemetery: 'Отырар', city: 'Түркістан обл',
         filter: 'historical', lat: 43.296968, lng: 68.271036, photo: null
     },
     {
-        id: 'ermek_76', name: 'Серкебаев Е.', fullName: 'Ермек Серкебаев',
+        id: 'ermek_76', name: 'Серкебаев Е.', fullName: 'Ермек Серкебаев', era: 'soviet',
         birth: '1926', death: '2013', cemetery: 'Кеңсай-2', city: 'Алматы',
         filter: 'historical', lat: 43.260776, lng: 77.004259, photo: null
     },
     {
-        id: 'shaken_77', name: 'Айманов Ш.', fullName: 'Шәкен Айманов',
+        id: 'shaken_77', name: 'Айманов Ш.', fullName: 'Шәкен Айманов', era: 'soviet',
         birth: '1914', death: '1970', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.283791, lng: 76.924224, photo: null
     },
     {
-        id: 'roza_b_78', name: 'Бағланова Р.', fullName: 'Роза Бағланова',
+        id: 'roza_b_78', name: 'Бағланова Р.', fullName: 'Роза Бағланова', era: 'soviet',
         birth: '1922', death: '2011', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.266975, lng: 76.998989, photo: null
     },
     {
-        id: 'batyrkhan_79', name: 'Шүкенов Б.', fullName: 'Батырхан Шүкенов',
+        id: 'batyrkhan_79', name: 'Шүкенов Б.', fullName: 'Батырхан Шүкенов', era: 'soviet',
         birth: '1962', death: '2015', cemetery: 'Кеңсай-2', city: 'Алматы',
         filter: 'historical', lat: 43.261198, lng: 77.004747, photo: null
     },
     {
-        id: 'denis_ten_80', name: 'Тен Д.', fullName: 'Денис Тен',
+        id: 'denis_ten_80', name: 'Тен Д.', fullName: 'Денис Тен', era: 'soviet',
         birth: '1993', death: '2018', cemetery: 'Достық', city: 'Алматы',
         filter: 'almaty', lat: 43.256, lng: 76.928, photo: null
     },
     {
-        id: 'kulyash_81', name: 'Байсейітова К.', fullName: 'Күләш Байсейітова',
+        id: 'kulyash_81', name: 'Байсейітова К.', fullName: 'Күләш Байсейітова', era: 'soviet',
         birth: '1912', death: '1957', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.283801, lng: 76.925572, photo: null
     },
     {
-        id: 'shara_82', name: 'Жиенқұлова Ш.', fullName: 'Шара Жиенқұлова',
+        id: 'shara_82', name: 'Жиенқұлова Ш.', fullName: 'Шара Жиенқұлова', era: 'soviet',
         birth: '1912', death: '1991', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.266839, lng: 76.997147, photo: null
     },
     {
-        id: 'mukan_83', name: 'Төлебаев М.', fullName: 'Мұқан Төлебаев',
+        id: 'mukan_83', name: 'Төлебаев М.', fullName: 'Мұқан Төлебаев', era: 'soviet',
         birth: '1913', death: '1960', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.265146, lng: 76.998222, photo: null
     },
     {
-        id: 'gaziza_84', name: 'Жұбанова Ғ.', fullName: 'Ғазиза Жұбанова',
+        id: 'gaziza_84', name: 'Жұбанова Ғ.', fullName: 'Ғазиза Жұбанова', era: 'soviet',
         birth: '1927', death: '1993', cemetery: 'Кеңсай-1', city: 'Алматы',
         filter: 'historical', lat: 43.266848, lng: 76.998534, photo: null
     },
     {
-        id: 'ahmet_zh_85', name: 'Жұбанов А.', fullName: 'Ахмет Жұбанов',
+        id: 'ahmet_zh_85', name: 'Жұбанов А.', fullName: 'Ахмет Жұбанов', era: 'soviet',
         birth: '1906', death: '1968', cemetery: 'Орталық қорым', city: 'Алматы',
         filter: 'historical', lat: 43.282429, lng: 76.92408, photo: null
     },
     {
-        id: 'biken_86', name: 'Римова Б.', fullName: 'Бикен Римова',
+        id: 'biken_86', name: 'Римова Б.', fullName: 'Бикен Римова', era: 'soviet',
         birth: '1923', death: '2000', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.266204, lng: 76.998797, photo: null
     },
     {
-        id: 'akseleu_87', name: 'Сейдімбек А.', fullName: 'Ақселеу Сейдімбек',
+        id: 'akseleu_87', name: 'Сейдімбек А.', fullName: 'Ақселеу Сейдімбек', era: 'soviet',
         birth: '1942', death: '2009', cemetery: 'Ұлттық Пантеон', city: 'Астана',
         filter: 'historical', lat: 51.01132, lng: 71.374445, photo: null
     },
     {
-        id: 'oralkhan_88', name: 'Бөкей О.', fullName: 'Оралхан Бөкей',
+        id: 'oralkhan_88', name: 'Бөкей О.', fullName: 'Оралхан Бөкей', era: 'soviet',
         birth: '1943', death: '1993', cemetery: 'Кеңсай', city: 'Алматы',
         filter: 'historical', lat: 43.266147, lng: 76.999576, photo: null
     },
     {
-        id: 'sarken_89', name: 'Жүнісов С.', fullName: 'Сәкен Жүнісов',
+        id: 'sarken_89', name: 'Жүнісов С.', fullName: 'Сәкен Жүнісов', era: 'soviet',
         birth: '1934', death: '2006', cemetery: 'Ұлттық Пантеон', city: 'Астана',
         filter: 'historical', lat: 51.011036, lng: 71.37448, photo: null
     },
     {
-        id: 'khasen_90', name: 'Оралтай Х.', fullName: 'Хасен Оралтай',
+        id: 'khasen_90', name: 'Оралтай Х.', fullName: 'Хасен Оралтай', era: 'soviet',
         birth: '1933', death: '2010', cemetery: 'Мюнхен', city: 'Германия',
         filter: 'historical', lat: 48.1351, lng: 11.582, photo: null
     },
