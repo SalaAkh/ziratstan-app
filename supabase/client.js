@@ -123,9 +123,17 @@ async function fetchVipProfiles() {
 
 /**
  * Загрузить конкретный профиль по ID.
- * @param {string} id - UUID профиля
+ * @param {string} id - UUID профиля (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+ * @returns {object|null} - нормализованный профиль или null
  */
 async function fetchProfileById(id) {
+  // Валидация UUID — если передан slug/username, сразу возвращаем null
+  // чтобы не получить 400 от Supabase (invalid input syntax for type uuid)
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !UUID_REGEX.test(id)) {
+    return null;
+  }
+
   const { data, error } = await db
     .from('profiles')
     .select('*, cemetery:cemeteries(name, city)')
@@ -159,6 +167,9 @@ async function fetchProfileById(id) {
  * @param {string} profileId - UUID профиля
  */
 async function fetchFamilyRelations(profileId) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!profileId || !UUID_REGEX.test(profileId)) return [];
+
   const { data, error } = await db
     .from('profile_relations')
     .select(`
@@ -265,6 +276,9 @@ async function generateQrSlug(profileId) {
  * @returns {object|null} - { id, slug, scan_count, status } или null
  */
 async function fetchQrByProfile(profileId) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!profileId || !UUID_REGEX.test(profileId)) return null;
+
   const { data, error } = await db
     .from('qr_codes')
     .select('id, slug, scan_count, status, activated_at')

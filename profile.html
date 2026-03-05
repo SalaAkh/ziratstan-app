@@ -887,6 +887,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="profiles_data.js"></script>
     <script src="supabase/client.js"></script>
     <script>
         // ── LOAD PROFILE ──
@@ -899,16 +900,41 @@
                 return;
             }
 
-            // Пока идет загрузка, можно показать лоадер, но мы просто дождемся данных
             let p = null;
-            try {
-                if (typeof fetchProfileById === 'function') {
-                    p = await fetchProfileById(id);
-                } else {
-                    console.error('[Ziratstan] fetchProfileById missing');
+
+            // 1. Сначала ищем в PROFILES_STATIC (для slug-идов с карты: 'mirzhakyp_24' и т.д.)
+            if (typeof PROFILES_STATIC !== 'undefined') {
+                const staticMatch = PROFILES_STATIC.find(x => x.id === id);
+                if (staticMatch) {
+                    // Нормализуем к ожидаемому формату
+                    p = {
+                        id: staticMatch.id,
+                        fullName: staticMatch.fullName || staticMatch.name || '—',
+                        name: staticMatch.name || staticMatch.fullName || '—',
+                        lastName: '',
+                        birth: staticMatch.birth || '?',
+                        death: staticMatch.death || '?',
+                        cemetery: staticMatch.cemetery || 'Белгісіз',
+                        city: staticMatch.city || '',
+                        photo: staticMatch.photo || '',
+                        bio: staticMatch.bio || '',
+                        epitaph: staticMatch.epitaph || '',
+                        filter: staticMatch.filter || 'historical'
+                    };
                 }
-            } catch (err) {
-                console.error('[Ziratstan] Error fetching profile:', err);
+            }
+
+            // 2. Если в статике не нашли — пробуем Supabase (только для настоящих UUID)
+            if (!p) {
+                try {
+                    if (typeof fetchProfileById === 'function') {
+                        p = await fetchProfileById(id);
+                    } else {
+                        console.error('[Ziratstan] fetchProfileById missing');
+                    }
+                } catch (err) {
+                    console.error('[Ziratstan] Error fetching profile:', err);
+                }
             }
 
             if (!p) {

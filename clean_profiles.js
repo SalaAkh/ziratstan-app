@@ -29,7 +29,7 @@ let newContent = content;
 let removedCount = 0;
 for (const id of toRemove) {
     // regex to match the object. Handles both single-line and multi-line
-    const regex = new RegExp('[ \\t]*\\{[\\s\\S]*?id:\\s*\\'' + id + '\\'[\\s\\S]*?\\},?\\s*\\n?', 'g');
+    const regex = new RegExp(`[ \\t]*\\{[\\s\\S]*?id:\\s*'${id}'[\\s\\S]*?\\},?\\s*\\n?`, 'g');
     if (newContent.match(regex)) {
         newContent = newContent.replace(regex, '');
         removedCount++;
