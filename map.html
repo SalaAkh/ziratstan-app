@@ -1282,10 +1282,22 @@
                     // Merge local PROFILES_STATIC with Supabase data to ensure local 'era' data is present
                     const localProfiles = typeof PROFILES_STATIC !== 'undefined' ? PROFILES_STATIC : [];
 
-                    // Prioritize local static profiles (which contain the new 'era' and new historical figures)
-                    // If a DB profile exists locally, we take the local one. If it doesn't, we keep the DB one.
-                    const localIds = new Set(localProfiles.map(p => p.id));
-                    const dbOnlyProfiles = dbProfiles.filter(p => !localIds.has(p.id));
+                    // Deduplicate: drop DB profiles that overlap with local ones.
+                    // Supabase uses UUIDs, local uses string IDs — so we match by COORDINATES (within ~1km)
+                    // AND by name similarity to avoid false positives.
+                    const COORD_THRESHOLD = 0.02; // ~2km in degrees
+                    const dbOnlyProfiles = dbProfiles.filter(dbP => {
+                        // Skip if no coords
+                        if (!dbP.lat || !dbP.lng) return false;
+                        // Check if any local profile is nearby
+                        const hasDuplicate = localProfiles.some(localP => {
+                            if (!localP.lat || !localP.lng) return false;
+                            const dLat = Math.abs(dbP.lat - localP.lat);
+                            const dLng = Math.abs(dbP.lng - localP.lng);
+                            return dLat < COORD_THRESHOLD && dLng < COORD_THRESHOLD;
+                        });
+                        return !hasDuplicate;
+                    });
 
                     PROFILES = [...localProfiles, ...dbOnlyProfiles];
                     console.log('[Ziratstan] Merged with local static profiles. Total records:', PROFILES.length);
