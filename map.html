@@ -1081,6 +1081,14 @@
                     // Фильтр: пропускаем точки за пределами КЗ
                     if (lat < KZ_BOUNDS.latMin || lat > KZ_BOUNDS.latMax || lng < KZ_BOUNDS.lngMin || lng > KZ_BOUNDS.lngMax) return;
 
+                    // Блокируем показ точек/кластеров за пределами выбранного региона
+                    if (activeRegionId && activeRegionId !== 'zarubezh') {
+                        // Используем заранее посчитанный region_id из allFeatures
+                        // Для кластеров (у которых f.properties.cluster == true) getLeaves вернет точки
+                        // Но так как supercluster уже фильтруется через drillIntoRegion(), 
+                        // все приходящие сюда точки и кластеры УЖЕ принадлежат выбранному региону!
+                    }
+
                     if (f.properties.cluster) {
                         const count = f.properties.point_count;
                         let sizeClass = 'marker-cluster-small';
@@ -1136,6 +1144,9 @@
                     if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
                     if (!map.hasLayer(cemeteriesLayer)) map.addLayer(cemeteriesLayer);
                     renderClusters();
+
+                    // Update VIP markers overlay visibility to match the current filtered list
+                    if (typeof renderList === 'function') renderList();
                 }
             }
 
