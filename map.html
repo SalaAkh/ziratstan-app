@@ -284,31 +284,34 @@
         }
 
         /* Era Filter Styles */
-        .era-select {
-            width: calc(100% - 2rem);
-            margin: 0.25rem 1rem 1rem;
-            padding: 0.65rem 0.75rem;
-            background: var(--surface2);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
+        .era-filters-wrap::-webkit-scrollbar {
+            height: 0;
+            display: none;
+        }
+
+        .era-btn {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            margin-right: 0.3rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
             border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.8rem;
-            font-weight: 500;
-            outline: none;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
             cursor: pointer;
-            font-family: inherit;
-            appearance: none;
-            -webkit-appearance: none;
             transition: all 0.2s;
         }
 
-        .era-select:focus {
+        .era-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .era-btn.active {
+            background: var(--gold-dim);
             border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
+            color: var(--gold);
         }
 
         /* Results list */
@@ -746,14 +749,15 @@
             </div>
 
             <!-- New Era Filter (Hidden by default, shown only when historical is selected) -->
-            <select class="era-select" id="eraSelect" style="display: none;">
-                <option value="all">Барлық дәуірлер (Все эпохи)</option>
-                <option value="ancient">Ежелгі дәуір (Сақ, Ғұн)</option>
-                <option value="medieval">Орта ғасырлар (Алтын Орда)</option>
-                <option value="khanate">Қазақ хандығы (Хандар, Билер)</option>
-                <option value="alash">Алаш Орда (Ағартушылар)</option>
-                <option value="soviet">XX ғасыр (Кеңес, Тәуелсіздік)</option>
-            </select>
+            <div class="era-filters-wrap" id="eraSelectWrap"
+                style="display: none; padding: 0.5rem 1rem 1rem; overflow-x: auto; white-space: nowrap;">
+                <button class="era-btn active" data-era="all">Барлығы</button>
+                <button class="era-btn" data-era="ancient">Ежелгі дәуір</button>
+                <button class="era-btn" data-era="medieval">Орта ғасырлар</button>
+                <button class="era-btn" data-era="khanate">Қазақ хандығы</button>
+                <button class="era-btn" data-era="alash">Alash</button>
+                <button class="era-btn" data-era="soviet">Soviet</button>
+            </div>
 
             <!-- Results -->
             <div class="results-count" id="resultsCount">Жүктелуде...</div>
@@ -1192,7 +1196,8 @@
                 const pName = (p.name || p.fullName || '').toLowerCase();
                 const pCem = (p.cemetery || '').toLowerCase();
                 const pCity = (p.city || '').toLowerCase();
-                const searchQ = !q || pName.includes(q) || pCem.includes(q) || pCity.includes(q);
+                const pId = (p.id || '').toLowerCase();
+                const searchQ = !q || pName.includes(q) || pCem.includes(q) || pCity.includes(q) || pId.includes(q);
 
                 return matchFilter && matchEra && matchRegion && searchQ;
             }).filter(p => currentFilter !== 'cemeteries');
@@ -1225,6 +1230,18 @@
             document.getElementById('resultsCount').textContent = `Табылды: ${total} жазба`;
 
             let displayList = '';
+
+            if (total === 0 && q) {
+                displayList += `
+                <div style="padding: 2rem 1rem; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem; color: var(--muted);">🔍</div>
+                    <div style="color: var(--text); margin-bottom: 0.5rem; font-weight: 600;">Eшнәрсе табылған жоқ</div>
+                    <div style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Бірақ сіз бұл тұлғаны Зиратстанға өзіңіз қоса аласыз</div>
+                    <button class="geo-btn" style="background: var(--gold); color: #09090b; border: none; font-weight: 700;" onclick="openAddProfileModal(null, null, null, null)">➕ Create profile</button>
+                </div>
+                `;
+            }
+
 
             filteredVip.forEach(p => {
                 const displayName = p.name || p.fullName || 'Белгісіз';
@@ -1420,13 +1437,15 @@
             if (el) el.classList.add('active');
 
             // Show/hide era select
-            const eraSelect = document.getElementById('eraSelect');
+            const eraSelectWrap = document.getElementById('eraSelectWrap');
             if (f === 'historical') {
-                eraSelect.style.display = 'block';
+                eraSelectWrap.style.display = 'block';
             } else {
-                eraSelect.style.display = 'none';
+                eraSelectWrap.style.display = 'none';
                 currentEra = 'all'; // reset era when switching main tabs
-                eraSelect.value = 'all';
+                document.querySelectorAll('.era-btn').forEach(b => b.classList.remove('active'));
+                const allBtn = document.querySelector('.era-btn[data-era="all"]');
+                if (allBtn) allBtn.classList.add('active');
             }
 
             renderList();
@@ -1439,10 +1458,15 @@
             });
         });
 
-        // Era select change listener
-        document.getElementById('eraSelect').addEventListener('change', (e) => {
-            currentEra = e.target.value;
-            renderList();
+        // Era buttons click listener
+        document.querySelectorAll('.era-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.era-btn').forEach(b => b.classList.remove('active'));
+                const el = e.target;
+                el.classList.add('active');
+                currentEra = el.dataset.era;
+                renderList();
+            });
         });
 
         // ── SEARCH ──
