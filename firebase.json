@@ -4,7 +4,32 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "eslint.config.mjs",
+      "postcss.config.mjs",
+      "next.config.ts",
+      "next-env.d.ts",
+      "*.py",
+      "*.txt",
+      "*.md",
+      "*.json",
+      "ziratstan-app/**",
+      "supabase/**",
+      "guids/**",
+      "add_vips.js",
+      "clean_profiles.js",
+      "fetch_cemeteries.js",
+      "find.js",
+      "find_dupes.js",
+      "migrate_profiles.js",
+      "push_schema.js",
+      "rename_cemeteries.js",
+      "tmp_add_eras.js",
+      "tmp_fix_eras.js",
+      "parse_wikipedia.js"
     ]
   }
 }

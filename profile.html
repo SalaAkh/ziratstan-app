@@ -886,7 +886,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="profiles_data.js"></script>
     <script src="supabase/client.js"></script>
     <script>
@@ -1130,6 +1130,11 @@
 
         // ── QR MEMORIAL ──
         async function loadQrSection(profileId) {
+            // QR functionality only works for profiles stored in Supabase (real UUIDs).
+            // Static profiles from profiles_data.js (e.g. 'mirzhakyp_24') skip this section entirely.
+            const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!UUID_REGEX.test(profileId)) return;
+
             try {
                 if (typeof fetchQrByProfile !== 'function') return;
                 const qr = await fetchQrByProfile(profileId);
@@ -1197,6 +1202,18 @@
         }
 
         async function createQrForProfile(profileId) {
+            // QR creation requires a real UUID — static profiles (e.g. 'mirzhakyp_24') are not stored
+            // in Supabase and cannot have a QR record created for them.
+            const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!UUID_REGEX.test(profileId)) {
+                const content = document.getElementById('qrContent');
+                content.innerHTML = `<p style="color:var(--muted); font-size:0.88rem; line-height:1.7;">
+                    📋 QR-код тек Supabase дерекқорында тіркелген профильдер үшін қол жетімді.<br>
+                    Бұл тарихи тұлға статикалық дерекқорда сақталған.
+                </p>`;
+                return;
+            }
+
             const btn = document.getElementById('createQrBtn');
             btn.textContent = '⏳ Генерациялануда...';
             btn.disabled = true;
