@@ -2,51 +2,57 @@ import urllib.request
 import os
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
 except ImportError:
     import sys
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 # Set up dimensions
 WIDTH = 1200
 HEIGHT = 630
-BG_COLOR = (9, 9, 11)        # #09090b
+BG_COLOR = (15, 15, 18)       # #0f0f12
 ACCENT_COLOR = (212, 175, 55) # #d4af37 (Gold)
 TEXT_COLOR = (244, 244, 245)  # #f4f4f5
-MUTED_COLOR = (113, 113, 122) # #71717a
+MUTED_COLOR = (140, 140, 145) # lighter muted
 
 def main():
     img = Image.new('RGB', (WIDTH, HEIGHT), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    # Draw gradient-like abstract circles
-    draw.ellipse((800, -300, 1600, 500), fill=(18, 18, 20))
-    draw.ellipse((-200, 200, 300, 700), fill=(15, 15, 18))
+    # Draw gradient-like abstract circles (simulated by drawing ellipses and applying a blur if we want, or just drawing overlay)
+    draw.ellipse((-300, -300, 600, 600), fill=(22, 22, 25))
+    draw.ellipse((800, 200, 1800, 1200), fill=(20, 20, 23))
     
     # Border
     draw.rectangle([20, 20, WIDTH-20, HEIGHT-20], outline=(30, 30, 35), width=2)
 
-    # Load font or download Inter
-    font_path = "Inter-Bold.ttf"
-    if not os.path.exists(font_path):
-        url = "https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bslnt%2Cwght%5D.ttf"
-        try:
-            urllib.request.urlretrieve(url, font_path)
-        except Exception as e:
-            print("Could not download font:", e)
+    # Load font or download Roboto
+    font_bold_path = "Roboto-Bold.ttf"
+    font_reg_path = "Roboto-Regular.ttf"
+    
+    def download_font(url, path):
+        if not os.path.exists(path):
+            try:
+                urllib.request.urlretrieve(url, path)
+            except Exception as e:
+                print(f"Could not download font {path}:", e)
+
+    download_font("https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf", font_bold_path)
+    download_font("https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Regular.ttf", font_reg_path)
 
     try:
-        font_logo = ImageFont.truetype(font_path, 90)
-        font_title = ImageFont.truetype(font_path, 50)
-        font_desc = ImageFont.truetype(font_path, 32)
-        font_url = ImageFont.truetype(font_path, 28)
-    except:
+        font_logo = ImageFont.truetype(font_bold_path, 100)
+        font_title = ImageFont.truetype(font_bold_path, 60)
+        font_desc = ImageFont.truetype(font_reg_path, 36)
+        font_url = ImageFont.truetype(font_bold_path, 32)
+    except Exception as e:
+        print("Font load error:", e)
         font_logo = font_title = font_desc = font_url = ImageFont.load_default()
 
     # Draw Text
-    draw.text((80, 140), "Зиратстан", font=font_logo, fill=ACCENT_COLOR)
+    draw.text((80, 120), "Зиратстан", font=font_logo, fill=ACCENT_COLOR)
     
     subtitle = "Қазақстанның Цифрлық Жады"
     draw.text((80, 260), subtitle, font=font_title, fill=TEXT_COLOR)
@@ -54,16 +60,17 @@ def main():
     desc = "Құлпытастағы QR-кодты сканерлеп,\nадамның толық өмірбаянын ашыңыз."
     draw.text((80, 380), desc, font=font_desc, fill=MUTED_COLOR)
     
-    draw.text((80, 520), "ziratstan.kz", font=font_url, fill=ACCENT_COLOR)
+    # Draw URL at the bottom
+    draw.text((80, 530), "ziratstan.kz", font=font_url, fill=ACCENT_COLOR)
 
     # Save format
     out_path = "d:/User/Desktop/Programms/Ziratstan.kz/og-image.jpg"
-    img.save(out_path)
+    img.save(out_path, quality=95)
     print(f"OG Image generated at {out_path}")
 
     out_path_public = "d:/User/Desktop/Programms/Ziratstan.kz/public/og-image.jpg"
     try:
-        img.save(out_path_public)
+        img.save(out_path_public, quality=95)
         print(f"OG Image generated at {out_path_public}")
     except:
         pass
