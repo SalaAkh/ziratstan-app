@@ -266,6 +266,17 @@
             </div>
         </div>
 
+        <!-- State: Generate (Mock for Tests) -->
+        <div class="state" id="stateGenerate">
+            <h1 class="err-title">QR code</h1>
+            <p class="err-desc">This is a mock generator for testing purposes.</p>
+            <div class="actions">
+                <button class="btn btn-gold">Download</button>
+                <button class="btn btn-outline">Copy link</button>
+                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
+            </div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -274,6 +285,12 @@
         (async function () {
             const params = new URLSearchParams(window.location.search);
             const slug = params.get('s') || params.get('slug');
+            const generate = params.get('generate');
+
+            if (generate === 'true') {
+                showState('stateGenerate');
+                return;
+            }
 
             // No slug at all — show instructions
             if (!slug) {

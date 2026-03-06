@@ -802,9 +802,7 @@
             <button class="btn-action btn-outline"
                 onclick="document.getElementById('familySection').style.display='block'; this.scrollIntoView();">🌳 View
                 family tree</button>
-            <button class="btn-action btn-outline"
-                onclick="document.getElementById('qrSection').style.display='block'; this.scrollIntoView();">📲 View
-                QR</button>
+            <a href="qr.html" id="generateQrBtn" class="btn-action btn-outline">📲 View QR / Generate QR</a>
             <a href="map.html" class="btn-action btn-back">🗺️ Картаға қайту</a>
         </div>
 
@@ -1050,6 +1048,7 @@
 
             document.getElementById('profileContent').style.display = '';
             document.getElementById('notFound').style.display = 'none';
+            document.getElementById('generateQrBtn').href = 'qr.html?slug=' + realProfileId + '&generate=true';
 
             // Load Family Tree
             loadFamilyTree(realProfileId, p);
