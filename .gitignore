@@ -1,8 +1,10 @@
 # Зависимости
 node_modules/
+google4a672bfea76db3c6.html
 
 # Next.js build output
 .next/
+.next
 out/
 ziratstan-app/out/
 ziratstan-app/.next/
@@ -33,3 +35,7 @@ yarn-error.log*
 
 # TestSprite
 testsprite_tests/
+
+# Python cache
+__pycache__/
+*.pyc
