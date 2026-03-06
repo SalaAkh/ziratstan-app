@@ -124,10 +124,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0e0e10 0%, #1a1a20 50%, #0d0d0f 100%);
-            font-size: 8rem;
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08) 0%, #09090b 80%);
+            font-size: 10rem;
             color: var(--gold);
-            opacity: 0.3;
+            opacity: 0.5;
+            text-shadow: 0 0 60px rgba(212, 175, 55, 0.4);
+            user-select: none;
         }
 
         .hero-gradient {
@@ -971,6 +973,9 @@
                 document.getElementById('heroImg').alt = p.fullName;
                 document.getElementById('heroImg').style.display = 'block';
                 document.getElementById('heroPlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('heroImg').style.display = 'none';
+                document.getElementById('heroPlaceholder').style.display = 'flex';
             }
 
             const nameParts = p.fullName.split(' ');
