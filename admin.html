@@ -520,11 +520,40 @@
                         id="cnt-profiles">0</span></button>
                 <button class="tab" onclick="switchTab('bios', this)">📖 Биографии <span class="tab-count"
                         id="cnt-bios">0</span></button>
+                <button class="tab" onclick="switchTab('manage', this)">📇 Управление профилями</button>
             </div>
 
             <div id="content-names" class="cards-list"></div>
             <div id="content-profiles" class="cards-list" style="display:none;"></div>
             <div id="content-bios" class="cards-list" style="display:none;"></div>
+            <div id="content-manage" class="cards-list" style="display:none;">
+                <div class="card" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ Создать новый профиль</div>
+                    <form id="createProfileForm" onsubmit="handleCreateProfile(event)"
+                        style="display: flex; flex-direction: column; gap: 12px;">
+                        <input type="text" id="cp_firstName" placeholder="Имя (обязательно)" required class="gate-input"
+                            style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
+                        <input type="text" id="cp_lastName" placeholder="Фамилия" class="gate-input"
+                            style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
+                        <div style="display:flex; gap:12px;">
+                            <input type="number" id="cp_birthYear" placeholder="Год рождения (напр. 1850)"
+                                class="gate-input"
+                                style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
+                            <input type="number" id="cp_deathYear" placeholder="Год смерти (напр. 1930)"
+                                class="gate-input"
+                                style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
+                        </div>
+                        <textarea id="cp_bio" placeholder="Биография" rows="3" class="gate-input"
+                            style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
+                        <button type="submit" class="gate-btn" id="cp_submitBtn"
+                            style="width: auto; align-self: flex-start; padding: 10px 24px;">Создать профиль</button>
+                    </form>
+                </div>
+
+                <div class="card-title" style="margin-bottom: 12px; margin-top: 12px; font-size:1.1rem;">📋 База
+                    профилей</div>
+                <div id="manage-profiles-list" class="cards-list"></div>
+            </div>
         </div>
     </div>
 
@@ -535,7 +564,7 @@
     <script>
         // ── CONFIG ──
         let currentTab = 'names';
-        let allData = { names: [], profiles: [], bios: [] };
+        let allData = { names: [], profiles: [], bios: [], manage: [] };
 
         // ── INIT AUTH ──
         document.addEventListener('DOMContentLoaded', async () => {
@@ -594,10 +623,96 @@
             currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
-            ['names', 'profiles', 'bios'].forEach(t => {
-                document.getElementById(`content-${t}`).style.display = t === tab ? 'flex' : 'none';
-                document.getElementById(`content-${t}`).style.flexDirection = 'column';
+            ['names', 'profiles', 'bios', 'manage'].forEach(t => {
+                const el = document.getElementById(`content-${t}`);
+                if (el) {
+                    el.style.display = t === tab ? 'flex' : 'none';
+                    el.style.flexDirection = 'column';
+                }
             });
+
+            if (tab === 'manage' && (!allData.manage || allData.manage.length === 0)) {
+                loadManageProfiles();
+            }
+        }
+
+        async function loadManageProfiles() {
+            const listContainer = document.getElementById('manage-profiles-list');
+            listContainer.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+            try {
+                if (typeof fetchAllAdminProfiles === 'function') {
+                    const data = await fetchAllAdminProfiles();
+                    allData.manage = data || [];
+                    renderManageTab(allData.manage);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('❌ Ошибка загрузки базы профилей', 'error');
+                listContainer.innerHTML = `<div class="empty"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        function renderManageTab(items) {
+            const container = document.getElementById('manage-profiles-list');
+            if (!items.length) {
+                container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Профилей пока нет</p></div>`;
+                return;
+            }
+            container.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.gridTemplateColumns = '1fr auto';
+
+                const years = `${item.birth_date ? item.birth_date.substring(0, 4) : '?'} — ${item.death_date ? item.death_date.substring(0, 4) : '?'}`;
+                const name = `${item.last_name || ''} ${item.first_name || ''}`.trim();
+
+                div.innerHTML = `
+                <div>
+                    <div class="card-title">${name}</div>
+                    <div class="card-meta-row" style="margin-top:8px;">
+                        <div class="card-meta-item">📅 <span>${years}</span></div>
+                        <div class="card-meta-item">Старый ID (slug): <span>${item.epitaph || '—'}</span></div>
+                    </div>
+                    <div class="card-meta-row" style="margin-top:4px;">
+                        <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${item.id}</span></div>
+                    </div>
+                </div>
+                <div class="card-actions" style="justify-content:center;">
+                    <a href="profile.html?id=${item.id}" target="_blank" class="btn-approve" style="text-decoration:none; background:var(--gold-dim); color:var(--gold); border-color:rgba(212,175,55,0.3); padding:10px 16px;">Открыть профиль</a>
+                </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        async function handleCreateProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('cp_submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Создание...';
+
+            const payload = {
+                first_name: document.getElementById('cp_firstName').value,
+                last_name: document.getElementById('cp_lastName').value,
+                birth_year: document.getElementById('cp_birthYear').value,
+                death_year: document.getElementById('cp_deathYear').value,
+                biography: document.getElementById('cp_bio').value
+            };
+
+            try {
+                if (typeof createAdminProfile === 'function') {
+                    await createAdminProfile(payload);
+                    showToast('✅ Профиль успешно создан!', 'success');
+                    document.getElementById('createProfileForm').reset();
+                    loadManageProfiles();
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('❌ Ошибка при создании профиля', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Создать профиль';
+            }
         }
 
         // ── LOAD DATA ──

@@ -901,6 +901,17 @@
             }
 
             let p = null;
+            let realProfileId = id;
+
+            // Попытка получить настоящий UUID базы (для всех профилей, включая статические)
+            try {
+                if (typeof fetchProfileIdBySlug === 'function') {
+                    const resolvedId = await fetchProfileIdBySlug(id);
+                    if (resolvedId) realProfileId = resolvedId;
+                }
+            } catch (err) {
+                console.warn('[Ziratstan] Could not resolve profile UUID:', err);
+            }
 
             // 1. Сначала ищем в PROFILES_STATIC (для slug-идов с карты: 'mirzhakyp_24' и т.д.)
             if (typeof PROFILES_STATIC !== 'undefined') {
@@ -928,7 +939,7 @@
             if (!p) {
                 try {
                     if (typeof fetchProfileById === 'function') {
-                        p = await fetchProfileById(id);
+                        p = await fetchProfileById(realProfileId);
                     } else {
                         console.error('[Ziratstan] fetchProfileById missing');
                     }
@@ -983,10 +994,10 @@
             document.getElementById('notFound').style.display = 'none';
 
             // Load Family Tree
-            loadFamilyTree(id, p);
+            loadFamilyTree(realProfileId, p);
 
             // Load QR Code
-            loadQrSection(id);
+            loadQrSection(realProfileId);
         }
 
         async function loadFamilyTree(profileId, currentProfile) {
