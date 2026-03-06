@@ -1,6 +1,10 @@
 # Зависимости
 node_modules/
 google4a672bfea76db3c6.html
+firebase-debug.log
+firebase-debug.log*
+firebase
+.firebase
 
 # Next.js build output
 .next/
