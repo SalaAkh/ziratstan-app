@@ -17,7 +17,6 @@
       "*.md",
       "*.json",
       "ziratstan-app/**",
-      "supabase/**",
       "guids/**",
       "add_vips.js",
       "clean_profiles.js",
