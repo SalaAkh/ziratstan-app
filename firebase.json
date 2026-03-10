@@ -10,6 +10,7 @@
       "*.py",
       "*.md",
       "*.json",
+      "!public/data/**/*.json",
       "ziratstan-app/**",
       "guids/**",
       "add_vips.js",

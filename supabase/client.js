@@ -226,6 +226,11 @@ async function resolveQrSlug(slug) {
  * @returns {object} - { slug, id } созданной записи
  */
 async function generateQrSlug(profileId) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('QR-код жасау үшін әкімші құқығы қажет (авторизациядан өтіңіз).');
+  }
+
   // Генерируем уникальный slug
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без 0,O,1,I для читабельности
   let slug;

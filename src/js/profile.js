@@ -3,19 +3,125 @@
 //  Extracted from inline <script> in profile.html
 // ─────────────────────────────────────────────
 
+// Current bio lang state
+let _bioDataKK = null;
+let _bioDataRU = null;
+let _bioExpanded = false;
+let _bioLang = 'kk';
+
+// ── LOAD ENRICHED BIO FROM JSON ──
+async function loadEnrichedBio(profileId) {
+    try {
+        const res = await fetch(`/public/data/profiles/${profileId}.json`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch(e) {
+        return null;
+    }
+}
+
+// ── RENDER BIO SECTION ──
+function renderBio(data) {
+    const bioSection = document.getElementById('bioSection');
+    if (!bioSection) return;
+
+    _bioDataKK = data.bio_kk || null;
+    _bioDataRU = data.bio_ru || null;
+
+    if (!_bioDataKK && !_bioDataRU) return;
+
+    const activeLang = _bioDataKK ? 'kk' : 'ru';
+    _bioLang = activeLang;
+
+    const wikiKK = data.wiki_link_kk ? `<a href="${data.wiki_link_kk}" target="_blank" rel="noopener" id="wikiLinkKK" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">📚 Wikipedia (ҚАЗ)</a>` : '';
+    const wikiRU = data.wiki_link_ru ? `<a href="${data.wiki_link_ru}" target="_blank" rel="noopener" id="wikiLinkRU" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">📚 Wikipedia (РУС)</a>` : '';
+
+    const langSwitcher = (_bioDataKK && _bioDataRU) ? `
+        <div id="bioLangSwitch" style="display:flex;gap:6px;margin-bottom:1rem;">
+            <button id="btnLangKK" onclick="switchBioLang('kk')" style="padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">ҚАЗ</button>
+            <button id="btnLangRU" onclick="switchBioLang('ru')" style="padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">РУС</button>
+        </div>` : '';
+
+    const bioText = _bioDataKK || _bioDataRU;
+
+    const videoHTML = data.video_link ? `
+        <div style="margin-top:2rem;">
+            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> Бейнематериал</h3>
+            <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);">
+                <iframe src="${data.video_link.replace('watch?v=', 'embed/')}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
+            </div>
+        </div>
+    ` : '';
+
+    const galleryHTML = data.photos && data.photos.length > 0 ? `
+        <div style="margin-top:2rem;">
+            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> Фотогалерея</h3>
+            <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin;">
+                ${data.photos.map(url => `<img src="${url}" style="height:160px;min-width:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    bioSection.innerHTML = `
+        <h2><span class="s-icon">📖</span> Өмірбаян</h2>
+        ${langSwitcher}
+        <div id="bioTextWrapper" style="position:relative;">
+            <p id="biographyText" style="font-size:1rem;line-height:1.8;color:var(--text);opacity:0.82;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;margin-bottom:1rem;">${bioText}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" style="font-size:0.82rem;">📖 Толығырақ оқу</button>
+            ${wikiKK}
+            ${wikiRU}
+        </div>
+        ${galleryHTML}
+        ${videoHTML}
+    `;
+}
+
+function switchBioLang(lang) {
+    _bioLang = lang;
+    const bioText = lang === 'kk' ? (_bioDataKK || _bioDataRU) : (_bioDataRU || _bioDataKK);
+    const bioEl = document.getElementById('biographyText');
+    if (bioEl) bioEl.textContent = bioText;
+
+    const btnKK = document.getElementById('btnLangKK');
+    const btnRU = document.getElementById('btnLangRU');
+    if (btnKK && btnRU) {
+        const activeStyle = 'padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;';
+        const inactiveStyle = 'padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;';
+        btnKK.style.cssText = lang === 'kk' ? activeStyle : inactiveStyle;
+        btnRU.style.cssText = lang === 'ru' ? activeStyle : inactiveStyle;
+    }
+
+    // Reset expand state
+    _bioExpanded = false;
+    if (bioEl) {
+        bioEl.style.overflow = 'hidden';
+        bioEl.style.display = '-webkit-box';
+        bioEl.style.webkitLineClamp = '5';
+        bioEl.style.webkitBoxOrient = 'vertical';
+    }
+    const btn = document.getElementById('readBioBtn');
+    if (btn) btn.textContent = '📖 Толығырақ оқу';
+}
+
 // ── TOGGLE BIO ──
 function toggleBio() {
-    const fullBio = document.getElementById('fullBioSection');
-    const shortBio = document.getElementById('biographyText');
+    const bioEl = document.getElementById('biographyText');
     const btn = document.getElementById('readBioBtn');
-    if (fullBio.style.display === 'none') {
-        fullBio.style.display = 'block';
-        shortBio.style.display = 'none';
-        btn.textContent = 'Collapse biography';
+    if (!bioEl) return;
+    _bioExpanded = !_bioExpanded;
+    if (_bioExpanded) {
+        bioEl.style.overflow = 'visible';
+        bioEl.style.display = 'block';
+        bioEl.style.webkitLineClamp = 'unset';
+        if (btn) btn.textContent = '🔼 Жию';
     } else {
-        fullBio.style.display = 'none';
-        shortBio.style.display = '-webkit-box';
-        btn.textContent = 'Read biography';
+        bioEl.style.overflow = 'hidden';
+        bioEl.style.display = '-webkit-box';
+        bioEl.style.webkitLineClamp = '5';
+        bioEl.style.webkitBoxOrient = 'vertical';
+        if (btn) btn.textContent = '📖 Толығырақ оқу';
     }
 }
 
@@ -110,13 +216,6 @@ async function initProfile() {
     document.getElementById('infoCemetery').textContent = p.cemetery;
     document.getElementById('infoCity').textContent = p.city;
 
-    // Biography placeholder
-    const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — көрнекті қайраткер, ${p.city}, ${p.cemetery} зиратында жерленген.\n\nТолық тарихи өмірбаян цифрландыру үстінде. Егер сізде бұл тұлға туралы мәліметтер болса — «Өмірбаянды толықтыру» түймесін басып, тарихи жадты сақтауға көмектесіңіз.`;
-    document.getElementById('biographyText').textContent = p.bio || bioDefault;
-    if (document.getElementById('expandedBioText')) {
-        document.getElementById('expandedBioText').textContent = p.bio || bioDefault;
-    }
-
     // Badge
     const badge = document.getElementById('heroBadge');
     if (p.filter === 'almaty') badge.textContent = 'Алматы';
@@ -125,6 +224,19 @@ async function initProfile() {
     document.getElementById('profileContent').style.display = '';
     document.getElementById('notFound').style.display = 'none';
     document.getElementById('generateQrBtn').href = 'qr.html?slug=' + realProfileId + '&generate=true';
+
+    // Load enriched bio from JSON (Wikipedia data)
+    const enriched = await loadEnrichedBio(p.id);
+    if (enriched && (enriched.bio_kk || enriched.bio_ru)) {
+        renderBio(enriched);
+    } else {
+        // Fallback biography placeholder
+        const bioSection = document.getElementById('bioSection');
+        if (bioSection) {
+            const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — көрнекті қайраткер, ${p.city}, ${p.cemetery} зиратында жерленген.\n\nТолық тарихи өмірбаян цифрландыру үстінде. Егер сізде бұл тұлға туралы мәліметтер болса — «Өмірбаянды толықтыру» түймесін басып, тарихи жадты сақтауға көмектесіңіз.`;
+            document.getElementById('biographyText') && (document.getElementById('biographyText').textContent = p.bio || bioDefault);
+        }
+    }
 
     // Load Family Tree
     loadFamilyTree(realProfileId, p);
@@ -288,7 +400,12 @@ async function loadQrSection(profileId) {
         if (qr && qr.slug) {
             renderQrDisplay(content, qr, profileId);
         } else {
-            renderQrCreate(content, profileId);
+            const session = await getSession();
+            if (session) {
+                renderQrCreate(content, profileId);
+            } else {
+                content.innerHTML = `<p style="color:var(--muted); font-size:0.9rem; line-height:1.7;">Бұл профильде әлі QR-код жасалмаған. Орнату үшін әкімшіге хабарласыңыз.</p>`;
+            }
         }
     } catch (err) {
         console.warn('[Ziratstan QR] Error loading QR section:', err);
