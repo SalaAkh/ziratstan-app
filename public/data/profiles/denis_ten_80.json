@@ -1,0 +1,20 @@
+{
+  "id": "denis_ten_80",
+  "name": "Тен Д.",
+  "fullName": "Денис Тен",
+  "era": "soviet",
+  "birth": "1993",
+  "death": "2018",
+  "cemetery": "Достық",
+  "city": "Алматы",
+  "filter": "almaty",
+  "lat": 43.256,
+  "lng": 76.928,
+  "photo": null,
+  "bio_kk": null,
+  "bio_ru": null,
+  "wiki_link_kk": null,
+  "wiki_link_ru": null,
+  "photos": [],
+  "video_link": null
+}
