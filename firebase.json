@@ -7,13 +7,7 @@
       "**/node_modules/**",
       "package.json",
       "package-lock.json",
-      "tsconfig.json",
-      "eslint.config.mjs",
-      "postcss.config.mjs",
-      "next.config.ts",
-      "next-env.d.ts",
       "*.py",
-      "find_dupes.txt",
       "*.md",
       "*.json",
       "ziratstan-app/**",
@@ -25,10 +19,7 @@
       "find_dupes.js",
       "migrate_profiles.js",
       "push_schema.js",
-      "rename_cemeteries.js",
-      "tmp_add_eras.js",
-      "tmp_fix_eras.js",
-      "parse_wikipedia.js"
+      "rename_cemeteries.js"
     ]
   }
 }
