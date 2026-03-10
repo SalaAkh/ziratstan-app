@@ -1,0 +1,17 @@
+404.html		     list.txt		    qr.html
+add_vips.js		     locales.js		    README.md
+admin.html		     map.html		    rename_cemeteries.js
+cemeteries_data.js	     migrate_profiles.js    Roboto-Bold.ttf
+clean_profiles.js	     migration_errors.json  Roboto-Regular.ttf
+eslint.config.mjs	     next.config.ts	    robots.txt
+favicon.svg		     next-env.d.ts	    services.html
+fetch_cemeteries.js	     og-image.jpg	    sitemap.xml
+find.js			     og-image-v2.jpg	    src
+find_dupes.js		     og-image-v3.png	    supabase
+find_dupes.txt		     og-image-v4.jpg	    testsprite_tests
+firebase.json		     parse_wikipedia.js     tmp_add_eras.js
+generate_og.py		     postcss.config.mjs     tmp_fix_eras.js
+google4a672bfea76db3c6.html  profile.html	    tmp_fix_eras.py
+guids			     profiles_data.js	    tsconfig.json
+i18n.js			     public		    ziratstan-app
+index.html		     push_schema.js
