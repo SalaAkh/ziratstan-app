@@ -1,7 +1,4 @@
 {
-  "functions": {
-    "source": "functions"
-  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -24,12 +21,6 @@
       "migrate_profiles.js",
       "push_schema.js",
       "rename_cemeteries.js"
-    ],
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "function": "api"
-      }
     ]
   }
 }

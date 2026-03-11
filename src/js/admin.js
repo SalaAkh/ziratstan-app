@@ -11,6 +11,48 @@ const MFA_FACTOR_NAME = 'Ziratstan Admin';
 
 let pendingMfa = null;
 let authFlowId = 0;
+let authSyncQueue = Promise.resolve();
+
+const AUTH_RETRY_DELAY_MS = 120;
+const AUTH_RETRY_MAX_ATTEMPTS = 3;
+
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isSupabaseLockAbortError(error) {
+    const message = (error && error.message) ? String(error.message) : '';
+    const name = (error && error.name) ? String(error.name) : '';
+
+    return name === 'AbortError'
+        && (message.includes('Lock broken by another request')
+            || message.includes('was not released within 5000ms'));
+}
+
+async function withAuthRetry(fn) {
+    let attempt = 0;
+
+    while (attempt < AUTH_RETRY_MAX_ATTEMPTS) {
+        try {
+            return await fn();
+        } catch (error) {
+            attempt += 1;
+            if (!isSupabaseLockAbortError(error) || attempt >= AUTH_RETRY_MAX_ATTEMPTS) {
+                throw error;
+            }
+
+            await delay(AUTH_RETRY_DELAY_MS * attempt);
+        }
+    }
+}
+
+function queueAuthSync(session) {
+    authSyncQueue = authSyncQueue
+        .catch(() => {})
+        .then(() => syncAuthUI(session));
+
+    return authSyncQueue;
+}
 
 function getGateElements() {
     return {
@@ -102,7 +144,10 @@ function setMfaButtonState(isLoading, label) {
 }
 
 function getAdminRedirectUrl() {
-    return `${window.location.origin}${window.location.pathname}`;
+    const currentPath = window.location.pathname || '';
+    const isAdminPage = /(^|\/)admin\.html$/i.test(currentPath);
+    const adminPath = isAdminPage ? currentPath : '/admin.html';
+    return `${window.location.origin}${adminPath}`;
 }
 
 function cleanupAuthUrl() {
@@ -120,38 +165,95 @@ function cleanupAuthUrl() {
 }
 
 async function apiRequest(path, options = {}) {
-    const session = await getSession();
-
+    const session = await withAuthRetry(() => getSession());
     if (!session?.access_token) {
-        const error = new Error('Сессия администратора истекла. Войдите заново.');
+        const error = new Error('Admin session expired. Please sign in again.');
         error.statusCode = 401;
         throw error;
     }
 
-    const response = await fetch(`/api${path}`, {
-        method: options.method || 'GET',
-        headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    const method = (options.method || 'GET').toUpperCase();
+    const body = options.body || {};
 
-    const payload = await response.json().catch(() => ({}));
+    const toError = (message, statusCode = 500) => {
+        const error = new Error(message);
+        error.statusCode = statusCode;
+        return error;
+    };
 
-    if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            await db.auth.signOut();
+    const throwIfError = (result, fallbackMessage, statusCode = 500) => {
+        if (result?.error) {
+            throw toError(result.error.message || fallbackMessage, statusCode);
         }
+    };
 
-        const error = new Error(payload.error || 'Ошибка admin API');
-        error.statusCode = response.status;
-        throw error;
+    if (path === '/admin/bootstrap' && method === 'GET') {
+        const [namesRes, profilesRes, biosRes] = await Promise.all([
+            db.from('ugc_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
+            db.from('ugc_profile_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
+            db.from('ugc_bio_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
+        ]);
+
+        throwIfError(namesRes, 'Failed to load name submissions');
+        throwIfError(profilesRes, 'Failed to load profile submissions');
+        throwIfError(biosRes, 'Failed to load biography submissions');
+
+        return {
+            names: namesRes.data || [],
+            profiles: profilesRes.data || [],
+            bios: biosRes.data || [],
+        };
     }
 
-    return payload;
-}
+    if (path === '/admin/profiles' && method === 'GET') {
+        const result = await db
+            .from('profiles')
+            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, cemeteries(name)')
+            .order('created_at', { ascending: false })
+            .limit(300);
 
+        throwIfError(result, 'Failed to load profiles');
+        return { items: result.data || [] };
+    }
+
+    if (path === '/admin/profiles' && method === 'POST') {
+        if (!body.first_name || !String(body.first_name).trim()) {
+            throw toError('first_name is required', 400);
+        }
+
+        const payload = {
+            first_name: String(body.first_name).trim(),
+            last_name: body.last_name ? String(body.last_name).trim() : null,
+            birth_date: body.birth_year ? `${body.birth_year}-01-01` : null,
+            death_date: body.death_year ? `${body.death_year}-01-01` : null,
+            biography: body.biography ? String(body.biography).trim() : null,
+            visibility_status: 'public',
+        };
+
+        const result = await db.from('profiles').insert([payload]).select('id').single();
+        throwIfError(result, 'Failed to create profile');
+        return { item: result.data };
+    }
+
+    if (path === '/admin/status' && method === 'POST') {
+        const tableMap = {
+            names: 'ugc_submissions',
+            profiles: 'ugc_profile_submissions',
+            bios: 'ugc_bio_submissions',
+        };
+
+        const table = tableMap[body.type];
+        if (!table || !body.id || !['approved', 'rejected'].includes(body.status)) {
+            throw toError('Invalid payload', 400);
+        }
+
+        const result = await db.from(table).update({ status: body.status }).eq('id', body.id);
+        throwIfError(result, 'Failed to update status');
+        return { ok: true };
+    }
+
+    throw toError('Not found', 404);
+}
 function showPanel() {
     const { gate, panel } = getGateElements();
 
@@ -298,7 +400,7 @@ function getMfaCode() {
 }
 
 async function getAuthenticatorAssuranceLevel() {
-    const { data, error } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    const { data, error } = await withAuthRetry(() => db.auth.mfa.getAuthenticatorAssuranceLevel());
     if (error) {
         throw error;
     }
@@ -307,7 +409,7 @@ async function getAuthenticatorAssuranceLevel() {
 }
 
 async function getVerifiedTotpFactor() {
-    const { data, error } = await db.auth.mfa.listFactors();
+    const { data, error } = await withAuthRetry(() => db.auth.mfa.listFactors());
     if (error) {
         throw error;
     }
@@ -316,7 +418,7 @@ async function getVerifiedTotpFactor() {
 }
 
 async function cleanupUnverifiedTotpFactors() {
-    const { data, error } = await db.auth.getUser();
+    const { data, error } = await withAuthRetry(() => db.auth.getUser());
     if (error) {
         throw error;
     }
@@ -325,18 +427,18 @@ async function cleanupUnverifiedTotpFactors() {
     const unverifiedFactors = factors.filter((factor) => factor.factor_type === 'totp' && factor.status !== 'verified');
 
     for (const factor of unverifiedFactors) {
-        await db.auth.mfa.unenroll({ factorId: factor.id });
+        await withAuthRetry(() => db.auth.mfa.unenroll({ factorId: factor.id }));
     }
 }
 
 async function startTotpEnrollment() {
     await cleanupUnverifiedTotpFactors();
 
-    const { data, error } = await db.auth.mfa.enroll({
+    const { data, error } = await withAuthRetry(() => db.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: MFA_FACTOR_NAME,
         issuer: 'Ziratstan',
-    });
+    }));
 
     if (error) {
         throw error;
@@ -427,12 +529,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         emailInput.value = savedEmail;
     }
 
-    db.auth.onAuthStateChange(async (_event, session) => {
-        await syncAuthUI(session);
+    db.auth.onAuthStateChange((_event, session) => {
+        queueAuthSync(session).catch((error) => {
+            console.error(error);
+            if (isSupabaseLockAbortError(error)) {
+                showGateMessage('error', 'Retry sign in. Parallel auth requests were detected.');
+                return;
+            }
+
+            showGateMessage('error', error.message || 'Auth error.');
+        });
     });
 
-    const session = await getSession();
-    await syncAuthUI(session);
+    const session = await withAuthRetry(() => getSession());
+    await queueAuthSync(session);
 });
 
 async function loginUser() {
@@ -455,7 +565,7 @@ async function loginUser() {
     setMagicLinkButtonState(true);
     localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
 
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const { error } = await withAuthRetry(() => db.auth.signInWithPassword({ email, password }));
 
     if (error) {
         const message = error.message === 'Invalid login credentials'
@@ -485,13 +595,13 @@ async function sendMagicLink() {
     setMagicLinkButtonState(true);
     localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
 
-    const { error } = await db.auth.signInWithOtp({
+    const { error } = await withAuthRetry(() => db.auth.signInWithOtp({
         email,
         options: {
             emailRedirectTo: getAdminRedirectUrl(),
             shouldCreateUser: false,
         },
-    });
+    }));
 
     if (error) {
         const message = error.message && error.message.includes('Signups not allowed for otp')
@@ -523,10 +633,10 @@ async function verifyMfaCode() {
     resetGateMessages();
     setMfaButtonState(true, pendingMfa.buttonLabel);
 
-    const { error } = await db.auth.mfa.challengeAndVerify({
+    const { error } = await withAuthRetry(() => db.auth.mfa.challengeAndVerify({
         factorId: pendingMfa.factorId,
         code,
-    });
+    }));
 
     if (error) {
         showGateMessage('error', error.message || 'Не удалось подтвердить код.');
@@ -537,19 +647,19 @@ async function verifyMfaCode() {
     pendingMfa = null;
     showGateMessage('success', 'Вход подтверждён.');
     setMfaButtonState(false);
-    await syncAuthUI(await getSession());
+    await queueAuthSync(await withAuthRetry(() => getSession()));
 }
 
 async function cancelMfaStep() {
     pendingMfa = null;
-    await db.auth.signOut();
+    await withAuthRetry(() => db.auth.signOut());
     showGate();
     resetGateMessages();
 }
 
 async function logout() {
     pendingMfa = null;
-    await db.auth.signOut();
+    await withAuthRetry(() => db.auth.signOut());
     showGate();
     resetGateMessages();
     setLoginButtonState(false);
