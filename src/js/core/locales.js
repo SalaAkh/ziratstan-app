@@ -19,6 +19,7 @@ const TRANSLATIONS = {
         nav_profile: "Профиль",
         nav_home: "Басты бет",
         nav_menu_aria: "Мәзір",
+        nav_login: "🔑 Кіру / Тіркелу",
 
         // --- MOBILE MENU ---
         mob_features: "📱 Мүмкіндіктер",
@@ -88,7 +89,7 @@ const TRANSLATIONS = {
         cta_title: "Естелікті мәңгі сақтауға дайынсыз ба?",
         cta_desc: "Қалаңыздағы зираттарды цифрландыру немесе көтерме бағамен QR-тақтайшаларға тапсырыс беру үшін бізбен байланысыңыз.",
         cta_btn_app: "🗺️ Қосымшаны ашу",
-        cta_btn_email: "✉️ info@ziratstan.kz",
+        cta_btn_email: "✉️ salaahlion@gmail.com",
         cta_btn_wa: "💬 WhatsApp",
 
         // --- FOOTER ---
@@ -218,6 +219,8 @@ const TRANSLATIONS = {
         prof_qr_scanned: "👁️ Скан жасалды",
         prof_qr_png: "📥 PNG жүктеп алу",
         prof_qr_svg: "📐 SVG жүктеп алу",
+        prof_qr_html: "HTML \u0436\u04af\u043a\u0442\u0435\u0443",
+        prof_qr_pdf: "PDF \u0436\u04af\u043a\u0442\u0435\u0443",
         prof_qr_copy_link: "🔗 Сілтемені көшіру",
         prof_qr_hint: "QR-кодты басып шығарып, құлпытасқа тақтайша жасауға тапсырыс беріңіз.<br>Скан жасалғанда осы естелік парақшасы ашылады.",
         prof_qr_no_qr_admin: "Бұл профильде әлі QR-код жасалмаған. Орнату үшін әкімшіге хабарласыңыз.",
@@ -303,6 +306,7 @@ const TRANSLATIONS = {
         nav_profile: "Профиль",
         nav_home: "Главная",
         nav_menu_aria: "Меню",
+        nav_login: "🔑 Войти / Регистрация",
 
         // --- MOBILE MENU ---
         mob_features: "📱 Возможности",
@@ -372,7 +376,7 @@ const TRANSLATIONS = {
         cta_title: "Готовы сохранить память навсегда?",
         cta_desc: "Свяжитесь с нами для оцифровки кладбищ в вашем городе или для заказа QR-табличек оптом.",
         cta_btn_app: "🗺️ Открыть приложение",
-        cta_btn_email: "✉️ info@ziratstan.kz",
+        cta_btn_email: "✉️ salaahlion@gmail.com",
         cta_btn_wa: "💬 WhatsApp",
 
         // --- FOOTER ---
@@ -502,6 +506,8 @@ const TRANSLATIONS = {
         prof_qr_scanned: "👁️ Сканировано",
         prof_qr_png: "📥 Скачать PNG",
         prof_qr_svg: "📐 Скачать SVG",
+        prof_qr_html: "\u0421\u043a\u0430\u0447\u0430\u0442\u044c HTML",
+        prof_qr_pdf: "\u0421\u043a\u0430\u0447\u0430\u0442\u044c PDF",
         prof_qr_copy_link: "🔗 Скопировать ссылку",
         prof_qr_hint: "Распечатайте QR-код и закажите табличку для надгробия.<br>При сканировании откроется эта мемориальная страница.",
         prof_qr_no_qr_admin: "В этом профиле ещё не создан QR-код. Для установки обратитесь к администратору.",

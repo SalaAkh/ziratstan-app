@@ -65,13 +65,17 @@ async function signIn({ email, password }) {
 
 async function signInWithGoogle() {
   const sb = getSupabase();
+  console.log('[Auth] Initiating Google Sign-In...');
+  
+  // Use default Site URL configured in Supabase without explicit redirectTo
   const { data, error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + window.location.pathname
-    }
+    provider: 'google'
   });
-  if (error) throw error;
+  
+  if (error) {
+    console.error('[Auth] Google Sign-In Error:', error.message);
+    throw error;
+  }
   return data;
 }
 

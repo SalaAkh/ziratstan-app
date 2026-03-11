@@ -528,7 +528,9 @@ function renderQrDisplayLegacy(container, qr, profileId) {
             ${tf('prof_qr_scan_count_tpl', { count: (qr.scan_count || 0) })}
         </div>
         <div class="qr-actions">
-            <button class="btn-action btn-fill" onclick="downloadQrJpg()">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-fill" onclick="downloadQrJpg('${qrUrl}', '${qr.slug}')">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrHtml('${qrUrl}', '${qr.slug}')">${t('prof_qr_html')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrPdf('${qrUrl}', '${qr.slug}')">${t('prof_qr_pdf')}</button>
             <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
@@ -566,7 +568,9 @@ function renderQrDisplay(container, qr, profileId) {
         ${slugHtml}
         ${scanHtml}
         <div class="qr-actions">
-            <button class="btn-action btn-fill" onclick="downloadQrJpg()">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-fill" onclick="downloadQrJpg('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrHtml('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_html')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrPdf('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_pdf')}</button>
             <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
@@ -636,19 +640,134 @@ function downloadQrPng() {
     downloadQrJpg();
 }
 
-function downloadQrJpg() {
-    const canvas = document.getElementById('qrCanvas');
-    if (!canvas) return;
+function getSafeQrSlug(slug) {
+    return String(slug || 'memorial').replace(/[^a-zA-Z0-9_-]/g, '-');
+}
+
+async function buildQrExportCanvas(url, size) {
+    if (typeof QRCode === 'undefined') throw new Error('QRCode library is missing');
+    const canvas = document.createElement('canvas');
+    await QRCode.toCanvas(canvas, url, {
+        width: size,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+        errorCorrectionLevel: 'H'
+    });
+    return canvas;
+}
+
+function triggerDownloadFromBlob(blob, fileName) {
+    const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'ziratstan-qr-memorial.jpg';
-    link.href = canvas.toDataURL('image/jpeg', 0.95);
+    link.download = fileName;
+    link.href = objectUrl;
+    link.style.display = 'none';
+    document.body.appendChild(link);
     link.click();
+    setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+        link.remove();
+    }, 1000);
+}
+
+function escapeHtml(text) {
+    return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+async function downloadQrJpg(url, slug) {
+    try {
+        const safeSlug = getSafeQrSlug(slug);
+        const fileName = 'ziratstan-qr-' + safeSlug + '.jpg';
+
+        if (url) {
+            const exportCanvas = await buildQrExportCanvas(url, 1024);
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+            return;
+        }
+
+        const canvas = document.getElementById('qrCanvas');
+        if (!canvas) return;
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+    } catch (e) {
+        console.error('[Ziratstan QR] JPG export error:', e);
+    }
+}
+
+async function downloadQrHtml(url, slug) {
+    if (!url) return;
+    try {
+        const safeSlug = getSafeQrSlug(slug);
+        const exportCanvas = await buildQrExportCanvas(url, 1024);
+        const pngDataUrl = exportCanvas.toDataURL('image/png');
+        const safeUrl = escapeHtml(url);
+        const html =
+            '<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+            '<title>Ziratstan QR</title><style>body{margin:0;padding:40px 20px;background:#0b0b0e;color:#f4f4f5;font:16px Inter,Arial,sans-serif;text-align:center}' +
+            '.wrap{max-width:760px;margin:0 auto}.card{background:#111113;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}' +
+            '.qr{width:min(520px,90vw);height:auto;background:#fff;border-radius:12px;display:block;margin:0 auto}.url{margin-top:14px;word-break:break-all;color:#9ca3af}</style></head><body>' +
+            '<div class="wrap"><div class="card"><h1>QR Code</h1><img class="qr" src="' + pngDataUrl + '" alt="QR"><p class="url">' + safeUrl + '</p></div></div></body></html>';
+
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        triggerDownloadFromBlob(blob, 'ziratstan-qr-' + safeSlug + '.html');
+    } catch (e) {
+        console.error('[Ziratstan QR] HTML export error:', e);
+    }
+}
+
+async function downloadQrPdf(url, slug) {
+    if (!url) return;
+    try {
+        const safeSlug = getSafeQrSlug(slug);
+        const exportCanvas = await buildQrExportCanvas(url, 1024);
+        const jpgData = exportCanvas.toDataURL('image/jpeg', 0.95);
+
+        if (window.jspdf && window.jspdf.jsPDF) {
+            const jsPDF = window.jspdf.jsPDF;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            const qrSize = Math.min(pageW, pageH) * 0.65;
+            const x = (pageW - qrSize) / 2;
+            const y = 18;
+
+            doc.setFontSize(14);
+            doc.text('Ziratstan QR', pageW / 2, 10, { align: 'center' });
+            doc.addImage(jpgData, 'JPEG', x, y, qrSize, qrSize);
+            doc.setFontSize(8);
+            doc.text(String(url), pageW / 2, y + qrSize + 8, { align: 'center', maxWidth: pageW - 20 });
+            doc.save('ziratstan-qr-' + safeSlug + '.pdf');
+            return;
+        }
+
+        const printWindow = window.open('', '_blank', 'width=900,height=1200');
+        if (!printWindow) return;
+        const safeUrl = escapeHtml(url);
+        printWindow.document.write(
+            '<!doctype html><html><head><meta charset="UTF-8"><title>QR PDF</title><style>body{text-align:center;padding:20px}img{max-width:80vw}</style></head><body>' +
+            '<h2>Ziratstan QR</h2><img src="' + jpgData + '" alt="QR"><p>' + safeUrl + '</p></body></html>'
+        );
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    } catch (e) {
+        console.error('[Ziratstan QR] PDF export error:', e);
+    }
 }
 
 async function downloadQrSvg(url, slug) {
     if (typeof QRCode === 'undefined') return;
     try {
-        const safeSlug = String(slug || 'memorial').replace(/[^a-zA-Z0-9_-]/g, '-');
+        const safeSlug = getSafeQrSlug(slug);
         const size = 1024;
         const canvas = document.createElement('canvas');
 
@@ -668,17 +787,7 @@ async function downloadQrSvg(url, slug) {
             `</svg>`;
 
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-        const objectUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = 'ziratstan-qr-' + safeSlug + '.svg';
-        link.href = objectUrl;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-            URL.revokeObjectURL(objectUrl);
-            link.remove();
-        }, 1000);
+        triggerDownloadFromBlob(blob, 'ziratstan-qr-' + safeSlug + '.svg');
     } catch (e) {
         console.error('[Ziratstan QR] SVG generation error:', e);
     }

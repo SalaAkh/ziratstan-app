@@ -194,11 +194,11 @@ export default function Home() {
             <Map className="w-5 h-5" />
             Открыть карту
           </Link>
-          <a href="mailto:info@ziratstan.kz" className="inline-flex items-center gap-2 border border-primary/20 px-8 py-4 rounded-xl font-semibold hover:bg-primary/5 transition-all">
+          <a href="mailto:salaahlion@gmail.com" className="inline-flex items-center gap-2 border border-primary/20 px-8 py-4 rounded-xl font-semibold hover:bg-primary/5 transition-all">
             <Mail className="w-5 h-5" />
-            info@ziratstan.kz
+            salaahlion@gmail.com
           </a>
-          <a href="https://wa.me/77770000000" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-accent text-background px-8 py-4 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-accent/20">
+          <a href="https://wa.me/77052631205" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-accent text-background px-8 py-4 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-accent/20">
             <MessageCircle className="w-5 h-5" />
             WhatsApp
           </a>

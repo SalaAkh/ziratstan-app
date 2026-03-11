@@ -43,3 +43,19 @@ testsprite_tests/
 # Python cache
 __pycache__/
 *.pyc
+.env.*
+!.env.example
+!.env.*.example
+
+# Firebase and local credentials
+.runtimeconfig.json
+functions/.runtimeconfig.json
+functions/.env
+functions/.env.*
+!functions/.env.example
+serviceAccountKey.json
+*firebase*adminsdk*.json
+*-service-account*.json
+
+# Local Codex state
+.codex/

@@ -23,3 +23,13 @@ Thumbs.db
 # Логи
 *.log
 npm-debug.log*
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Firebase local credentials
+.runtimeconfig.json
+serviceAccountKey.json
+*firebase*adminsdk*.json
+*-service-account*.json

@@ -4,6 +4,11 @@
     "ignore": [
       "firebase.json",
       "**/.*",
+      "**/.env*",
+      "**/.runtimeconfig.json",
+      "**/serviceAccount*.json",
+      "**/*firebase*adminsdk*.json",
+      "**/*-service-account*.json",
       "**/node_modules/**",
       "package.json",
       "package-lock.json",
