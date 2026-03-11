@@ -58,10 +58,15 @@ Ziratstan.kz/
 |-- services.html
 |-- admin.html
 |-- 404.html
-|-- i18n.js
-|-- locales.js
-|-- cemeteries_data.js
-|-- profiles_data.js
+|-- data/
+|   |-- cemeteries_data.js
+|   |-- profiles_data.js
+|-- assets/
+|   |-- images/
+|-- src/
+|   |-- js/core/
+|   |   |-- i18n.js
+|   |   |-- locales.js
 |-- public/
 |   |-- data/profiles/*.json
 |   `-- icons/, manifest, assets

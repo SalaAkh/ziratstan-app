@@ -13,7 +13,8 @@
       "!public/data/**/*.json",
       "ziratstan-app/**",
       "guids/**",
-      "scripts/**"
+      "scripts/**",
+      "resources/**"
     ]
   }
 }

@@ -30,8 +30,8 @@ def main():
     draw.rectangle([20, 20, WIDTH-20, HEIGHT-20], outline=(30, 30, 35), width=2)
 
     # Load font or download Roboto
-    font_bold_path = os.path.join(ROOT_DIR, "Roboto-Bold.ttf")
-    font_reg_path = os.path.join(ROOT_DIR, "Roboto-Regular.ttf")
+    font_bold_path = os.path.join(ROOT_DIR, "resources", "fonts", "Roboto-Bold.ttf")
+    font_reg_path = os.path.join(ROOT_DIR, "resources", "fonts", "Roboto-Regular.ttf")
     
     def download_font(url, path):
         if not os.path.exists(path):
@@ -65,7 +65,7 @@ def main():
     draw.text((80, 530), "ziratstan.kz", font=font_url, fill=ACCENT_COLOR)
 
     # Save format
-    out_path = os.path.join(ROOT_DIR, "og-image.jpg")
+    out_path = os.path.join(ROOT_DIR, "assets", "images", "og-image.jpg")
     img.save(out_path, quality=95)
     print(f"OG Image generated at {out_path}")
 

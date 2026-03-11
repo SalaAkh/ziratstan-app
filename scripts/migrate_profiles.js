@@ -15,7 +15,7 @@ const SUPABASE_KEY = 'sb_secret_N_0MJRrrjcFfZ4AcgmpGWg_TmirxTK5';
 
 // --- Загружаем profiles_data.js ---
 const ROOT_DIR = path.resolve(__dirname, '..');
-const raw = fs.readFileSync(path.join(ROOT_DIR, 'profiles_data.js'), 'utf8');
+const raw = fs.readFileSync(path.join(ROOT_DIR, 'data', 'profiles_data.js'), 'utf8');
 let PROFILES_STATIC;
 
 // Eval в CommonJS контексте

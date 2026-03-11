@@ -3,7 +3,7 @@ const path = require('path');
 const https = require('https');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const profilesPath = path.join(ROOT_DIR, 'profiles_data.js');
+const profilesPath = path.join(ROOT_DIR, 'data', 'profiles_data.js');
 let profilesContent = fs.readFileSync(profilesPath, 'utf8');
 
 let profiles = [];

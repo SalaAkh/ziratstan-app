@@ -3,7 +3,7 @@ const https = require('https');
 const path = require('path');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const CEMETERIES_DATA_PATH = path.join(ROOT_DIR, 'cemeteries_data.js');
+const CEMETERIES_DATA_PATH = path.join(ROOT_DIR, 'data', 'cemeteries_data.js');
 
 // Calculate distance between two lat/lon points
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {

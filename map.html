@@ -16,15 +16,15 @@
         content="Қазақстан зираттарының интерактивті картасы. Нақты координаттар және іздеу." />
     <meta property="og:locale" content="kk_KZ" />
     <meta property="og:site_name" content="Зиратстан" />
-    <meta property="og:image" content="https://ziratstan-app.web.app/og-image-v4.jpg" />
+    <meta property="og:image" content="https://ziratstan-app.web.app/assets/images/og-image-v4.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://ziratstan-app.web.app/map.html" />
-    <meta name="twitter:image" content="https://ziratstan-app.web.app/og-image-v4.jpg" />
+    <meta name="twitter:image" content="https://ziratstan-app.web.app/assets/images/og-image-v4.jpg" />
     <link rel="canonical" href="https://ziratstan-app.web.app/map.html" />
     <link rel="alternate" hreflang="kk" href="https://ziratstan-app.web.app/map.html" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -796,8 +796,8 @@
     <!-- Leaflet & Services JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="cemeteries_data.js"></script>
-    <script src="profiles_data.js"></script>
+    <script src="data/cemeteries_data.js"></script>
+    <script src="data/profiles_data.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase/client.js"></script>
     <script src="src/js/map.js"></script>
@@ -892,8 +892,8 @@
             </div>
         </form>
     </div>
-    <script src="locales.js"></script>
-    <script src="i18n.js"></script>
+    <script src="src/js/core/locales.js"></script>
+    <script src="src/js/core/i18n.js"></script>
     <script>
         (function () {
             function applyHead() {

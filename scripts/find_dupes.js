@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const content = fs.readFileSync(path.join(ROOT_DIR, 'profiles_data.js'), 'utf8');
+const content = fs.readFileSync(path.join(ROOT_DIR, 'data', 'profiles_data.js'), 'utf8');
 
 // Match all fullName: '...' values
 const nameMatches = [...content.matchAll(/fullName:\s*'([^']+)'/g)];
