@@ -3,15 +3,25 @@
 // ------------------------------------------------------------
 
 let currentTab = 'names';
-let allData = { names: [], profiles: [], bios: [], manage: [] };
+let allData = { names: [], profiles: [], bios: [], manage: [], sessions: [] };
 let hasLoadedDashboard = false;
 
 const ADMIN_EMAIL_STORAGE_KEY = 'ziratstan_admin_email';
 const MFA_FACTOR_NAME = 'Ziratstan Admin';
+const ADMIN_DEVICE_ID_STORAGE_KEY = 'ziratstan_admin_device_id';
+const ADMIN_SESSION_TRACK_ID_KEY = 'ziratstan_admin_session_track_id';
+const ADMIN_SESSION_DEADLINE_KEY = 'ziratstan_admin_session_deadline';
+const ADMIN_SESSION_TIMEOUT_MS = 15 * 60 * 1000;
+const ADMIN_SESSION_HEARTBEAT_MS = 60 * 1000;
+const ADMIN_ACTIVE_SESSION_WINDOW_MS = 17 * 60 * 1000;
 
 let pendingMfa = null;
 let authFlowId = 0;
 let authSyncQueue = Promise.resolve();
+let sessionDeadlineTimer = null;
+let sessionHeartbeatTimer = null;
+let currentSessionTrackId = null;
+let remoteSignOutInProgress = false;
 
 const AUTH_RETRY_DELAY_MS = 120;
 const AUTH_RETRY_MAX_ATTEMPTS = 3;
@@ -52,6 +62,223 @@ function queueAuthSync(session) {
         .then(() => syncAuthUI(session));
 
     return authSyncQueue;
+}
+
+function getOrCreateDeviceId() {
+    const existing = localStorage.getItem(ADMIN_DEVICE_ID_STORAGE_KEY);
+    if (existing) {
+        return existing;
+    }
+
+    const generated = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(ADMIN_DEVICE_ID_STORAGE_KEY, generated);
+    return generated;
+}
+
+function buildDeviceName() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.platform || 'unknown-platform';
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const browser = ua.includes('Edg/')
+        ? 'Edge'
+        : ua.includes('Chrome/')
+            ? 'Chrome'
+            : ua.includes('Firefox/')
+                ? 'Firefox'
+                : ua.includes('Safari/')
+                    ? 'Safari'
+                    : 'Browser';
+
+    return `${browser} / ${platform}${isMobile ? ' / mobile' : ' / desktop'}`;
+}
+
+function clearSessionTimers() {
+    if (sessionDeadlineTimer) {
+        clearTimeout(sessionDeadlineTimer);
+        sessionDeadlineTimer = null;
+    }
+
+    if (sessionHeartbeatTimer) {
+        clearInterval(sessionHeartbeatTimer);
+        sessionHeartbeatTimer = null;
+    }
+}
+
+function clearSessionTrackingState() {
+    clearSessionTimers();
+    currentSessionTrackId = null;
+    localStorage.removeItem(ADMIN_SESSION_TRACK_ID_KEY);
+    localStorage.removeItem(ADMIN_SESSION_DEADLINE_KEY);
+}
+
+function getOrCreateSessionTrackId() {
+    if (currentSessionTrackId) {
+        return currentSessionTrackId;
+    }
+
+    const existing = localStorage.getItem(ADMIN_SESSION_TRACK_ID_KEY);
+    if (existing) {
+        currentSessionTrackId = existing;
+        return existing;
+    }
+
+    const generated = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    currentSessionTrackId = generated;
+    localStorage.setItem(ADMIN_SESSION_TRACK_ID_KEY, generated);
+    return generated;
+}
+
+async function touchAdminSession(reason = null) {
+    const session = await withAuthRetry(() => getSession());
+    if (!session?.user?.id) {
+        return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const trackId = getOrCreateSessionTrackId();
+    const basePayload = {
+        track_id: trackId,
+        user_id: session.user.id,
+        email: session.user.email || null,
+        device_id: getOrCreateDeviceId(),
+        device_name: buildDeviceName(),
+        user_agent: (navigator.userAgent || '').slice(0, 512),
+        last_seen_at: nowIso,
+    };
+
+    const existing = await withAuthRetry(() => db
+        .from('admin_sessions')
+        .select('id, ended_at, end_reason')
+        .eq('track_id', trackId)
+        .maybeSingle());
+
+    if (existing.error) {
+        throw existing.error;
+    }
+
+    if (!existing.data) {
+        const insertPayload = {
+            ...basePayload,
+            started_at: nowIso,
+            ended_at: null,
+            end_reason: null,
+        };
+
+        const insertRes = await withAuthRetry(() => db.from('admin_sessions').insert([insertPayload]));
+        if (insertRes.error) {
+            throw insertRes.error;
+        }
+        return;
+    }
+
+    if (!reason && existing.data.ended_at) {
+        const error = new Error('Session terminated from another device');
+        error.code = 'SESSION_TERMINATED';
+        throw error;
+    }
+
+    const updatePayload = reason
+        ? {
+            ...basePayload,
+            ended_at: nowIso,
+            end_reason: reason,
+        }
+        : basePayload;
+
+    const updateRes = await withAuthRetry(() => db
+        .from('admin_sessions')
+        .update(updatePayload)
+        .eq('track_id', trackId));
+    if (updateRes.error) {
+        throw updateRes.error;
+    }
+}
+
+function isSessionTerminatedError(error) {
+    return error && error.code === 'SESSION_TERMINATED';
+}
+
+async function closeAdminSession(reason = 'manual_logout') {
+    try {
+        await touchAdminSession(reason);
+    } catch (error) {
+        console.error('Failed to close admin session record:', error);
+    } finally {
+        clearSessionTrackingState();
+    }
+}
+
+async function forceSignOutForTerminatedSession() {
+    if (remoteSignOutInProgress) {
+        return;
+    }
+
+    remoteSignOutInProgress = true;
+    try {
+        clearSessionTrackingState();
+        await withAuthRetry(() => db.auth.signOut());
+        showGate();
+        showToast('Сессия завершена на другом устройстве.', 'error');
+        showGateMessage('error', 'Эта сессия была завершена с другого устройства.');
+    } finally {
+        remoteSignOutInProgress = false;
+    }
+}
+
+function scheduleSessionDeadline() {
+    const now = Date.now();
+    let deadline = Number(localStorage.getItem(ADMIN_SESSION_DEADLINE_KEY) || 0);
+
+    if (!deadline || Number.isNaN(deadline)) {
+        deadline = now + ADMIN_SESSION_TIMEOUT_MS;
+        localStorage.setItem(ADMIN_SESSION_DEADLINE_KEY, String(deadline));
+    }
+
+    if (deadline <= now) {
+        setTimeout(async () => {
+            showToast('Сессия истекла (15 минут). Выполнен выход.', 'error');
+            await closeAdminSession('session_expired');
+            await withAuthRetry(() => db.auth.signOut());
+            showGate();
+            showGateMessage('error', 'Сессия истекла. Войдите снова.');
+        }, 0);
+        return;
+    }
+
+    const msLeft = Math.max(0, deadline - now);
+    sessionDeadlineTimer = setTimeout(async () => {
+        showToast('Сессия истекла (15 минут). Выполнен выход.', 'error');
+        await closeAdminSession('session_expired');
+        await withAuthRetry(() => db.auth.signOut());
+        showGate();
+        showGateMessage('error', 'Сессия истекла. Войдите снова.');
+    }, msLeft);
+}
+
+function startSessionHeartbeat() {
+    sessionHeartbeatTimer = setInterval(() => {
+        touchAdminSession(null).catch((error) => {
+            if (isSessionTerminatedError(error)) {
+                forceSignOutForTerminatedSession().catch((err) => {
+                    console.error('Failed to sign out after remote termination:', err);
+                });
+                return;
+            }
+
+            console.error('Session heartbeat failed:', error);
+        });
+    }, ADMIN_SESSION_HEARTBEAT_MS);
+}
+
+async function startAdminSessionControls() {
+    clearSessionTimers();
+    await touchAdminSession(null);
+    scheduleSessionDeadline();
+    startSessionHeartbeat();
 }
 
 function getGateElements() {
@@ -391,6 +618,7 @@ function showGate() {
 
     hasLoadedDashboard = false;
     pendingMfa = null;
+    clearSessionTrackingState();
     showLoginStep();
 }
 
@@ -481,6 +709,7 @@ async function syncAuthUI(session) {
     const flowId = ++authFlowId;
 
     if (!session) {
+        clearSessionTrackingState();
         showGate();
         resetGateMessages();
         return;
@@ -498,6 +727,7 @@ async function syncAuthUI(session) {
             pendingMfa = null;
             resetGateMessages();
             showPanel();
+            await startAdminSessionControls();
             return;
         }
 
@@ -516,6 +746,11 @@ async function syncAuthUI(session) {
         await startTotpEnrollment();
     } catch (error) {
         console.error(error);
+        if (isSessionTerminatedError(error)) {
+            await forceSignOutForTerminatedSession();
+            return;
+        }
+
         showGate();
         showGateMessage('error', error.message || 'Не удалось подготовить двухфакторную проверку.');
     }
@@ -529,7 +764,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         emailInput.value = savedEmail;
     }
 
-    db.auth.onAuthStateChange((_event, session) => {
+    db.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN') {
+            clearSessionTrackingState();
+        }
+
         queueAuthSync(session).catch((error) => {
             console.error(error);
             if (isSupabaseLockAbortError(error)) {
@@ -652,6 +891,7 @@ async function verifyMfaCode() {
 
 async function cancelMfaStep() {
     pendingMfa = null;
+    await closeAdminSession('cancelled_before_mfa');
     await withAuthRetry(() => db.auth.signOut());
     showGate();
     resetGateMessages();
@@ -659,6 +899,7 @@ async function cancelMfaStep() {
 
 async function logout() {
     pendingMfa = null;
+    await closeAdminSession('manual_logout');
     await withAuthRetry(() => db.auth.signOut());
     showGate();
     resetGateMessages();
@@ -670,7 +911,7 @@ function switchTab(tab, btn) {
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
     btn.classList.add('active');
 
-    ['names', 'profiles', 'bios', 'manage'].forEach((t) => {
+    ['names', 'profiles', 'bios', 'manage', 'sessions'].forEach((t) => {
         const el = document.getElementById(`content-${t}`);
         if (!el) {
             return;
@@ -682,6 +923,10 @@ function switchTab(tab, btn) {
 
     if (tab === 'manage' && (!allData.manage || allData.manage.length === 0)) {
         loadManageProfiles();
+    }
+
+    if (tab === 'sessions') {
+        loadSessionActivity();
     }
 }
 
@@ -733,6 +978,135 @@ function renderManageTab(items) {
         </div>`;
         container.appendChild(div);
     });
+}
+
+function formatDateTime(value) {
+    if (!value) {
+        return '-';
+    }
+
+    return new Date(value).toLocaleString('ru-KZ');
+}
+
+function isSessionActive(item) {
+    if (!item || item.ended_at) {
+        return false;
+    }
+
+    const lastSeen = item.last_seen_at ? new Date(item.last_seen_at).getTime() : 0;
+    if (!lastSeen) {
+        return false;
+    }
+
+    return (Date.now() - lastSeen) <= ADMIN_ACTIVE_SESSION_WINDOW_MS;
+}
+
+function renderSessionList(containerId, items, emptyText) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        return;
+    }
+
+    if (!items.length) {
+        container.innerHTML = `<div class="empty"><p>${emptyText}</p></div>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    items.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.gridTemplateColumns = '1fr';
+
+        const activeLabel = isSessionActive(item) ? 'Активна' : 'Неактивна';
+        const endedLabel = item.ended_at
+            ? `${formatDateTime(item.ended_at)} (${item.end_reason || 'reason not set'})`
+            : '—';
+
+        div.innerHTML = `
+        <div class="card-title">${item.device_name || 'Unknown device'} — ${activeLabel}</div>
+        <div class="card-meta-row">
+            <div class="card-meta-item">Email: <span>${item.email || '-'}</span></div>
+            <div class="card-meta-item">Start: <span>${formatDateTime(item.started_at)}</span></div>
+        </div>
+        <div class="card-meta-row">
+            <div class="card-meta-item">Last seen: <span>${formatDateTime(item.last_seen_at)}</span></div>
+            <div class="card-meta-item">End: <span>${endedLabel}</span></div>
+        </div>
+        <div class="card-detail" style="margin-top:8px; word-break:break-word;">${item.user_agent || '-'}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function terminateOtherSessions() {
+    try {
+        const session = await withAuthRetry(() => getSession());
+        if (!session?.user?.id) {
+            showToast('Сессия истекла. Войдите снова.', 'error');
+            return;
+        }
+
+        const trackId = getOrCreateSessionTrackId();
+        const nowIso = new Date().toISOString();
+
+        const result = await withAuthRetry(() => db
+            .from('admin_sessions')
+            .update({
+                ended_at: nowIso,
+                end_reason: 'revoked_by_admin',
+                last_seen_at: nowIso,
+            })
+            .eq('user_id', session.user.id)
+            .is('ended_at', null)
+            .neq('track_id', trackId));
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        showToast('Все остальные сессии завершены.', 'success');
+        await loadSessionActivity();
+    } catch (error) {
+        console.error(error);
+        showToast('Не удалось завершить остальные сессии.', 'error');
+    }
+}
+
+async function loadSessionActivity() {
+    const activeContainer = document.getElementById('sessions-active-list');
+    const historyContainer = document.getElementById('sessions-history-list');
+
+    if (!activeContainer || !historyContainer) {
+        return;
+    }
+
+    activeContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    historyContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    try {
+        const result = await withAuthRetry(() => db
+            .from('admin_sessions')
+            .select('id, track_id, email, device_name, user_agent, started_at, last_seen_at, ended_at, end_reason')
+            .order('started_at', { ascending: false })
+            .limit(200));
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        const items = result.data || [];
+        allData.sessions = items;
+
+        const active = items.filter((item) => isSessionActive(item));
+        renderSessionList('sessions-active-list', active, 'Сейчас нет активных устройств');
+        renderSessionList('sessions-history-list', items, 'История входов пока пуста');
+    } catch (error) {
+        console.error(error);
+        activeContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки активных устройств</p></div>';
+        historyContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки истории</p></div>';
+        showToast('Не удалось загрузить сессии', 'error');
+    }
 }
 
 async function handleCreateProfile(e) {

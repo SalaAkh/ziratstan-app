@@ -658,6 +658,7 @@
                 <button class="tab" onclick="switchTab('bios', this)">📖 Биографии <span class="tab-count"
                         id="cnt-bios">0</span></button>
                 <button class="tab" onclick="switchTab('manage', this)">📇 Управление профилями</button>
+                <button class="tab" onclick="switchTab('sessions', this)">Сессии</button>
             </div>
 
             <div id="content-names" class="cards-list"></div>
@@ -690,6 +691,19 @@
                 <div class="card-title" style="margin-bottom: 12px; margin-top: 12px; font-size:1.1rem;">📋 База
                     профилей</div>
                 <div id="manage-profiles-list" class="cards-list"></div>
+            </div>
+            <div id="content-sessions" class="cards-list" style="display:none;">
+                <div class="card" style="grid-template-columns:1fr;">
+                    <div class="card-title" style="font-size:1.1rem;">Активные устройства</div>
+                    <div class="card-actions" style="margin-top:10px; margin-bottom:10px;">
+                        <button type="button" class="btn-reject" onclick="terminateOtherSessions()">Завершить все остальные сессии</button>
+                    </div>
+                    <div id="sessions-active-list" class="cards-list"></div>
+                </div>
+                <div class="card" style="grid-template-columns:1fr;">
+                    <div class="card-title" style="font-size:1.1rem;">История входов/выходов</div>
+                    <div id="sessions-history-list" class="cards-list"></div>
+                </div>
             </div>
         </div>
     </div>

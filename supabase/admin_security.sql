@@ -119,3 +119,28 @@ for all
 to authenticated
 using (public.is_admin())
 with check (public.is_admin());
+
+create table if not exists public.admin_sessions (
+  id bigserial primary key,
+  track_id text not null unique,
+  user_id uuid not null,
+  email text null,
+  device_id text not null,
+  device_name text null,
+  user_agent text null,
+  started_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  ended_at timestamptz null,
+  end_reason text null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admin_sessions enable row level security;
+
+drop policy if exists "admin_own_admin_sessions" on public.admin_sessions;
+create policy "admin_own_admin_sessions"
+on public.admin_sessions
+for all
+to authenticated
+using (public.is_admin() and user_id = auth.uid())
+with check (public.is_admin() and user_id = auth.uid());
