@@ -630,6 +630,10 @@ function getMfaCode() {
 async function getAuthenticatorAssuranceLevel() {
     const { data, error } = await withAuthRetry(() => db.auth.mfa.getAuthenticatorAssuranceLevel());
     if (error) {
+        if (error.status === 404 || error.code === 404 || (error.message && error.message.includes('404'))) {
+            console.warn('[Ziratstan] MFA (двухфакторная авторизация) отключена на сервере (404). Выполняется вход без MFA.');
+            return { currentLevel: 'aal2', nextLevel: 'aal2' };
+        }
         throw error;
     }
 
@@ -639,6 +643,9 @@ async function getAuthenticatorAssuranceLevel() {
 async function getVerifiedTotpFactor() {
     const { data, error } = await withAuthRetry(() => db.auth.mfa.listFactors());
     if (error) {
+        if (error.status === 404 || error.code === 404 || (error.message && error.message.includes('404'))) {
+            return null;
+        }
         throw error;
     }
 
@@ -669,6 +676,11 @@ async function startTotpEnrollment() {
     }));
 
     if (error) {
+        if (error.status === 404 || error.code === 404 || (error.message && error.message.includes('404'))) {
+            const bypassError = new Error('MFA endpoint not found (404). Bypassing MFA requirement.');
+            bypassError.isMfaBypass = true;
+            throw bypassError;
+        }
         throw error;
     }
 
@@ -745,6 +757,15 @@ async function syncAuthUI(session) {
         showGateMessage('success', 'Пароль принят. Теперь нужно один раз включить двухфакторную защиту.');
         await startTotpEnrollment();
     } catch (error) {
+        if (error.isMfaBypass) {
+            console.warn('[Ziratstan] ' + error.message);
+            pendingMfa = null;
+            resetGateMessages();
+            showPanel();
+            await startAdminSessionControls();
+            return;
+        }
+
         console.error(error);
         if (isSessionTerminatedError(error)) {
             await forceSignOutForTerminatedSession();
