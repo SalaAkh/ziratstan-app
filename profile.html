@@ -777,9 +777,9 @@
     <nav>
         <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
         <div class="nav-links">
-            <a href="index.html">Басты бет</a>
-            <a href="map.html">Карта</a>
-            <a href="services.html">Қызметтер</a>
+            <a href="index.html" data-i18n="nav_home">Басты бет</a>
+            <a href="map.html" data-i18n="nav_map">Карта</a>
+            <a href="services.html" data-i18n="nav_services">Қызметтер</a>
         </div>
     </nav>
 
@@ -788,7 +788,7 @@
         <img id="heroImg" class="hero-img" style="display:none;" alt="" />
         <div class="hero-gradient"></div>
         <div class="hero-info">
-            <div id="heroBadge" class="hero-badge">Тұлға</div>
+            <div id="heroBadge" class="hero-badge" data-i18n="prof_badge_historical">Тұлға</div>
             <h1 id="heroName"></h1>
             <div id="heroDates" class="hero-dates"></div>
             <div id="heroLocation" class="hero-location"></div>
@@ -797,44 +797,43 @@
 
     <div id="profileContent" class="content">
         <div class="actions">
-            <button class="btn-action btn-fill" onclick="openAddBioModal()">✍️ Өмірбаянды толықтыру</button>
-            <button class="btn-action btn-outline" onclick="shareProfile()">🔗 Бөлісу</button>
+            <button class="btn-action btn-fill" onclick="openAddBioModal()" data-i18n="prof_add_bio">✍️ Өмірбаянды толықтыру</button>
+            <button class="btn-action btn-outline" onclick="shareProfile()" data-i18n="prof_share">🔗 Бөлісу</button>
             <button class="btn-action btn-outline"
-                onclick="document.getElementById('familySection').style.display='block'; this.scrollIntoView();">🌳 View
-                family tree</button>
-            <a href="qr.html" id="generateQrBtn" class="btn-action btn-outline">📲 View QR / Generate QR</a>
-            <a href="map.html" class="btn-action btn-back">🗺️ Картаға қайту</a>
+                onclick="document.getElementById('familySection').style.display='block'; this.scrollIntoView();"><span aria-hidden="true">🌳</span> <span data-i18n="prof_tree_title">Шежіре ағашы</span></button>
+            <a href="qr.html" id="generateQrBtn" class="btn-action btn-outline" data-i18n="prof_action_qr">📲 View QR / Generate QR</a>
+            <a href="map.html" class="btn-action btn-back" data-i18n="prof_back_map">🗺️ Картаға қайту</a>
         </div>
 
         <!-- QR Memorial Section -->
         <section class="qr-memorial" id="qrSection" style="display:none;">
-            <h2><span class="s-icon">📲</span> QR-Ескерткіш</h2>
+            <h2><span class="s-icon">📲</span> <span data-i18n="prof_qr_title">QR-Ескерткіш</span></h2>
             <!-- Filled by JS: either QR display or create button -->
             <div id="qrContent"></div>
         </section>
 
         <!-- Info Grid -->
         <section>
-            <h2><span class="s-icon">📋</span> Мәліметтер</h2>
+            <h2><span class="s-icon">📋</span> <span data-i18n="prof_info_title">Мәліметтер</span></h2>
             <div class="info-grid">
                 <div class="info-cell">
-                    <div class="info-label">Толық аты-жөні</div>
+                    <div class="info-label" data-i18n="prof_full_name">Толық аты-жөні</div>
                     <div class="info-value" id="infoFullName">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Туған күні</div>
+                    <div class="info-label" data-i18n="prof_birth">Туған күні</div>
                     <div class="info-value" id="infoBirth">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Қайтыс болған күні</div>
+                    <div class="info-label" data-i18n="prof_death">Қайтыс болған күні</div>
                     <div class="info-value" id="infoDeath">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Жерленген орны</div>
+                    <div class="info-label" data-i18n="prof_cemetery">Жерленген орны</div>
                     <div class="info-value" id="infoCemetery">—</div>
                 </div>
                 <div class="info-cell">
-                    <div class="info-label">Қала / Өңір</div>
+                    <div class="info-label" data-i18n="prof_city">Қала / Өңір</div>
                     <div class="info-value" id="infoCity">—</div>
                 </div>
             </div>
@@ -847,29 +846,29 @@
 
         <!-- Biography -->
         <section id="bioSection">
-            <h2><span class="s-icon">📖</span> Өмірбаян</h2>
+            <h2><span class="s-icon">📖</span> <span data-i18n="prof_bio_title">Өмірбаян</span></h2>
             <div id="fullBioSection" style="display: none;">
                 <p class="bio" id="expandedBioText"></p>
             </div>
             <p class="bio" id="biographyText"
                 style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; margin-bottom: 1rem;">
             </p>
-            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()">Read biography</button>
+            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" data-i18n="prof_read_more">Read biography</button>
         </section>
 
         <!-- Family Tree (Шежіре) -->
         <section id="familySection" style="display:none;">
-            <h2><span class="s-icon">🌳</span> Шежіре</h2>
+            <h2><span class="s-icon">🌳</span> <span data-i18n="prof_tree_title">Шежіре</span></h2>
             <div class="tree-container">
                 <div class="tree" id="familyTree">
                     <ul>
                         <li>
-                            <a href="#" class="family-node">Атасы</a>
+                            <a href="#" class="family-node" data-i18n="prof_role_parent">Атасы</a>
                             <ul>
                                 <li>
-                                    <a href="#" class="family-node">Ол</a>
+                                    <a href="#" class="family-node" data-i18n="prof_role_self">Ол</a>
                                     <ul>
-                                        <li><a href="#" class="family-node">Ұрпағы</a></li>
+                                        <li><a href="#" class="family-node" data-i18n="prof_role_child">Ұрпағы</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -882,36 +881,37 @@
 
     <!-- Not Found -->
     <div id="notFound" class="not-found" style="display:none; margin-top:64px;">
-        <h2>😔 Профиль табылған жоқ</h2>
-        <p>Мұндай ID-сі бар тұлға дерекқорда жоқ.</p>
-        <a href="map.html" class="btn-action btn-fill" style="display:inline-flex; margin-top:1rem;">← Картаға оралу</a>
+        <h2>😔 <span data-i18n="prof_not_found">Профиль табылған жоқ</span></h2>
+        <p data-i18n="prof_not_found_desc">Мұндай ID-сі бар тұлға дерекқорда жоқ.</p>
+        <a href="map.html" class="btn-action btn-fill" style="display:inline-flex; margin-top:1rem;" data-i18n="prof_back_map">← Картаға оралу</a>
     </div>
 
     <!-- Add Bio Modal -->
     <div class="modal-overlay" id="addBioModal" style="display:none; display:none;">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>✍️ Өмірбаянды толықтыру</h3>
+                <h3 data-i18n="prof_ugc_modal_title">✍️ Өмірбаянды толықтыру</h3>
                 <button class="modal-close" onclick="closeModal('addBioModal')">&times;</button>
             </div>
-            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5;">Бұл тұлға туралы
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5;" data-i18n="prof_ugc_modal_desc">Бұл тұлға туралы
                 көбірек білесіз бе? Өмірбаяндық мәліметтерді, дәйексөздерді немесе фотосуреттерді қосыңыз. Модерациядан
                 кейін олар осы парақшада пайда болады.</p>
             <form onsubmit="submitBio(event)">
                 <div class="form-group">
-                    <label for="bioAuthorName">Сіздің АЖТ (міндетті емес)</label>
-                    <input type="text" id="bioAuthorName" placeholder="Мысалы: Нұрлан Ахметов" />
+                    <label for="bioAuthorName" data-i18n="prof_ugc_author_label">Сіздің АЖТ (міндетті емес)</label>
+                    <input type="text" id="bioAuthorName" placeholder="Мысалы: Нұрлан Ахметов" data-i18n-ph="prof_ugc_author_ph" />
                 </div>
                 <div class="form-group">
-                    <label for="bioText">Өмірбаяндық мәліметтер / Естеліктер</label>
+                    <label for="bioText" data-i18n="prof_ugc_bio_label">Өмірбаяндық мәліметтер / Естеліктер</label>
                     <textarea id="bioText" rows="5"
                         placeholder="Осы тұлға туралы білетініңіздің бәрін жазыңыз. Күндер, фактілер, естеліктер..."
+                        data-i18n-ph="prof_ugc_text_ph"
                         required></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal('addBioModal')"
-                        style="background:transparent; color:var(--muted);">Болдырмау</button>
-                    <button type="submit" style="background:var(--gold); color:var(--bg); border:none;">Жіберу</button>
+                        style="background:transparent; color:var(--muted);" data-i18n="prof_ugc_cancel">Болдырмау</button>
+                    <button type="submit" style="background:var(--gold); color:var(--bg); border:none;" data-i18n="prof_ugc_submit">Жіберу</button>
                 </div>
             </form>
         </div>

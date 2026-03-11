@@ -8,6 +8,69 @@ let _bioDataKK = null;
 let _bioDataRU = null;
 let _bioExpanded = false;
 let _bioLang = 'kk';
+let _currentProfile = null;
+let _currentProfileId = null;
+let _currentProfileUuid = null;
+let _enrichedData = null;
+let _familyRelations = null;
+let _lastQrData = null;
+let _lastQrProfileId = null;
+let _lastQrHasSession = false;
+let _lastQrMode = null; // 'display' | 'create' | 'admin' | 'supabase_only' | 'mock'
+
+function t(key) {
+    return (window.i18n && typeof i18n.t === 'function') ? i18n.t(key) : key;
+}
+
+function getLang() {
+    return (window.i18n && typeof i18n.getLang === 'function') ? i18n.getLang() : 'kk';
+}
+
+// Tiny template helper: replaces "{token}" placeholders with values.
+function tf(key, vars) {
+    let s = t(key);
+    if (!vars) return s;
+    Object.keys(vars).forEach(function (k) {
+        const token = '{' + k + '}';
+        const val = (vars[k] === undefined || vars[k] === null) ? '' : String(vars[k]);
+        s = s.split(token).join(val);
+    });
+    return s;
+}
+
+function displayOrUnknown(val) {
+    const s = (val === undefined || val === null) ? '' : String(val).trim();
+    return s ? s : t('common_unknown');
+}
+
+function updateSeo(p) {
+    const titleEl = document.getElementById('pageTitle');
+    const descEl = document.getElementById('pageDesc');
+    if (!p) {
+        if (titleEl) titleEl.textContent = t('prof_page_title');
+        if (descEl) descEl.setAttribute('content', t('prof_page_desc'));
+        return;
+    }
+    if (titleEl) titleEl.textContent = `${p.fullName} | Зиратстан`;
+    if (descEl) {
+        const desc = tf('prof_meta_desc_tpl', {
+            name: p.fullName,
+            birth: p.birth,
+            death: p.death,
+            cemetery: displayOrUnknown(p.cemetery),
+            city: displayOrUnknown(p.city)
+        });
+        descEl.setAttribute('content', desc);
+    }
+}
+
+function updateBadge(p) {
+    const badge = document.getElementById('heroBadge');
+    if (!badge) return;
+    if (p.filter === 'almaty') badge.textContent = t('prof_badge_almaty');
+    else if (p.filter === 'historical') badge.textContent = t('prof_badge_historical');
+    else badge.textContent = '';
+}
 
 // ── LOAD ENRICHED BIO FROM JSON ──
 async function loadEnrichedBio(profileId) {
@@ -30,23 +93,30 @@ function renderBio(data) {
 
     if (!_bioDataKK && !_bioDataRU) return;
 
-    const activeLang = _bioDataKK ? 'kk' : 'ru';
-    _bioLang = activeLang;
+    const hasKK = !!_bioDataKK;
+    const hasRU = !!_bioDataRU;
+    if (hasKK && hasRU) {
+        if (_bioLang !== 'kk' && _bioLang !== 'ru') _bioLang = 'kk';
+    } else if (hasKK) {
+        _bioLang = 'kk';
+    } else {
+        _bioLang = 'ru';
+    }
 
-    const wikiKK = data.wiki_link_kk ? `<a href="${data.wiki_link_kk}" target="_blank" rel="noopener" id="wikiLinkKK" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">📚 Wikipedia (ҚАЗ)</a>` : '';
-    const wikiRU = data.wiki_link_ru ? `<a href="${data.wiki_link_ru}" target="_blank" rel="noopener" id="wikiLinkRU" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">📚 Wikipedia (РУС)</a>` : '';
+    const wikiKK = data.wiki_link_kk ? `<a href="${data.wiki_link_kk}" target="_blank" rel="noopener" id="wikiLinkKK" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">${t('prof_wikipedia_kk')}</a>` : '';
+    const wikiRU = data.wiki_link_ru ? `<a href="${data.wiki_link_ru}" target="_blank" rel="noopener" id="wikiLinkRU" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">${t('prof_wikipedia_ru')}</a>` : '';
 
     const langSwitcher = (_bioDataKK && _bioDataRU) ? `
         <div id="bioLangSwitch" style="display:flex;gap:6px;margin-bottom:1rem;">
-            <button id="btnLangKK" onclick="switchBioLang('kk')" style="padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">ҚАЗ</button>
-            <button id="btnLangRU" onclick="switchBioLang('ru')" style="padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">РУС</button>
+            <button id="btnLangKK" onclick="switchBioLang('kk')" style="padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">${t('lang_kk')}</button>
+            <button id="btnLangRU" onclick="switchBioLang('ru')" style="padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">${t('lang_ru')}</button>
         </div>` : '';
 
-    const bioText = _bioDataKK || _bioDataRU;
+    const bioText = _bioLang === 'kk' ? (_bioDataKK || _bioDataRU) : (_bioDataRU || _bioDataKK);
 
     const videoHTML = data.video_link ? `
         <div style="margin-top:2rem;">
-            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> Бейнематериал</h3>
+            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> ${t('prof_video_title')}</h3>
             <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);">
                 <iframe src="${data.video_link.replace('watch?v=', 'embed/')}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
             </div>
@@ -55,7 +125,7 @@ function renderBio(data) {
 
     const galleryHTML = data.photos && data.photos.length > 0 ? `
         <div style="margin-top:2rem;">
-            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> Фотогалерея</h3>
+            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> ${t('prof_gallery_title')}</h3>
             <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin;">
                 ${data.photos.map(url => `<img src="${url}" style="height:160px;min-width:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`).join('')}
             </div>
@@ -63,19 +133,22 @@ function renderBio(data) {
     ` : '';
 
     bioSection.innerHTML = `
-        <h2><span class="s-icon">📖</span> Өмірбаян</h2>
+        <h2><span class="s-icon">📖</span> ${t('prof_bio_title')}</h2>
         ${langSwitcher}
         <div id="bioTextWrapper" style="position:relative;">
             <p id="biographyText" style="font-size:1rem;line-height:1.8;color:var(--text);opacity:0.82;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;margin-bottom:1rem;">${bioText}</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" style="font-size:0.82rem;">📖 Толығырақ оқу</button>
+            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" style="font-size:0.82rem;">${t('prof_read_more')}</button>
             ${wikiKK}
             ${wikiRU}
         </div>
         ${galleryHTML}
         ${videoHTML}
     `;
+
+    // Ensure UI matches current selected bio language and reset expand button.
+    if (_bioDataKK && _bioDataRU) switchBioLang(_bioLang);
 }
 
 function switchBioLang(lang) {
@@ -102,7 +175,7 @@ function switchBioLang(lang) {
         bioEl.style.webkitBoxOrient = 'vertical';
     }
     const btn = document.getElementById('readBioBtn');
-    if (btn) btn.textContent = '📖 Толығырақ оқу';
+    if (btn) btn.textContent = t('prof_read_more');
 }
 
 // ── TOGGLE BIO ──
@@ -115,13 +188,13 @@ function toggleBio() {
         bioEl.style.overflow = 'visible';
         bioEl.style.display = 'block';
         bioEl.style.webkitLineClamp = 'unset';
-        if (btn) btn.textContent = '🔼 Жию';
+        if (btn) btn.textContent = t('prof_collapse');
     } else {
         bioEl.style.overflow = 'hidden';
         bioEl.style.display = '-webkit-box';
         bioEl.style.webkitLineClamp = '5';
         bioEl.style.webkitBoxOrient = 'vertical';
-        if (btn) btn.textContent = '📖 Толығырақ оқу';
+        if (btn) btn.textContent = t('prof_read_more');
     }
 }
 
@@ -159,7 +232,7 @@ async function initProfile() {
                 lastName: '',
                 birth: staticMatch.birth || '?',
                 death: staticMatch.death || '?',
-                cemetery: staticMatch.cemetery || 'Белгісіз',
+                cemetery: staticMatch.cemetery || '',
                 city: staticMatch.city || '',
                 photo: staticMatch.photo || '',
                 bio: staticMatch.bio || '',
@@ -187,9 +260,12 @@ async function initProfile() {
         return;
     }
 
-    // Set SEO tags
-    document.getElementById('pageTitle').textContent = `${p.fullName} | Зиратстан`;
-    document.getElementById('pageDesc').setAttribute('content', `Мемориалдық парақша: ${p.fullName} (${p.birth}–${p.death}). ${p.cemetery}, ${p.city}.`);
+    _currentProfile = p;
+    _currentProfileId = id;
+    _currentProfileUuid = realProfileId;
+
+    // SEO tags (localized meta description)
+    updateSeo(p);
 
     // Hero section
     if (p.photo) {
@@ -207,19 +283,17 @@ async function initProfile() {
     const restName = nameParts.slice(1).join(' ');
     document.getElementById('heroName').innerHTML = `${lastName}<br><span class="accent">${restName}</span>`;
     document.getElementById('heroDates').textContent = `📅 ${p.birth} — ${p.death}`;
-    document.getElementById('heroLocation').textContent = `📍 ${p.cemetery}, ${p.city}`;
+    document.getElementById('heroLocation').textContent = `📍 ${displayOrUnknown(p.cemetery)}, ${displayOrUnknown(p.city)}`;
 
     // Info Grid
     document.getElementById('infoFullName').textContent = p.fullName;
     document.getElementById('infoBirth').textContent = p.birth;
     document.getElementById('infoDeath').textContent = p.death;
-    document.getElementById('infoCemetery').textContent = p.cemetery;
-    document.getElementById('infoCity').textContent = p.city;
+    document.getElementById('infoCemetery').textContent = displayOrUnknown(p.cemetery);
+    document.getElementById('infoCity').textContent = displayOrUnknown(p.city);
 
     // Badge
-    const badge = document.getElementById('heroBadge');
-    if (p.filter === 'almaty') badge.textContent = 'Алматы';
-    else if (p.filter === 'historical') badge.textContent = 'Тарихи тұлға';
+    updateBadge(p);
 
     document.getElementById('profileContent').style.display = '';
     document.getElementById('notFound').style.display = 'none';
@@ -228,13 +302,23 @@ async function initProfile() {
     // Load enriched bio from JSON (Wikipedia data)
     const enriched = await loadEnrichedBio(p.id);
     if (enriched && (enriched.bio_kk || enriched.bio_ru)) {
+        _enrichedData = enriched;
         renderBio(enriched);
     } else {
+        _enrichedData = null;
         // Fallback biography placeholder
         const bioSection = document.getElementById('bioSection');
         if (bioSection) {
-            const bioDefault = `${p.fullName} (${p.birth} — ${p.death}) — көрнекті қайраткер, ${p.city}, ${p.cemetery} зиратында жерленген.\n\nТолық тарихи өмірбаян цифрландыру үстінде. Егер сізде бұл тұлға туралы мәліметтер болса — «Өмірбаянды толықтыру» түймесін басып, тарихи жадты сақтауға көмектесіңіз.`;
-            document.getElementById('biographyText') && (document.getElementById('biographyText').textContent = p.bio || bioDefault);
+            const bioDefault = tf('prof_bio_fallback_tpl', {
+                name: p.fullName,
+                birth: p.birth,
+                death: p.death,
+                city: displayOrUnknown(p.city),
+                cemetery: displayOrUnknown(p.cemetery),
+                add_bio: t('prof_add_bio')
+            });
+            const el = document.getElementById('biographyText');
+            if (el) el.textContent = p.bio || bioDefault;
         }
     }
 
@@ -249,6 +333,7 @@ async function loadFamilyTree(profileId, currentProfile) {
     try {
         if (typeof fetchFamilyRelations !== 'function') return;
         const relations = await fetchFamilyRelations(profileId);
+        _familyRelations = relations || null;
 
         if (!relations || relations.length === 0) {
             document.getElementById('familySection').style.display = 'none';
@@ -273,13 +358,13 @@ function renderTree(relations, self) {
     if (parents.length > 0) {
         const pLevel = document.createElement('div');
         pLevel.className = 'tree-level';
-        parents.forEach(r => pLevel.appendChild(createNode(r.profiles, 'Ата-анасы')));
+        parents.forEach(r => pLevel.appendChild(createNode(r.profiles, t('prof_role_parent'))));
         treeEl.appendChild(pLevel);
     }
 
     const selfLevel = document.createElement('div');
     selfLevel.className = 'tree-level';
-    const selfNode = createNode(self, 'Өзі');
+    const selfNode = createNode(self, t('prof_role_self'));
     selfNode.classList.add('active');
     selfLevel.appendChild(selfNode);
     treeEl.appendChild(selfLevel);
@@ -287,7 +372,7 @@ function renderTree(relations, self) {
     if (children.length > 0) {
         const cLevel = document.createElement('div');
         cLevel.className = 'tree-level';
-        children.forEach(r => cLevel.appendChild(createNode(r.profiles, 'Баласы')));
+        children.forEach(r => cLevel.appendChild(createNode(r.profiles, t('prof_role_child'))));
         treeEl.appendChild(cLevel);
     }
 }
@@ -337,7 +422,7 @@ async function submitBio(event) {
 
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Жіберілуде...';
+    submitBtn.innerText = t('prof_submit_loading');
     submitBtn.disabled = true;
 
     try {
@@ -350,16 +435,16 @@ async function submitBio(event) {
         document.getElementById('addBioModal').innerHTML = `
             <div style="background:var(--surface); padding:32px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:460px; text-align:center;">
                 <div style="font-size:3rem; margin-bottom:12px;">✨</div>
-                <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">Рахмет!</h3>
-                <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Сіздің мәліметтеріңіз тексеруге жіберілді. Модерациядан кейін олар осы парақшада пайда болады.</p>
-                <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жабу</button>
+                <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">${t('map_modal_thanks_title')}</h3>
+                <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">${t('prof_modal_thanks_desc')}</p>
+                <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">${t('common_close')}</button>
             </div>`;
     } catch (err) {
         console.error('[Ziratstan] Error submitting bio:', err);
         submitBtn.innerText = originalBtnText;
         submitBtn.disabled = false;
         const toast = document.getElementById('toast');
-        toast.textContent = '❌ Жіберу кезінде қате шықты. Кейінірек қайталап көріңіз.';
+        toast.textContent = t('prof_toast_err');
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
@@ -374,10 +459,10 @@ function shareProfile() {
     } else {
         navigator.clipboard.writeText(url).then(() => {
             const toast = document.getElementById('toast');
-            toast.textContent = '✅ Сілтеме көшірілді!';
+            toast.textContent = t('prof_share_copied');
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2500);
-        }).catch(() => { prompt('Сілтемені көшіріңіз:', url); });
+        }).catch(() => { prompt(t('prof_share_prompt'), url); });
     }
 }
 
@@ -386,7 +471,10 @@ async function loadQrSection(profileId) {
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!UUID_REGEX.test(profileId)) {
         const content = document.getElementById('qrContent');
-        renderQrDisplay(content, { slug: profileId + '-mock', scan_count: 0 }, profileId);
+        _lastQrMode = 'mock';
+        _lastQrProfileId = profileId;
+        _lastQrData = { slug: profileId + '-mock', scan_count: 0 };
+        renderQrDisplay(content, _lastQrData, profileId);
         return;
     }
 
@@ -398,13 +486,24 @@ async function loadQrSection(profileId) {
         section.style.display = 'block';
 
         if (qr && qr.slug) {
+            _lastQrMode = 'display';
+            _lastQrProfileId = profileId;
+            _lastQrData = qr;
             renderQrDisplay(content, qr, profileId);
         } else {
             const session = await getSession();
             if (session) {
+                _lastQrMode = 'create';
+                _lastQrProfileId = profileId;
+                _lastQrData = null;
+                _lastQrHasSession = true;
                 renderQrCreate(content, profileId);
             } else {
-                content.innerHTML = `<p style="color:var(--muted); font-size:0.9rem; line-height:1.7;">Бұл профильде әлі QR-код жасалмаған. Орнату үшін әкімшіге хабарласыңыз.</p>`;
+                _lastQrMode = 'admin';
+                _lastQrProfileId = profileId;
+                _lastQrData = null;
+                _lastQrHasSession = false;
+                content.innerHTML = `<p style="color:var(--muted); font-size:0.9rem; line-height:1.7;">${t('prof_qr_no_qr_admin')}</p>`;
             }
         }
     } catch (err) {
@@ -423,16 +522,15 @@ function renderQrDisplay(container, qr, profileId) {
         <div class="qr-slug-display">📲 ${qr.slug}</div>
         <br>
         <div class="qr-scan-count">
-            👁️ Скан жасалды: <strong>${qr.scan_count || 0}</strong> рет
+            ${tf('prof_qr_scan_count_tpl', { count: (qr.scan_count || 0) })}
         </div>
         <div class="qr-actions">
-            <button class="btn-action btn-fill" onclick="downloadQrPng()">📥 PNG жүктеп алу</button>
-            <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">📐 SVG жүктеп алу</button>
-            <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">🔗 Сілтемені көшіру</button>
+            <button class="btn-action btn-fill" onclick="downloadQrPng()">${t('prof_qr_png')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">${t('prof_qr_svg')}</button>
+            <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
-            QR-кодты басып шығарып, құлпытасқа тақтайша жасауға тапсырыс беріңіз.<br>
-            Скан жасалғанда осы естелік парақшасы ашылады.
+            ${t('prof_qr_hint')}
         </p>
     `;
 
@@ -449,11 +547,10 @@ function renderQrDisplay(container, qr, profileId) {
 function renderQrCreate(container, profileId) {
     container.innerHTML = `
         <p style="color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; line-height:1.7;">
-            Бұл профильде әлі QR-код жоқ. Оны құлпытасқа орналастыру үшін жасаңыз.
-            Камерамен скан жасағанда осы мемориалдық парақша ашылады.
+            ${t('prof_qr_create_desc')}
         </p>
         <button class="qr-create-btn" id="createQrBtn" onclick="createQrForProfile('${profileId}')">
-            📲 QR-код жасау
+            ${t('prof_qr_create_btn')}
         </button>
     `;
 }
@@ -462,32 +559,35 @@ async function createQrForProfile(profileId) {
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!UUID_REGEX.test(profileId)) {
         const content = document.getElementById('qrContent');
-        content.innerHTML = `<p style="color:var(--muted); font-size:0.88rem; line-height:1.7;">
-            📋 QR-код тек Supabase дерекқорында тіркелген профильдер үшін қол жетімді.<br>
-            Бұл тарихи тұлға статикалық дерекқорда сақталған.
-        </p>`;
+        _lastQrMode = 'supabase_only';
+        _lastQrProfileId = profileId;
+        _lastQrData = null;
+        content.innerHTML = `<p style="color:var(--muted); font-size:0.88rem; line-height:1.7;">${t('prof_qr_only_supabase')}</p>`;
         return;
     }
 
     const btn = document.getElementById('createQrBtn');
-    btn.textContent = '⏳ Генерациялануда...';
+    btn.textContent = t('prof_qr_generating');
     btn.disabled = true;
 
     try {
         const result = await generateQrSlug(profileId);
         const content = document.getElementById('qrContent');
-        renderQrDisplay(content, { slug: result.slug, scan_count: 0 }, profileId);
+        _lastQrMode = 'display';
+        _lastQrProfileId = profileId;
+        _lastQrData = { slug: result.slug, scan_count: 0 };
+        renderQrDisplay(content, _lastQrData, profileId);
 
         const toast = document.getElementById('toast');
-        toast.textContent = '✅ QR-код жасалды: ' + result.slug;
+        toast.textContent = tf('prof_qr_created_toast_tpl', { slug: result.slug });
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     } catch (err) {
         console.error('[Ziratstan QR] Create error:', err);
-        btn.textContent = '❌ Қате, қайталап көріңіз';
+        btn.textContent = t('prof_qr_error_retry');
         btn.disabled = false;
         setTimeout(() => {
-            btn.textContent = '📲 QR-код жасау';
+            btn.textContent = t('prof_qr_create_btn');
         }, 2000);
     }
 }
@@ -525,13 +625,56 @@ async function downloadQrSvg(url, slug) {
 function copyQrLink(url) {
     navigator.clipboard.writeText(url).then(() => {
         const toast = document.getElementById('toast');
-        toast.textContent = '✅ Сілтеме көшірілді!';
+        toast.textContent = t('prof_share_copied');
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2500);
     }).catch(() => {
-        prompt('Сілтемені көшіріңіз:', url);
+        prompt(t('prof_share_prompt'), url);
     });
 }
 
+// Re-render dynamic content on language change (titles/meta, badges, bio blocks, tree roles, QR text).
+document.addEventListener('langchange', function () {
+    if (!_currentProfile) {
+        updateSeo(null);
+        return;
+    }
+
+    updateSeo(_currentProfile);
+    updateBadge(_currentProfile);
+
+    if (_enrichedData) {
+        renderBio(_enrichedData);
+    } else if (!_currentProfile.bio) {
+        const bioDefault = tf('prof_bio_fallback_tpl', {
+            name: _currentProfile.fullName,
+            birth: _currentProfile.birth,
+            death: _currentProfile.death,
+            city: displayOrUnknown(_currentProfile.city),
+            cemetery: displayOrUnknown(_currentProfile.cemetery),
+            add_bio: t('prof_add_bio')
+        });
+        const el = document.getElementById('biographyText');
+        if (el) el.textContent = bioDefault;
+    }
+
+    if (_familyRelations) renderTree(_familyRelations, _currentProfile);
+
+    // QR section rerender without re-fetching
+    const content = document.getElementById('qrContent');
+    if (content && _lastQrProfileId) {
+        if (_lastQrMode === 'display' || _lastQrMode === 'mock') {
+            renderQrDisplay(content, _lastQrData || { slug: _lastQrProfileId + '-mock', scan_count: 0 }, _lastQrProfileId);
+        } else if (_lastQrMode === 'create') {
+            renderQrCreate(content, _lastQrProfileId);
+        } else if (_lastQrMode === 'admin') {
+            content.innerHTML = `<p style="color:var(--muted); font-size:0.9rem; line-height:1.7;">${t('prof_qr_no_qr_admin')}</p>`;
+        } else if (_lastQrMode === 'supabase_only') {
+            content.innerHTML = `<p style="color:var(--muted); font-size:0.88rem; line-height:1.7;">${t('prof_qr_only_supabase')}</p>`;
+        }
+    }
+});
+
 // Run
+updateSeo(null);
 initProfile();

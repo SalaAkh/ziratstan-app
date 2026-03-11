@@ -9,6 +9,22 @@
         let currentFilter = 'all';
         let activeId = null;
         let pMarkers = {};
+        let refreshRegionsUI = function () { };
+
+        function t(key) {
+            return (window.i18n && typeof i18n.t === 'function') ? i18n.t(key) : key;
+        }
+
+        function getLang() {
+            return (window.i18n && typeof i18n.getLang === 'function') ? i18n.getLang() : 'kk';
+        }
+
+        function regionName(r) {
+            const lang = getLang();
+            const kk = r.n_kk || r.n || '';
+            const ru = r.n_ru || r.n || '';
+            return (lang === 'ru') ? (ru || kk) : (kk || ru);
+        }
 
         // ── MOBILE NAVIGATION ──
         function showMobileMap() {
@@ -94,28 +110,28 @@
         const regionsLayer = L.layerGroup();
         const KZ_REGIONS = [
             // Қалалық маңызы қалалар
-            { id: 'almaty', n: "Алматы", lt: 43.2380, ln: 76.9458, geo_lt: 43.2, geo_ln: 76.8, count: 0 },
-            { id: 'astana', n: "Астана", lt: 51.1282, ln: 71.4307, geo_lt: 51.16, geo_ln: 71.44, count: 0 },
-            { id: 'shymkent', n: "Шымкент", lt: 42.3154, ln: 69.5967, geo_lt: 42.34, geo_ln: 69.59, count: 0 },
+            { id: 'almaty', n_kk: "Алматы", n_ru: "Алматы", lt: 43.2380, ln: 76.9458, geo_lt: 43.2, geo_ln: 76.8, count: 0 },
+            { id: 'astana', n_kk: "Астана", n_ru: "Астана", lt: 51.1282, ln: 71.4307, geo_lt: 51.16, geo_ln: 71.44, count: 0 },
+            { id: 'shymkent', n_kk: "Шымкент", n_ru: "Шымкент", lt: 42.3154, ln: 69.5967, geo_lt: 42.34, geo_ln: 69.59, count: 0 },
             // Облыстар
-            { id: 'abai', n: "Абай облысы", lt: 50.4111, ln: 80.2275, geo_lt: 48.9, geo_ln: 80.2, count: 0 },
-            { id: 'akmola', n: "Ақмола облысы", lt: 52.9500, ln: 69.3833, geo_lt: 51.8, geo_ln: 69.4, count: 0 },
-            { id: 'aktobe', n: "Ақтөбе облысы", lt: 50.2839, ln: 57.2100, geo_lt: 48.8, geo_ln: 58.3, count: 0 },
-            { id: 'almaty_obl', n: "Алматы облысы", lt: 44.8488, ln: 77.0900, geo_lt: 44.5, geo_ln: 77.8, count: 0 },
-            { id: 'atyrau', n: "Атырау облысы", lt: 47.1076, ln: 51.9139, geo_lt: 47.1, geo_ln: 51.9, count: 0 },
-            { id: 'vko', n: "Шығыс Қазақстан", lt: 49.9481, ln: 82.6282, geo_lt: 49.9, geo_ln: 82.6, count: 0 },
-            { id: 'zhambyl', n: "Жамбыл облысы", lt: 42.9000, ln: 71.3667, geo_lt: 43.8, geo_ln: 72.8, count: 0 },
-            { id: 'zhetysu', n: "Жетісу облысы", lt: 45.0178, ln: 78.3738, geo_lt: 45.0, geo_ln: 79.0, count: 0 },
-            { id: 'zko', n: "Батыс Қазақстан", lt: 50.0000, ln: 51.5000, geo_lt: 50.0, geo_ln: 50.5, count: 0 },
-            { id: 'karaganda', n: "Қарағанды облысы", lt: 49.8019, ln: 73.1021, geo_lt: 48.5, geo_ln: 72.0, count: 0 },
-            { id: 'kostanay', n: "Қостанай облысы", lt: 52.9000, ln: 63.6246, geo_lt: 52.5, geo_ln: 63.6, count: 0 },
-            { id: 'kyzylorda', n: "Қызылорда облысы", lt: 44.8531, ln: 65.5092, geo_lt: 44.8, geo_ln: 63.5, count: 0 },
-            { id: 'mangystau', n: "Маңғыстау облысы", lt: 43.6353, ln: 51.1479, geo_lt: 44.0, geo_ln: 53.0, count: 0 },
-            { id: 'pavlodar', n: "Павлодар облысы", lt: 52.2873, ln: 76.9674, geo_lt: 52.3, geo_ln: 76.0, count: 0 },
-            { id: 'sko', n: "Солтүстік Қазақстан", lt: 53.0000, ln: 69.5000, geo_lt: 53.5, geo_ln: 68.5, count: 0 },
-            { id: 'turkestan', n: "Түркістан облысы", lt: 43.3017, ln: 68.2522, geo_lt: 42.8, geo_ln: 68.3, count: 0 },
-            { id: 'ulytau', n: "Ұлытау облысы", lt: 47.7845, ln: 67.7144, geo_lt: 47.8, geo_ln: 66.0, count: 0 },
-            { id: 'zarubezh', n: "Шет елдер", lt: 55.75, ln: 37.61, geo_lt: 55.7, geo_ln: 37.6, count: 0 }
+            { id: 'abai', n_kk: "Абай облысы", n_ru: "Абайская область", lt: 50.4111, ln: 80.2275, geo_lt: 48.9, geo_ln: 80.2, count: 0 },
+            { id: 'akmola', n_kk: "Ақмола облысы", n_ru: "Акмолинская область", lt: 52.9500, ln: 69.3833, geo_lt: 51.8, geo_ln: 69.4, count: 0 },
+            { id: 'aktobe', n_kk: "Ақтөбе облысы", n_ru: "Актюбинская область", lt: 50.2839, ln: 57.2100, geo_lt: 48.8, geo_ln: 58.3, count: 0 },
+            { id: 'almaty_obl', n_kk: "Алматы облысы", n_ru: "Алматинская область", lt: 44.8488, ln: 77.0900, geo_lt: 44.5, geo_ln: 77.8, count: 0 },
+            { id: 'atyrau', n_kk: "Атырау облысы", n_ru: "Атырауская область", lt: 47.1076, ln: 51.9139, geo_lt: 47.1, geo_ln: 51.9, count: 0 },
+            { id: 'vko', n_kk: "Шығыс Қазақстан", n_ru: "Восточный Казахстан", lt: 49.9481, ln: 82.6282, geo_lt: 49.9, geo_ln: 82.6, count: 0 },
+            { id: 'zhambyl', n_kk: "Жамбыл облысы", n_ru: "Жамбылская область", lt: 42.9000, ln: 71.3667, geo_lt: 43.8, geo_ln: 72.8, count: 0 },
+            { id: 'zhetysu', n_kk: "Жетісу облысы", n_ru: "Область Жетысу", lt: 45.0178, ln: 78.3738, geo_lt: 45.0, geo_ln: 79.0, count: 0 },
+            { id: 'zko', n_kk: "Батыс Қазақстан", n_ru: "Западный Казахстан", lt: 50.0000, ln: 51.5000, geo_lt: 50.0, geo_ln: 50.5, count: 0 },
+            { id: 'karaganda', n_kk: "Қарағанды облысы", n_ru: "Карагандинская область", lt: 49.8019, ln: 73.1021, geo_lt: 48.5, geo_ln: 72.0, count: 0 },
+            { id: 'kostanay', n_kk: "Қостанай облысы", n_ru: "Костанайская область", lt: 52.9000, ln: 63.6246, geo_lt: 52.5, geo_ln: 63.6, count: 0 },
+            { id: 'kyzylorda', n_kk: "Қызылорда облысы", n_ru: "Кызылординская область", lt: 44.8531, ln: 65.5092, geo_lt: 44.8, geo_ln: 63.5, count: 0 },
+            { id: 'mangystau', n_kk: "Маңғыстау облысы", n_ru: "Мангистауская область", lt: 43.6353, ln: 51.1479, geo_lt: 44.0, geo_ln: 53.0, count: 0 },
+            { id: 'pavlodar', n_kk: "Павлодар облысы", n_ru: "Павлодарская область", lt: 52.2873, ln: 76.9674, geo_lt: 52.3, geo_ln: 76.0, count: 0 },
+            { id: 'sko', n_kk: "Солтүстік Қазақстан", n_ru: "Северо-Казахстанская область", lt: 53.0000, ln: 69.5000, geo_lt: 53.5, geo_ln: 68.5, count: 0 },
+            { id: 'turkestan', n_kk: "Түркістан облысы", n_ru: "Туркестанская область", lt: 43.3017, ln: 68.2522, geo_lt: 42.8, geo_ln: 68.3, count: 0 },
+            { id: 'ulytau', n_kk: "Ұлытау облысы", n_ru: "Область Улытау", lt: 47.7845, ln: 67.7144, geo_lt: 47.8, geo_ln: 66.0, count: 0 },
+            { id: 'zarubezh', n_kk: "Шет елдер", n_ru: "Зарубежье", lt: 55.75, ln: 37.61, geo_lt: 55.7, geo_ln: 37.6, count: 0 }
         ];
 
         function makeRegionLabelIcon(name, count) {
@@ -201,10 +217,10 @@
                 superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
                 superclusterIndex.load(filtered);
                 const r = KZ_REGIONS.find(x => x.id === regionId);
-                console.log(`[Ziratstan] Drill-down: ${r ? r.n : regionId} → ${filtered.length} точек`);
+                console.log(`[Ziratstan] Drill-down: ${r ? regionName(r) : regionId} → ${filtered.length} точек`);
                 // Показать кнопку "назад"
                 document.getElementById('regionBackBtn').style.display = 'flex';
-                document.getElementById('regionBackLabel').textContent = r ? r.n : regionId;
+                document.getElementById('regionBackLabel').textContent = r ? regionName(r) : regionId;
             }
 
             // Функция сброса на все регионы
@@ -228,18 +244,43 @@
                 map.flyTo([48.0196, 66.9237], 5, { duration: 1 });
             });
 
-            // Наполняем sidebar dropdown регионами
-            const regionSel = document.getElementById('regionSelect');
-            if (regionSel) {
+            refreshRegionsUI = function () {
+                // Sidebar dropdown (keep the first "all regions" option intact)
+                const regionSel = document.getElementById('regionSelect');
+                if (regionSel) {
+                    while (regionSel.options.length > 1) regionSel.remove(1);
+                    KZ_REGIONS.forEach(r => {
+                        if (r.count > 0) {
+                            const opt = document.createElement('option');
+                            opt.value = r.id;
+                            opt.textContent = `${regionName(r)} (${r.count})`;
+                            regionSel.appendChild(opt);
+                        }
+                    });
+                }
+
+                // Region markers layer
+                regionsLayer.clearLayers();
                 KZ_REGIONS.forEach(r => {
                     if (r.count > 0) {
-                        const opt = document.createElement('option');
-                        opt.value = r.id;
-                        opt.textContent = `${r.n} (${r.count})`;
-                        regionSel.appendChild(opt);
+                        const m = L.marker([r.lt, r.ln], { icon: makeRegionLabelIcon(regionName(r), r.count) });
+                        m._regionId = r.id;
+                        m.on('click', () => {
+                            drillIntoRegion(r.id);
+                            map.flyTo([r.lt, r.ln], 8, { duration: 1.2 });
+                        });
+                        regionsLayer.addLayer(m);
                     }
                 });
-            }
+
+                // Back button label (when drilled down)
+                if (activeRegionId) {
+                    const r = KZ_REGIONS.find(x => x.id === activeRegionId);
+                    if (r) document.getElementById('regionBackLabel').textContent = regionName(r);
+                }
+            };
+
+            refreshRegionsUI();
 
             // Глобальный обработчик выбора из dropdown
             window.handleRegionSelect = function (regionId) {
@@ -266,18 +307,6 @@
                 // Update sidebar list when clicking region cluster on map
                 if (typeof renderList === 'function') renderList();
             };
-
-            // Создаем маркеры регионов
-            KZ_REGIONS.forEach(r => {
-                if (r.count > 0) {
-                    const m = L.marker([r.lt, r.ln], { icon: makeRegionLabelIcon(r.n, r.count) });
-                    m.on('click', () => {
-                        drillIntoRegion(r.id);
-                        map.flyTo([r.lt, r.ln], 8, { duration: 1.2 });
-                    });
-                    regionsLayer.addLayer(m);
-                }
-            });
 
             // Рендер видимых кластеров/точек из Supercluster
             // Граница Казахстана (bounding box)
@@ -327,10 +356,10 @@
                         const m = L.circleMarker([lat, lng], cemIconOpts);
                         m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
                             <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
-                            <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">Координаттар: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                            <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">${t('map_coords_label')}: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                              <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">✍️ Атауын нақтылау / Цифрландыру</a>
-                              <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ Профиль қосу</a>
+                              <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
+                              <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
                             </div>
                         </div>`);
                         cemeteriesLayer.addLayer(m);
@@ -429,7 +458,7 @@
             }
 
             const total = filteredVip.length + filteredGen.length;
-            document.getElementById('resultsCount').textContent = `Табылды: ${total} жазба`;
+            document.getElementById('resultsCount').textContent = `${t('map_results_found')}: ${total}`;
 
             let displayList = '';
 
@@ -437,9 +466,9 @@
                 displayList += `
                 <div style="padding: 2rem 1rem; text-align: center;">
                     <div style="font-size: 2rem; margin-bottom: 1rem; color: var(--muted);">🔍</div>
-                    <div style="color: var(--text); margin-bottom: 0.5rem; font-weight: 600;">Eшнәрсе табылған жоқ</div>
-                    <div style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Бірақ сіз бұл тұлғаны Зиратстанға өзіңіз қоса аласыз</div>
-                    <button class="geo-btn" style="background: var(--gold); color: #09090b; border: none; font-weight: 700;" onclick="openAddProfileModal(null, null, null, null)">➕ Create profile</button>
+                    <div style="color: var(--text); margin-bottom: 0.5rem; font-weight: 600;">${t('map_not_found')}</div>
+                    <div style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem;">${t('map_empty_desc')}</div>
+                    <button class="geo-btn" style="background: var(--gold); color: #09090b; border: none; font-weight: 700;" onclick="openAddProfileModal(null, null, null, null)">➕ ${t('map_add_profile')}</button>
                 </div>
                 `;
             }
@@ -471,14 +500,14 @@
         <div class="card-avatar" style="color:var(--muted); border-color:var(--border);">🪦</div>
         <div class="card-info">
           <div class="card-name" style="color:var(--text);">${c.n}</div>
-          <div class="card-meta">Жалпы зират (Координаттар: ${c.lt}, ${c.ln})</div>
+          <div class="card-meta">${t('map_general_cemetery')} (${t('map_coords_label')}: ${c.lt}, ${c.ln})</div>
         </div>
         <span class="card-arrow">›</span>
       </a>`;
             }
 
             if (filteredGen.length > 50) {
-                displayList += `<div style="text-align:center; padding:15px; color:var(--muted); font-size:0.8rem; border-bottom:1px solid var(--border);">${filteredGen.length} жалпы зираттың 50-і көрсетілді. Іздеуді нақтылаңыз.</div>`;
+                displayList += `<div style="text-align:center; padding:15px; color:var(--muted); font-size:0.8rem; border-bottom:1px solid var(--border);">${t('map_showing_top')}: 50 / ${filteredGen.length}. ${t('map_refine_search')}</div>`;
             }
 
             document.getElementById('resultsList').innerHTML = displayList;
@@ -556,14 +585,7 @@
                 const zr = KZ_REGIONS.find(x => x.id === 'zarubezh');
                 if (zr) {
                     zr.count += foreignVipCount;
-                    // Удалить старый маркер если был
-                    regionsLayer.eachLayer(layer => {
-                        if (layer._zarubezh) regionsLayer.removeLayer(layer);
-                    });
-                    const zm = L.marker([zr.lt, zr.ln], { icon: makeRegionLabelIcon('🌍 ' + zr.n, zr.count) });
-                    zm._zarubezh = true;
-                    zm.on('click', () => map.flyTo([zr.lt, zr.ln], 5, { duration: 1.2 }));
-                    regionsLayer.addLayer(zm);
+                    if (typeof refreshRegionsUI === 'function') refreshRegionsUI();
                 }
             }
 
@@ -587,7 +609,7 @@
         </div>
         <div style="color:#71717a;font-size:0.75rem;margin-bottom:10px;">📍 ${p.cemetery}, ${p.city}</div>
         <a href="profile.html?id=${p.id}" style="display:block;background:#d4af37;color:#09090b;text-align:center;padding:8px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.8rem;">
-          Профильді ашу →
+          ${t('map_btn_profile')}
         </a>
       </div>
     `);
@@ -685,12 +707,12 @@
         function geolocate() {
             const btn = document.getElementById('geoBtnText');
             const status = document.getElementById('geoStatus');
-            btn.textContent = 'Анықталуда...';
+            btn.textContent = t('map_geo_locating');
 
             if (!navigator.geolocation) {
                 status.className = 'geo-status error';
-                status.textContent = '❌ Геолокация қолдау таппайды';
-                btn.textContent = 'Менің орналасқан жерім';
+                status.textContent = t('map_geo_not_supported');
+                btn.textContent = t('map_geo_btn');
                 return;
             }
 
@@ -698,17 +720,17 @@
                 ({ coords: { latitude: lat, longitude: lng } }) => {
                     if (userMarker) userMarker.remove();
                     userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
-                        .bindPopup('<div style="padding:8px;font-family:Inter,sans-serif;font-weight:600;">📍 Сіз осындасыз</div>')
+                        .bindPopup(`<div style="padding:8px;font-family:Inter,sans-serif;font-weight:600;">${t('map_you_are_here')}</div>`)
                         .openPopup();
                     map.flyTo([lat, lng], 16, { duration: 1.5 });
                     status.className = 'geo-status success';
-                    status.textContent = '✓ Геолокация анықталды';
-                    btn.textContent = 'Орнымды жаңарту';
+                    status.textContent = t('map_geo_found');
+                    btn.textContent = t('map_geo_refresh');
                 },
                 err => {
                     status.className = 'geo-status error';
                     status.textContent = `❌ ${err.message}`;
-                    btn.textContent = 'Менің орналасқан жерім';
+                    btn.textContent = t('map_geo_btn');
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
@@ -723,6 +745,11 @@
 
         // Init data from Supabase
         initData();
+
+        document.addEventListener('langchange', () => {
+            if (typeof refreshRegionsUI === 'function') refreshRegionsUI();
+            if (typeof renderList === 'function') renderList();
+        });
 
         // ── UGC MODAL LOGIC ──
         function openUgcModal(cemeteryId, defaultName, lat, lng) {
@@ -743,7 +770,7 @@
 
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
-            submitBtn.textContent = '⏳ Жіберілуде...';
+            submitBtn.textContent = t('map_submit_loading');
             submitBtn.disabled = true;
 
             try {
@@ -762,9 +789,9 @@
             document.getElementById('ugcModal').innerHTML = `
                 <div style="background:var(--surface); padding:30px; border-radius:12px; border:1px solid var(--border); width:90%; max-width:400px; text-align:center;">
                     <div style="font-size:3rem; margin-bottom:10px;">✨</div>
-                    <h3 style="color:var(--gold); margin-bottom:10px;">Рахмет!</h3>
-                    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Атау модерацияға сәтті жіберілді. Тексерістен кейін ол картада пайда болады.</p>
-                    <button type="button" onclick="closeUgcModal()" style="width:100%; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;">Жабу</button>
+                    <h3 style="color:var(--gold); margin-bottom:10px;">${t('map_modal_thanks_title')}</h3>
+                    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">${t('map_modal_thanks_desc_name')}</p>
+                    <button type="button" onclick="closeUgcModal()" style="width:100%; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;">${t('map_modal_close')}</button>
                 </div>
             `;
         }
@@ -772,7 +799,7 @@
         // ── ADD PROFILE MODAL ──
         function openAddProfileModal(cemeteryId, cemeteryName, lat, lng) {
             window.currentAddCemetery = { id: cemeteryId, name: cemeteryName, lat, lng };
-            document.getElementById('addCemeteryInfo').innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName}</strong><br>Координаттар: ${lat}, ${lng}`;
+            document.getElementById('addCemeteryInfo').innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName}</strong><br>${t('map_coords_label')}: ${lat}, ${lng}`;
             document.getElementById('addFullName').value = '';
             document.getElementById('addBirth').value = '';
             document.getElementById('addDeath').value = '';
@@ -792,7 +819,7 @@
 
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerText;
-            submitBtn.innerText = 'Жіберілуде...';
+            submitBtn.innerText = t('map_submit_loading');
             submitBtn.disabled = true;
 
             const data = {
@@ -819,10 +846,10 @@
                 document.getElementById('addProfileModal').innerHTML = `
                     <div style="background:var(--surface); padding:30px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:440px; text-align:center;">
                         <div style="font-size:3rem; margin-bottom:12px;">✨</div>
-                        <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Outfit', sans-serif;">Рахмет!</h3>
+                        <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Outfit', sans-serif;">${t('map_modal_thanks_title')}</h3>
                         <p style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;"><strong style="color:var(--text);">${data.fullName}</strong></p>
-                        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">Профиль модерацияға жіберілді. Тексерістен кейін ол осы зираттың картасында пайда болады.</p>
-                        <button type="button" onclick="closeAddProfileModal()" style="padding:12px 24px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жабу</button>
+                        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">${t('map_modal_thanks_desc_profile')}</p>
+                        <button type="button" onclick="closeAddProfileModal()" style="padding:12px 24px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">${t('map_modal_close')}</button>
                     </div>
                 `;
             } catch (err) {
@@ -831,11 +858,11 @@
                 submitBtn.disabled = false;
                 const toast = document.getElementById('toast');
                 if (toast) {
-                    toast.textContent = '❌ Жіберу кезінде қате шықты. Интернетті тексеріп, кейінірек қайталап көріңіз.';
+                    toast.textContent = t('map_toast_err');
                     toast.classList.add('show');
                     setTimeout(() => toast.classList.remove('show'), 3000);
                 } else {
-                    alert('Жіберу кезінде қате шықты. Кейінірек қайталап көріңіз.');
+                    alert(t('map_toast_err'));
                 }
             }
         }

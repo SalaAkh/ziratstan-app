@@ -75,6 +75,11 @@
         document.querySelectorAll('.lang-btn').forEach(function (btn) {
             const btnLang = btn.getAttribute('data-lang');
             btn.classList.toggle('lang-btn--active', btnLang === lang);
+            btn.setAttribute('aria-pressed', btnLang === lang ? 'true' : 'false');
+            btn.textContent = btnLang === 'kk' ? window.i18n.t('lang_kk') : window.i18n.t('lang_ru');
+        });
+        document.querySelectorAll('.lang-switcher').forEach(function (wrapper) {
+            wrapper.setAttribute('aria-label', window.i18n.t('lang_switcher_aria'));
         });
     }
 
@@ -83,13 +88,13 @@
         const wrapper = document.createElement('div');
         wrapper.className = 'lang-switcher';
         wrapper.setAttribute('role', 'group');
-        wrapper.setAttribute('aria-label', 'Тіл / Язык');
+        wrapper.setAttribute('aria-label', window.i18n ? window.i18n.t('lang_switcher_aria') : 'Language');
 
         SUPPORTED.forEach(function (lang) {
             const btn = document.createElement('button');
             btn.className = 'lang-btn';
             btn.setAttribute('data-lang', lang);
-            btn.textContent = lang === 'kk' ? 'ҚАЗ' : 'РУС';
+            btn.textContent = window.i18n ? window.i18n.t(lang === 'kk' ? 'lang_kk' : 'lang_ru') : lang.toUpperCase();
             btn.setAttribute('aria-pressed', 'false');
             btn.addEventListener('click', function () {
                 setLang(lang);

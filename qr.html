@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QR-Ескерткіш | Зиратстан</title>
-    <meta name="description" content="Құлпытастағы QR-кодты сканерлеу — Зиратстан, Қазақстанның цифрлық жады." />
+    <meta name="description" id="pageDesc" content="Құлпытастағы QR-кодты сканерлеу — Зиратстан, Қазақстанның цифрлық жады." />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -216,64 +216,64 @@
 
         <div class="state active" id="stateLoading">
             <div class="loader"></div>
-            <div class="loading-text">Мемориал жүктелуде <span class="slug-val" id="loadingSlug">...</span></div>
+            <div class="loading-text"><span data-i18n="qr_loading">Мемориал жүктелуде...</span> <span class="slug-val" id="loadingSlug">...</span></div>
         </div>
 
         <!-- State: Not Found / Unlinked -->
         <div class="state" id="stateNotFound">
             <div class="err-icon">☽</div>
-            <h1 class="err-title">QR-код байланыстырылмаған</h1>
-            <p class="err-desc">
+            <h1 class="err-title" data-i18n="qr_not_linked_title">QR-код байланыстырылмаған</h1>
+            <p class="err-desc" data-i18n-html="qr_not_linked_desc">
                 Бұл QR-код әлі мемориалдық профильге байланыстырылмаған.<br>
                 Егер сіз марқұмның туысы болсаңыз, сандық мемориалды дәл қазір жасай аласыз.
             </p>
             <div class="err-slug" id="errSlug"></div>
             <div class="actions">
-                <a href="index.html" class="btn btn-gold">🕌 Мемориал жасау</a>
-                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
+                <a href="index.html" class="btn btn-gold"><span aria-hidden="true">🏠</span> <span data-i18n="qr_not_linked_btn">Басты бетке</span></a>
+                <a href="map.html" class="btn btn-outline"><span aria-hidden="true">🗺️</span> <span data-i18n="qr_no_slug_btn">Картаға өту</span></a>
             </div>
             <div class="brand">
-                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Қазақстанның цифрлық жады
+                <a href="index.html"><span style="color:var(--gold)">З</span><span data-i18n="qr_brand">иратстан</span></a> — <span data-i18n="qr_brand_sub">Қазақстанның цифрлық жады</span>
             </div>
         </div>
 
         <!-- State: Error -->
         <div class="state" id="stateError">
             <div class="err-icon">⚠️</div>
-            <h1 class="err-title">Жүктеу қатесі</h1>
-            <p class="err-desc">
+            <h1 class="err-title" data-i18n="qr_error_title">Жүктеу қатесі</h1>
+            <p class="err-desc" data-i18n="qr_error_desc">
                 Мемориал деректерін жүктеу мүмкін болмады. Интернет қосылымын тексеріп, қайталап көріңіз.
             </p>
             <div class="actions">
-                <button class="btn btn-gold" onclick="location.reload()">🔄 Қайталап көру</button>
-                <a href="index.html" class="btn btn-outline">🏠 Басты бетке</a>
+                <button class="btn btn-gold" onclick="location.reload()"><span aria-hidden="true">🔄</span> <span data-i18n="qr_error_btn">Қайталап көру</span></button>
+                <a href="index.html" class="btn btn-outline"><span aria-hidden="true">🏠</span> <span data-i18n="qr_not_linked_btn">Басты бетке</span></a>
             </div>
         </div>
 
         <!-- State: No Slug -->
         <div class="state" id="stateNoSlug">
             <div class="err-icon">📲</div>
-            <h1 class="err-title">QR-кодты сканерлеңіз</h1>
-            <p class="err-desc">
+            <h1 class="err-title" data-i18n="qr_no_slug_title">QR-кодты сканерлеңіз</h1>
+            <p class="err-desc" data-i18n="qr_no_slug_desc">
                 Мемориалдық бетті ашу үшін телефон камерасын құлпытаста орналасқан QR-кодқа бағыттаңыз.
             </p>
             <div class="actions">
-                <a href="index.html" class="btn btn-gold">🕌 Толығырақ білу</a>
-                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
+                <a href="map.html" class="btn btn-gold"><span aria-hidden="true">🗺️</span> <span data-i18n="qr_no_slug_btn">Картаға өту</span></a>
+                <a href="index.html" class="btn btn-outline"><span aria-hidden="true">🏠</span> <span data-i18n="qr_not_linked_btn">Басты бетке</span></a>
             </div>
             <div class="brand">
-                <a href="index.html"><span style="color:var(--gold)">З</span>иратстан</a> — Қазақстанның цифрлық жады
+                <a href="index.html"><span style="color:var(--gold)">З</span><span data-i18n="qr_brand">иратстан</span></a> — <span data-i18n="qr_brand_sub">Қазақстанның цифрлық жады</span>
             </div>
         </div>
 
         <!-- State: Generate (Mock for Tests) -->
         <div class="state" id="stateGenerate">
-            <h1 class="err-title">QR code</h1>
-            <p class="err-desc">This is a mock generator for testing purposes.</p>
+            <h1 class="err-title" data-i18n="qr_mock_title">QR-код</h1>
+            <p class="err-desc" data-i18n="qr_mock_desc">Бұл тестілеуге арналған демонстрациялық генератор.</p>
             <div class="actions">
-                <button class="btn btn-gold">Download</button>
-                <button class="btn btn-outline">Copy link</button>
-                <a href="map.html" class="btn btn-outline">🗺️ Картаны ашу</a>
+                <button class="btn btn-gold" data-i18n="qr_mock_download">Жүктеп алу</button>
+                <button class="btn btn-outline" data-i18n="qr_mock_copy">Сілтемені көшіру</button>
+                <a href="map.html" class="btn btn-outline"><span aria-hidden="true">🗺️</span> <span data-i18n="qr_no_slug_btn">Картаға өту</span></a>
             </div>
         </div>
 
@@ -328,6 +328,19 @@
     </script>
     <script src="locales.js"></script>
     <script src="i18n.js"></script>
+    <script>
+        (function () {
+            function applyHead() {
+                if (!window.i18n) return;
+                document.title = i18n.t('qr_page_title');
+                const desc = document.getElementById('pageDesc');
+                if (desc) desc.setAttribute('content', i18n.t('qr_meta_desc'));
+            }
+            document.addEventListener('langchange', applyHead);
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHead);
+            else applyHead();
+        })();
+    </script>
 </body>
 
 </html>

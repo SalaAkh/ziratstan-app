@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Бейітті күту қызметтері | Зиратстан</title>
-    <meta name="description"
+    <meta name="description" id="pageDesc"
         content="Кез келген қаладан бейітті тазалау, сырлау немесе Құран оқытуға тапсырыс беріңіз. Орындалғаннан кейін фотоесепберіледі." />
     <meta name="keywords"
         content="бейіттерді тазалау, жерлеу орындарын күту, онлайн құран оқу, ескерткіштерді қалпына келтіру, зиратстан қызметтері" />
@@ -408,16 +408,16 @@
     <nav>
         <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
         <div class="nav-links">
-            <a href="index.html">Басты бет</a>
-            <a href="map.html">Карта</a>
-            <a href="services.html" class="active">Қызметтер</a>
-            <a href="profile.html">Демо</a>
+            <a href="index.html" data-i18n="nav_home">Басты бет</a>
+            <a href="map.html" data-i18n="nav_map">Карта</a>
+            <a href="services.html" class="active" data-i18n="nav_services">Қызметтер</a>
+            <a href="profile.html" data-i18n="nav_profile">Демо</a>
         </div>
     </nav>
 
     <div class="header">
-        <h1>Бейітті күту қызметтері</h1>
-        <p>Әлемнің кез келген нүктесінен тапсырыс беріңіз. Орындаушы фотоесеп жібереді.</p>
+        <h1 data-i18n="serv_page_h1">Бейітті күту қызметтері</h1>
+        <p data-i18n="serv_page_desc">Әлемнің кез келген нүктесінен тапсырыс беріңіз. Орындаушы фотоесеп жібереді.</p>
     </div>
 
     <!-- Step 1: Select -->
@@ -425,36 +425,36 @@
         <div class="services-grid">
             <div class="service-card" data-id="cleaning" data-price="5000" data-icon="🧹" onclick="selectService(this)">
                 <div class="service-icon">🧹</div>
-                <h3>Бейітті тазалау</h3>
-                <p class="desc">Аумақты кәсіби тазалау, арамшөптерді жұлу, сыпыру, ескерткішті жуу.</p>
+                <h3 data-i18n="serv_clean_title">Бейітті тазалау</h3>
+                <p class="desc" data-i18n="serv_clean_desc">Аумақты кәсіби тазалау, арамшөптерді жұлу, сыпыру, ескерткішті жуу.</p>
                 <div class="service-price">
                     <span class="price-val">5 000 ₸</span>
-                    <span class="price-time">1–2 сағат</span>
+                    <span class="price-time" data-i18n="serv_clean_time">1–2 сағат</span>
                 </div>
             </div>
             <div class="service-card" data-id="painting" data-price="12000" data-icon="🎨"
                 onclick="selectService(this)">
                 <div class="service-icon">🎨</div>
-                <h3>Қоршауды бояу</h3>
-                <p class="desc">Металл қоршауды бояу, ескерткіш түсін жаңарту, қорғаныш лак жағу.
+                <h3 data-i18n="serv_paint_title">Қоршауды бояу</h3>
+                <p class="desc" data-i18n="serv_paint_desc">Металл қоршауды бояу, ескерткіш түсін жаңарту, қорғаныш лак жағу.
                 </p>
                 <div class="service-price">
                     <span class="price-val">12 000 ₸</span>
-                    <span class="price-time">2–4 сағат</span>
+                    <span class="price-time" data-i18n="serv_paint_time">2–4 сағат</span>
                 </div>
             </div>
             <div class="service-card" data-id="quran" data-price="8000" data-icon="📖" onclick="selectService(this)">
                 <div class="service-icon">📖</div>
-                <h3>Құран оқыту</h3>
-                <p class="desc">Бейіт басында Құран мен дұға оқу үшін имам шақыру (видео растаумен).</p>
+                <h3 data-i18n="serv_quran_title">Құран оқыту</h3>
+                <p class="desc" data-i18n="serv_quran_desc">Бейіт басында Құран мен дұға оқу үшін имам шақыру (видео растаумен).</p>
                 <div class="service-price">
                     <span class="price-val">8 000 ₸</span>
-                    <span class="price-time">30–60 минут</span>
+                    <span class="price-time" data-i18n="serv_quran_time">30–60 минут</span>
                 </div>
             </div>
         </div>
         <div class="next-btn">
-            <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()">Келесі →</button>
+            <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()" data-i18n="serv_next">Келесі →</button>
         </div>
     </div>
 
@@ -462,28 +462,28 @@
     <div class="container form-section" id="formStep">
         <div class="form-selected" id="formSelected"></div>
         <div>
-            <label for="nameInput">Атыңыз</label>
-            <input type="text" id="nameInput" placeholder="Ахмед Сейтқали" />
-            <label for="phoneInput">Телефон нөмірі</label>
-            <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" />
-            <label for="profileInput">Марқұмның профиль ID-і <span class="optional">(міндетті емес)</span></label>
-            <input type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" />
-            <label for="commentInput">Пікір</label>
-            <textarea rows="3" id="commentInput" placeholder="Қосымша тілектер..."></textarea>
+            <label for="nameInput" data-i18n="serv_form_name">Атыңыз</label>
+            <input type="text" id="nameInput" placeholder="Ахмед Сейтқали" data-i18n-ph="serv_form_name_ph" />
+            <label for="phoneInput" data-i18n="serv_form_phone">Телефон нөмірі</label>
+            <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" data-i18n-ph="serv_form_phone_ph" />
+            <label for="profileInput" data-i18n-html="serv_form_profile_ref">Марқұмның профиль ID-і <span class="optional">(міндетті емес)</span></label>
+            <input type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" data-i18n-ph="serv_form_profile_ref_ph" />
+            <label for="commentInput" data-i18n="serv_form_notes">Пікір</label>
+            <textarea rows="3" id="commentInput" placeholder="Қосымша тілектер..." data-i18n-ph="serv_form_notes_ph"></textarea>
         </div>
         <div class="form-btns">
-            <button class="btn btn-outline" onclick="goBack()">Артқа</button>
-            <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Тапсырыс беру</button>
+            <button class="btn btn-outline" onclick="goBack()" data-i18n="serv_form_back">Артқа</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()" data-i18n="serv_form_order">Тапсырыс беру</button>
         </div>
     </div>
 
     <!-- Step 3: Success -->
     <div class="success-section" id="successStep">
         <div class="success-icon">✅</div>
-        <h2>Тапсырыс қабылданды!</h2>
-        <p>Сіздің тапсырысыңыз қабылданды. Орындаушы сізбен 24 сағат ішінде хабарласады. Орындалғаннан кейін
+        <h2 data-i18n="serv_success_title">Тапсырыс қабылданды!</h2>
+        <p data-i18n="serv_success_desc_long">Сіздің тапсырысыңыз қабылданды. Орындаушы сізбен 24 сағат ішінде хабарласады. Орындалғаннан кейін
             «Дейін/Кейін» фотоесебін аласыз.</p>
-        <a href="index.html" class="btn btn-primary">Басты бетке</a>
+        <a href="index.html" class="btn btn-primary" data-i18n="serv_success_back">Басты бетке</a>
     </div>
 
     <script>
@@ -519,10 +519,13 @@
             const phone = document.getElementById('phoneInput').value.trim();
             const profileRef = document.getElementById('profileInput').value.trim();
             const comment = document.getElementById('commentInput').value.trim();
-            if (!name || !phone) { alert('Атыңызды және телефоныңызды толтырыңыз'); return; }
+            if (!name || !phone) {
+                alert(window.i18n ? i18n.t('serv_validation_required') : 'Атыңызды және телефоныңызды толтырыңыз');
+                return;
+            }
 
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.textContent = '⏳ Жіберілуде...';
+            submitBtn.textContent = window.i18n ? i18n.t('serv_submit_loading') : '⏳ Жіберілуде...';
             submitBtn.disabled = true;
 
             try {
@@ -548,6 +551,19 @@
     </script>
     <script src="locales.js"></script>
     <script src="i18n.js"></script>
+    <script>
+        (function () {
+            function applyHead() {
+                if (!window.i18n) return;
+                document.title = i18n.t('serv_page_title');
+                const desc = document.getElementById('pageDesc');
+                if (desc) desc.setAttribute('content', i18n.t('serv_meta_desc'));
+            }
+            document.addEventListener('langchange', applyHead);
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHead);
+            else applyHead();
+        })();
+    </script>
 </body>
 
 </html>

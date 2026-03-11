@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Жерлеу Орындарының Картасы | Зиратстан</title>
-    <meta name="description"
+    <meta name="description" id="pageDesc"
         content="Қазақстан зираттарының интерактивті картасы. Бейітті аты бойынша табыңыз немесе өзіңіздің GPS орналасуыңызды анықтаңыз." />
     <meta name="keywords"
         content="зираттар картасы, қазақстан жерлеу орындары, картада бейіт іздеу, зираттар геолокациясы, зиратстан картасы" />
@@ -709,10 +709,10 @@
     <nav class="topnav">
         <a href="index.html" class="logo"><span>З</span>иратстан</a>
         <div class="nav-btns">
-            <a href="index.html" class="nav-btn">Басты бет</a>
-            <a href="map.html" class="nav-btn active">📍 Карта</a>
-            <a href="services.html" class="nav-btn">Қызметтер</a>
-            <a href="profile.html" class="nav-btn">Демо</a>
+            <a href="index.html" class="nav-btn" data-i18n="nav_home">Басты бет</a>
+            <a href="map.html" class="nav-btn active"><span aria-hidden="true">📍</span> <span data-i18n="nav_map">Карта</span></a>
+            <a href="services.html" class="nav-btn" data-i18n="nav_services">Қызметтер</a>
+            <a href="profile.html" class="nav-btn" data-i18n="nav_profile">Демо</a>
         </div>
     </nav>
 
@@ -723,44 +723,44 @@
         <aside class="sidebar" id="sidebar">
             <!-- Header -->
             <div class="sidebar-header">
-                <div class="sidebar-title">Жерлеу картасы</div>
+                <div class="sidebar-title" data-i18n="map_title">Жерлеу картасы</div>
                 <div class="search-wrap">
                     <span class="search-icon">🔍</span>
                     <label for="searchInput" style="display:none;">Іздеу</label>
                     <input type="text" id="searchInput" class="search-input"
-                        placeholder="Аты немесе зират бойынша іздеу..." />
+                        placeholder="Іздеу..." data-i18n-ph="map_search_ph" />
                 </div>
                 <button class="geo-btn" onclick="geolocate()" id="geoBtn">
-                    <span>📡</span> <span id="geoBtnText">Менің орналасқан жерім</span>
+                    <span>📡</span> <span id="geoBtnText" data-i18n="map_geo_btn">Менің орналасқан жерім</span>
                 </button>
                 <div class="geo-status" id="geoStatus"></div>
 
                 <!-- Выбор области -->
                 <select id="regionSelect" class="region-select" onchange="handleRegionSelect(this.value)">
-                    <option value="">🗺️ Қазақстанның барлық облыстары</option>
+                    <option value="" data-i18n="map_region_all">🗺️ Қазақстанның барлық облыстары</option>
                 </select>
             </div>
 
             <!-- Filter tabs -->
             <div class="filter-tabs">
-                <button class="filter-btn active" data-filter="all">Барлығы</button>
-                <button class="filter-btn" data-filter="historical">Тарихи шертпелер</button>
-                <button class="filter-btn" data-filter="cemeteries">Зираттар</button>
+                <button class="filter-btn active" data-filter="all" data-i18n="map_tab_all">Барлығы</button>
+                <button class="filter-btn" data-filter="historical" data-i18n="map_tab_historical">Тарихи шертпелер</button>
+                <button class="filter-btn" data-filter="cemeteries" data-i18n="map_tab_cemeteries">Зираттар</button>
             </div>
 
             <!-- New Era Filter (Hidden by default, shown only when historical is selected) -->
             <div class="era-filters-wrap" id="eraSelectWrap"
                 style="display: none; padding: 0.5rem 1rem 1rem; overflow-x: auto; white-space: nowrap;">
-                <button class="era-btn active" data-era="all">Барлығы</button>
-                <button class="era-btn" data-era="ancient">Ежелгі дәуір</button>
-                <button class="era-btn" data-era="medieval">Орта ғасырлар</button>
-                <button class="era-btn" data-era="khanate">Қазақ хандығы</button>
-                <button class="era-btn" data-era="alash">Алаш (Alash)</button>
-                <button class="era-btn" data-era="soviet">Кеңес (Soviet)</button>
+                <button class="era-btn active" data-era="all" data-i18n="map_era_all">Барлығы</button>
+                <button class="era-btn" data-era="ancient" data-i18n="map_era_ancient">Ежелгі дәуір</button>
+                <button class="era-btn" data-era="medieval" data-i18n="map_era_medieval">Орта ғасырлар</button>
+                <button class="era-btn" data-era="khanate" data-i18n="map_era_khanate">Қазақ хандығы</button>
+                <button class="era-btn" data-era="alash" data-i18n="map_era_alash">Алаш</button>
+                <button class="era-btn" data-era="soviet" data-i18n="map_era_soviet">Кеңес</button>
             </div>
 
             <!-- Results -->
-            <div class="results-count" id="resultsCount">Жүктелуде...</div>
+            <div class="results-count" id="resultsCount" data-i18n="map_loading">Жүктелуде...</div>
             <div class="results-list" id="resultsList"></div>
         </aside>
 
@@ -780,17 +780,17 @@
             color:#d4af37; transition:all 0.2s;
         ">
             <span style="font-size:1rem;">←</span>
-            <span id="regionBackLabel">Өңір</span>
-            <span style="color:#71717a; font-weight:400; margin-left:4px;">· барлық өңірлерге</span>
+            <span id="regionBackLabel" data-i18n="map_region_label">Өңір</span>
+            <span style="color:#71717a; font-weight:400; margin-left:4px;" data-i18n="map_region_back_all">· барлық өңірлерге</span>
         </div>
 
     </div>
 
     <!-- Mobile Bottom Nav -->
     <div class="mobile-bottom-nav" id="mobileNav">
-        <button class="mobile-nav-btn" id="mapNavBtn" onclick="showMobileMap()">🗺️ Карта</button>
-        <button class="mobile-nav-btn active" id="listNavBtn" onclick="showMobileList()">👥 Тізім</button>
-        <button class="mobile-nav-btn" onclick="geolocate()">📡 Жақын маңда</button>
+        <button class="mobile-nav-btn" id="mapNavBtn" onclick="showMobileMap()"><span aria-hidden="true">🗺️</span> <span data-i18n="map_mobile_map">Карта</span></button>
+        <button class="mobile-nav-btn active" id="listNavBtn" onclick="showMobileList()"><span aria-hidden="true">👥</span> <span data-i18n="map_mobile_list">Тізім</span></button>
+        <button class="mobile-nav-btn" onclick="geolocate()"><span aria-hidden="true">📡</span> <span data-i18n="map_mobile_near">Жақын маңда</span></button>
     </div>
 
     <!-- Leaflet & Services JS -->
@@ -809,16 +809,16 @@
         <form onsubmit="submitUgcName(event)"
             style="background:var(--surface); padding:24px; border-radius:12px; border:1px solid var(--border); width:90%; max-width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0; font-family:Outfit; color:var(--text);">Атауын нақтылау</h3>
+                <h3 style="margin:0; font-family:Outfit; color:var(--text);" data-i18n="map_name_modal_title">Атауын нақтылау</h3>
                 <span onclick="closeUgcModal()"
                     style="cursor:pointer; color:var(--muted); font-size:1.5rem; line-height:1;">&times;</span>
             </div>
-            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.4;">Біз халықтың
+            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.4;" data-i18n="map_name_modal_desc">Біз халықтың
                 көмегімен зираттардың тарихи нақты атауларын жинаймыз. Бұл жерде қалай аталатынын енгізіңіз (мысалы,
                 "Шапрашты руының зираты" немесе "Абай ауылының ескі зираты").</p>
             <div style="margin-bottom:20px;">
                 <label for="ugcNameInput"
-                    style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:8px;">Зираттың нақты
+                    style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:8px;" data-i18n="map_name_modal_label">Зираттың нақты
                     атауы:</label>
                 <input type="text" id="ugcNameInput"
                     style="width:100%; padding:12px; background:#18181b; border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:Inter; box-sizing:border-box;"
@@ -826,9 +826,9 @@
             </div>
             <div style="display:flex; gap:10px;">
                 <button type="button" onclick="closeUgcModal()"
-                    style="flex:1; padding:12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:8px; font-weight:600; cursor:pointer;">Болдырмау</button>
+                    style="flex:1; padding:12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:8px; font-weight:600; cursor:pointer;" data-i18n="map_ugc_cancel">Болдырмау</button>
                 <button type="submit"
-                    style="flex:1; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;">Жіберу</button>
+                    style="flex:1; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;" data-i18n="map_ugc_submit">Жіберу</button>
             </div>
         </form>
     </div>
@@ -839,12 +839,12 @@
         <form onsubmit="submitAddProfile(event)"
             style="background:var(--surface); padding:26px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:440px; box-shadow:0 20px 50px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h3 style="margin:0; font-family:'Outfit', sans-serif; color:var(--text); font-size:1.05rem;">➕ Тұлға
+                <h3 style="margin:0; font-family:'Outfit', sans-serif; color:var(--text); font-size:1.05rem;" data-i18n="map_profile_modal_title">➕ Тұлға
                     қосу</h3>
                 <span onclick="closeAddProfileModal()"
                     style="cursor:pointer; color:var(--muted); font-size:1.5rem; line-height:1; background:none; border:none;">&times;</span>
             </div>
-            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:18px; line-height:1.5;">Осында жерленген кез
+            <p style="font-size:0.82rem; color:var(--muted); margin-bottom:18px; line-height:1.5;" data-i18n="map_profile_modal_desc">Осында жерленген кез
                 келген адамның өмірбаянын қоса аласыз. Деректер тексерістен өтіп, картада пайда болады.</p>
             <div id="addCemeteryInfo"
                 style="background:#18181b; border-radius:9px; padding:10px 14px; margin-bottom:18px; font-size:0.8rem; color:var(--muted);">
@@ -852,16 +852,16 @@
 
             <div style="margin-bottom:14px;">
                 <label for="addFullName"
-                    style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;">АЖТ
+                    style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_name">АЖТ
                     (толық аты-жөні)</label>
                 <input type="text" id="addFullName"
                     style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
-                    placeholder="Ибрагимов Амантай Жарылқапұлы" required />
+                    placeholder="Ибрагимов Амантай Жарылқапұлы" data-i18n-ph="map_profile_fullname_ph" required />
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
                 <div>
                     <label for="addBirth"
-                        style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;">Туған
+                        style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_birth">Туған
                         жылы</label>
                     <input type="text" id="addBirth"
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
@@ -869,7 +869,7 @@
                 </div>
                 <div>
                     <label for="addDeath"
-                        style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;">Қайтыс
+                        style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_death">Қайтыс
                         болған жылы</label>
                     <input type="text" id="addDeath"
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
@@ -878,22 +878,35 @@
             </div>
             <div style="margin-bottom:14px;">
                 <label for="addDescription"
-                    style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;">Қысқаша
+                    style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_notes">Қысқаша
                     сипаттама / Өмірбаян</label>
                 <textarea id="addDescription" rows="4"
                     style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
-                    placeholder="Ұлы Отан соғысының ардагері, мұғалім, ру ақсақалы..."></textarea>
+                    placeholder="Ұлы Отан соғысының ардагері, мұғалім, ру ақсақалы..." data-i18n-ph="map_profile_notes_ph"></textarea>
             </div>
             <div style="display:flex; gap:10px; margin-top:18px;">
                 <button type="button" onclick="closeAddProfileModal()"
-                    style="flex:1; padding:12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:9px; font-weight:600; cursor:pointer; font-family:inherit;">Болдырмау</button>
+                    style="flex:1; padding:12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:9px; font-weight:600; cursor:pointer; font-family:inherit;" data-i18n="map_ugc_cancel">Болдырмау</button>
                 <button type="submit"
-                    style="flex:1; padding:12px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жіберу</button>
+                    style="flex:1; padding:12px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;" data-i18n="map_ugc_submit">Жіберу</button>
             </div>
         </form>
     </div>
     <script src="locales.js"></script>
     <script src="i18n.js"></script>
+    <script>
+        (function () {
+            function applyHead() {
+                if (!window.i18n) return;
+                document.title = i18n.t('map_title') + ' | Зиратстан';
+                const desc = document.getElementById('pageDesc');
+                if (desc) desc.setAttribute('content', i18n.t('map_meta_desc'));
+            }
+            document.addEventListener('langchange', applyHead);
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHead);
+            else applyHead();
+        })();
+    </script>
 </body>
 
 </html>
