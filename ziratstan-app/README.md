@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ziratstan-app
 
-## Getting Started
+Отдельное приложение Ziratstan на `Next.js 16` + `React 19` + `Tailwind CSS 4`.
 
-First, run the development server:
+Это не корневой production-хостинг Firebase, а самостоятельная версия интерфейса в папке `ziratstan-app/`. По структуре она повторяет основные пользовательские сценарии проекта: поиск, карта, профиль, QR, услуги, кабинет и admin QR.
+
+## Запуск
+
+Установить зависимости и поднять dev-сервер:
+
+```bash
+npm install
+npm run dev
+```
+
+Приложение будет доступно на `http://localhost:3000`.
+
+## Переменные окружения
+
+Сейчас приложение ожидает как минимум:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+Они используются в клиенте и server-side утилитах Supabase.
+
+## Основные маршруты
+
+- `/` — главная страница
+- `/search` — поиск по профилям
+- `/map` — карта захоронений
+- `/profile/[id]` — страница профиля
+- `/profile/[id]/tree` — схема родословной
+- `/qr/[slug]` — генерация QR
+- `/services` — услуги
+- `/login` — вход (соответствует `auth-modal` на прод-контуре)
+- `/cabinet` — кабинет пользователя (соответствует `dashboard.html` на прод-контуре)
+- `/admin/qr` — админская генерация QR
+
+## Структура
+
+- `src/app/` — маршруты App Router, layout и server actions
+- `src/components/` — UI, карта и family tree
+- `src/lib/` и `src/utils/supabase/` — клиенты Supabase для browser/server/middleware
+- `public/` — статические ассеты
+
+## Технологии
+
+- `next@16`
+- `react@19`
+- `@supabase/ssr`
+- `@supabase/supabase-js`
+- `leaflet` + `react-leaflet`
+- `@xyflow/react` + `dagre`
+- `next-pwa`
+
+## Команды
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Авторизация и приватность
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+В корневом прод-контуре реализована система авторизации через Supabase Auth:
+- Модуль `src/js/auth/supabase-auth.js` — login/register/logout/session
+- Страница `dashboard.html` — личный кабинет
+- Supabase RLS — `owner_id` + `visibility` (`public`/`family_only`/`private`) на таблице `deceased`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+В Next.js-контуре (`/login`, `/cabinet`) используется аналогичная Supabase Auth логика через `@supabase/ssr`.
 
-## Learn More
+## Примечание по репозиторию
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+В корне репозитория есть реализация тех же сценариев на статических HTML и vanilla JS. Эта папка нужна для Next.js-версии приложения и документируется отдельно от корневого [README.md](../README.md).

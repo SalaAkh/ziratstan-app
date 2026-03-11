@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ziratstan.kz
 
-## Getting Started
+Репозиторий проекта `ziratstan.kz` c двумя основными частями:
 
-First, run the development server:
+- корневой сайт на статических HTML-страницах, которые публикуются через Firebase Hosting;
+- отдельное приложение `ziratstan-app/` на Next.js 16, где ведется более современная версия интерфейса.
+
+## Что находится в корне
+
+- `index.html`, `map.html`, `profile.html`, `services.html`, `admin.html`, `dashboard.html`, `qr.html` — основные страницы текущего сайта.
+- `src/js/` — клиентская логика для карты, профиля, админки и авторизации через Supabase.
+  - `src/js/auth/supabase-auth.js` — **модуль авторизации**: login, register, logout, управление сессией, обновление UI.
+- `data/` — исходные JS-датасеты, используемые legacy-страницами.
+- `public/data/profiles/` — JSON-профили, которые используются новыми маршрутами и тестами.
+- `functions/` — Firebase Functions для admin API.
+- `supabase/` — SQL-схемы, миграции и утилиты для базы.
+  - `supabase/migrations/20260312_user_auth_rls.sql` — **RLS-миграция**: таблицы `profiles`, `deceased_collaborators`, политики безопасности Row Level Security.
+- `scripts/` — скрипты импорта, чистки данных и служебной миграции.
+- `testsprite_tests/` — e2e-сценарии для пользовательских потоков.
+
+## Архитектура
+
+Текущий production-хостинг в корне настроен через [firebase.json](firebase.json). В Hosting публикуется весь корень репозитория, при этом из деплоя исключены служебные директории, markdown-файлы, скрипты и `ziratstan-app/`.
+
+Данные и backend сейчас распределены так:
+
+- публичные профили лежат в `public/data/profiles/*.json`;
+- часть legacy-данных остается в `data/profiles_data.js` и `data/cemeteries_data.js`;
+- **авторизация пользователей** через Supabase Auth (email + пароль) — `src/js/auth/supabase-auth.js`;
+- **личный кабинет** — `dashboard.html` (просмотр/управление своими профилями усопших, переключение visibility);
+- защищенные admin-endpoint'ы вынесены в Firebase Functions.
+
+## Система авторизации и приватности
+
+Реализована полная система **User Auth + Row Level Security**:
+
+1. **Регистрация / Вход** — модальное окно на `index.html` (вкладки Login / Register).
+2. **Dashboard** (`dashboard.html`) — личный кабинет с карточками профилей пользователя.
+3. **RLS-политики** в Supabase — каждый `deceased`-профиль имеет `owner_id`. Политики:
+   - `SELECT`: публичные профили видны всем, закрытые — только владельцу и коллаборантам.
+   - `INSERT/UPDATE/DELETE`: только авторизованный пользователь, только свои записи.
+4. **Visibility**: `public` | `family_only` | `private` — переключается в дашборде.
+5. **Collaborators**: таблица `deceased_collaborators` позволяет нескольким родственникам управлять одним профилем.
+
+> ⚠️ Перед использованием нужно запустить `supabase/migrations/20260312_user_auth_rls.sql` в Supabase SQL Editor.
+
+## Локальная работа
+
+Для корневого сайта отдельного `npm run dev` сейчас нет. Для локальной проверки:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+firebase emulators:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+или любого простого статического сервера, запущенного из корня репозитория.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Firebase Functions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+В [functions/index.js](functions/index.js) реализованы admin API-маршруты:
 
-## Learn More
+- `GET /api/admin/bootstrap`
+- `GET /api/admin/profiles`
+- `POST /api/admin/profiles`
+- `POST /api/admin/status`
 
-To learn more about Next.js, take a look at the following resources:
+Для них требуется `SUPABASE_SERVICE_ROLE_KEY`, а доступ ограничен admin-пользователями Supabase с MFA (`aal2`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+В папке `supabase/` лежат:
 
-## Deploy on Vercel
+- `schema.sql` — базовая схема;
+- `migrations/` — миграции (включая `20260312_user_auth_rls.sql` — авторизация и RLS);
+- дополнительные SQL-файлы для доработок и безопасности.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Скрипты и данные
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Подробное описание утилит находится в [scripts/README.md](scripts/README.md).
+
+## Отдельное Next.js-приложение
+
+Папка [ziratstan-app/README.md](ziratstan-app/README.md) описывает отдельное приложение на Next.js 16.

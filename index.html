@@ -48,6 +48,26 @@
     },
     "inLanguage": "kk-KZ"
   }
+
+  <link rel="canonical" href="https://ziratstan-app.web.app/" />
+  <link rel="alternate" hreflang="kk" href="https://ziratstan-app.web.app/" />
+  <link rel="alternate" hreflang="x-default" href="https://ziratstan-app.web.app/" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Зиратстан",
+    "url": "https://ziratstan-app.web.app/",
+    "description": "Қазақстандағы жерлеу орындарын іздеу, цифрландыру және есте сақтау платформасы.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://ziratstan-app.web.app/map.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "inLanguage": "kk-KZ"
+  }
   </script>
 
   <!-- Favicon -->
@@ -59,6 +79,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <style>
     *,
@@ -77,6 +100,7 @@
       --muted: #71717a;
       --gold: #d4af37;
       --gold-dim: rgba(212, 175, 55, 0.1);
+      --gold-border: rgba(212, 175, 55, 0.3);
     }
 
     html {
@@ -852,13 +876,254 @@
     @keyframes slideUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
       }
 
       to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    /* ─── AUTH BUTTON & USER MENU ─── */
+    #nav-auth-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.875rem;
+      border-radius: 8px;
+      background: var(--gold);
+      color: var(--bg);
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    #nav-auth-btn:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+    }
+
+    #nav-user-menu {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #nav-user-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .nav-dash-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.875rem;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .nav-dash-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+
+    .nav-logout-btn:hover {
+      color: #ef4444;
+    }
+
+    /* ─── AUTH MODAL ─── */
+    .auth-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .auth-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .auth-modal {
+      background: #111113;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: transform 0.25s;
+    }
+
+    .auth-modal-overlay.open .auth-modal {
+      transform: scale(1);
+    }
+
+    .auth-modal-logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-modal-logo span {
+      color: var(--gold);
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0.25rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 0.55rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .auth-tab-btn.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .auth-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .auth-field label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .auth-field input {
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .auth-field input:focus {
+      outline: none;
+      border-color: var(--gold-border);
+    }
+
+    .auth-submit {
+      padding: 0.875rem;
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s, transform 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .auth-submit:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .auth-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .auth-error {
+      font-size: 0.82rem;
+      color: #ef4444;
+      min-height: 1rem;
+    }
+
+    .auth-success {
+      font-size: 0.82rem;
+      color: #22c55e;
+    }
+
+    .auth-modal-close {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      transition: background 0.15s;
+    }
+
+    .auth-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    .auth-modal-wrapper {
+      position: relative;
     }
 
     @media (max-width: 768px) {
@@ -902,6 +1167,12 @@
       <a href="#services" data-i18n="nav_services">Қызметтер</a>
       <a href="#contact" data-i18n="nav_contact">Байланыс</a>
       <a href="map.html" class="nav-cta" data-i18n="nav_open_map">Картаны ашу →</a>
+      <button id="nav-auth-btn" onclick="ZiratAuth.openAuthModal()">🔑 Кіру / Тіркелу</button>
+      <div id="nav-user-menu">
+        <span id="nav-user-name"></span>
+        <a href="dashboard.html" class="nav-dash-btn">Басқару →</a>
+        <button class="nav-logout-btn" onclick="ZiratAuth.logout()">Шығу</button>
+      </div>
     </div>
     <button class="hamburger" onclick="toggleMenu()" data-i18n-aria="nav_menu_aria" aria-label="Мәзір">
       <span></span>
@@ -917,6 +1188,65 @@
     <a href="#services" onclick="closeMenu()" data-i18n="mob_services">🤲 Қызметтер</a>
     <a href="#contact" onclick="closeMenu()" data-i18n="mob_contact">📞 Байланыс</a>
     <a href="map.html" style="color: var(--gold); font-weight: 600;" data-i18n="nav_open_map_mobile">→ Картаны ашу</a>
+    <a href="#" id="mob-auth-btn" onclick="ZiratAuth.openAuthModal(); closeMenu();"
+      style="color: var(--gold); font-weight: 600;">🔑 Кіру / Тіркелу</a>
+  </div>
+
+  <!-- ═══════ AUTH MODAL ═══════ -->
+  <div class="auth-modal-overlay" id="auth-modal" onclick="handleModalOverlayClick(event)">
+    <div class="auth-modal auth-modal-wrapper">
+      <button class="auth-modal-close" onclick="ZiratAuth.closeAuthModal()" aria-label="Жабу">✕</button>
+
+      <div class="auth-modal-logo"><span>З</span>иратстан — Кіру</div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" data-tab="login" onclick="ZiratAuth.switchAuthTab('login')">🔑 Кіру</button>
+        <button class="auth-tab-btn" data-tab="register" onclick="ZiratAuth.switchAuthTab('register')">✨
+          Тіркелу</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form" id="auth-login-form">
+        <div class="auth-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="example@mail.com" required autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Пароль</label>
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <div class="auth-error" id="login-error"></div>
+        <button type="submit" class="auth-submit">Кіру →</button>
+        <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
+          Аккаунт жоқ па? <a href="#" style="color:var(--gold);"
+            onclick="ZiratAuth.switchAuthTab('register'); return false;">Тіркелу</a>
+        </p>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form class="auth-form" id="auth-register-form" style="display:none;">
+        <div class="auth-field">
+          <label for="reg-name">Аты-жөні</label>
+          <input type="text" id="reg-name" placeholder="Сіздің атыңыз" autocomplete="name" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="example@mail.com" required autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-password">Пароль (мин. 6 символ)</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
+        </div>
+        <div class="auth-error" id="reg-error"></div>
+        <div class="auth-success" id="reg-success"></div>
+        <button type="submit" class="auth-submit">Тіркелу ✨</button>
+        <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
+          Аккаунт бар ма? <a href="#" style="color:var(--gold);"
+            onclick="ZiratAuth.switchAuthTab('login'); return false;">Кіру</a>
+        </p>
+      </form>
+    </div>
   </div>
 
   <!-- HERO -->
@@ -1298,26 +1628,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
   <script src="src/js/core/locales.js"></script>
   <script src="src/js/core/i18n.js"></script>
-  <script>
-    function toggleMenu() {
-      document.getElementById('mobileMenu').classList.toggle('open');
-      document.querySelector('.hamburger').classList.toggle('active');
-    }
-    function closeMenu() {
-      document.getElementById('mobileMenu').classList.remove('open');
-      document.querySelector('.hamburger').classList.remove('active');
-    }
-    // Close on outside click
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('nav') && !e.target.closest('.mobile-menu')) {
-        closeMenu();
-      }
-    });
-
-    // Generate live QR demo
-    if (typeof QRCode !== 'undefined') {
-      const demoUrl = window.location.origin + '/qr.html?s=DEMO';
-      QRCode.toCanvas(document.getElementById('qrDemoCanvas'), demoUrl, {
         width: 110,
         margin: 1,
         color: { dark: '#2d3748', light: '#ffffff' },

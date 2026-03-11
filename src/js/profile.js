@@ -16,7 +16,7 @@ let _familyRelations = null;
 let _lastQrData = null;
 let _lastQrProfileId = null;
 let _lastQrHasSession = false;
-let _lastQrMode = null; // 'display' | 'create' | 'admin' | 'supabase_only' | 'mock'
+let _lastQrMode = null; // 'display' | 'create' | 'admin' | 'supabase_only' | 'mock' | 'public_fallback'
 
 function t(key) {
     return (window.i18n && typeof i18n.t === 'function') ? i18n.t(key) : key;
@@ -41,6 +41,10 @@ function tf(key, vars) {
 function displayOrUnknown(val) {
     const s = (val === undefined || val === null) ? '' : String(val).trim();
     return s ? s : t('common_unknown');
+}
+
+function getPublicProfileUrl(profileId) {
+    return window.location.origin + '/profile.html?id=' + encodeURIComponent(profileId);
 }
 
 function updateSeo(p) {
@@ -297,7 +301,7 @@ async function initProfile() {
 
     document.getElementById('profileContent').style.display = '';
     document.getElementById('notFound').style.display = 'none';
-    document.getElementById('generateQrBtn').href = 'qr.html?slug=' + realProfileId + '&generate=true';
+    document.getElementById('generateQrBtn').href = '#qrSection';
 
     // Load enriched bio from JSON (Wikipedia data)
     const enriched = await loadEnrichedBio(p.id);
@@ -469,21 +473,26 @@ function shareProfile() {
 // ── QR MEMORIAL ──
 async function loadQrSection(profileId) {
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const section = document.getElementById('qrSection');
+    const content = document.getElementById('qrContent');
+    section.style.display = 'block';
     if (!UUID_REGEX.test(profileId)) {
-        const content = document.getElementById('qrContent');
         _lastQrMode = 'mock';
         _lastQrProfileId = profileId;
-        _lastQrData = { slug: profileId + '-mock', scan_count: 0 };
+        _lastQrData = { slug: profileId + '-mock', scan_count: 0, url: getPublicProfileUrl(profileId) };
         renderQrDisplay(content, _lastQrData, profileId);
         return;
     }
 
     try {
-        if (typeof fetchQrByProfile !== 'function') return;
+        if (typeof fetchQrByProfile !== 'function') {
+            _lastQrMode = 'public_fallback';
+            _lastQrProfileId = profileId;
+            _lastQrData = { url: getPublicProfileUrl(profileId) };
+            renderQrDisplay(content, _lastQrData, profileId);
+            return;
+        }
         const qr = await fetchQrByProfile(profileId);
-        const section = document.getElementById('qrSection');
-        const content = document.getElementById('qrContent');
-        section.style.display = 'block';
 
         if (qr && qr.slug) {
             _lastQrMode = 'display';
@@ -491,27 +500,21 @@ async function loadQrSection(profileId) {
             _lastQrData = qr;
             renderQrDisplay(content, qr, profileId);
         } else {
-            const session = await getSession();
-            if (session) {
-                _lastQrMode = 'create';
-                _lastQrProfileId = profileId;
-                _lastQrData = null;
-                _lastQrHasSession = true;
-                renderQrCreate(content, profileId);
-            } else {
-                _lastQrMode = 'admin';
-                _lastQrProfileId = profileId;
-                _lastQrData = null;
-                _lastQrHasSession = false;
-                content.innerHTML = `<p style="color:var(--muted); font-size:0.9rem; line-height:1.7;">${t('prof_qr_no_qr_admin')}</p>`;
-            }
+            _lastQrMode = 'public_fallback';
+            _lastQrProfileId = profileId;
+            _lastQrData = { url: getPublicProfileUrl(profileId) };
+            renderQrDisplay(content, _lastQrData, profileId);
         }
     } catch (err) {
         console.warn('[Ziratstan QR] Error loading QR section:', err);
+        _lastQrMode = 'public_fallback';
+        _lastQrProfileId = profileId;
+        _lastQrData = { url: getPublicProfileUrl(profileId) };
+        renderQrDisplay(content, _lastQrData, profileId);
     }
 }
 
-function renderQrDisplay(container, qr, profileId) {
+function renderQrDisplayLegacy(container, qr, profileId) {
     const qrUrl = window.location.origin + '/qr.html?s=' + qr.slug;
 
     container.innerHTML = `
@@ -527,6 +530,45 @@ function renderQrDisplay(container, qr, profileId) {
         <div class="qr-actions">
             <button class="btn-action btn-fill" onclick="downloadQrPng()">${t('prof_qr_png')}</button>
             <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug}')">${t('prof_qr_svg')}</button>
+            <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
+        </div>
+        <p class="qr-hint">
+            ${t('prof_qr_hint')}
+        </p>
+    `;
+
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(document.getElementById('qrCanvas'), qrUrl, {
+            width: 180,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' },
+            errorCorrectionLevel: 'H'
+        });
+    }
+}
+
+function renderQrDisplay(container, qr, profileId) {
+    const qrUrl = qr.url || (window.location.origin + '/qr.html?s=' + qr.slug);
+    const slugHtml = qr.slug ? `
+        <br>
+        <div class="qr-slug-display">📲 ${qr.slug}</div>
+    ` : '';
+    const scanHtml = Number.isFinite(qr.scan_count) ? `
+        <br>
+        <div class="qr-scan-count">
+            ${tf('prof_qr_scan_count_tpl', { count: (qr.scan_count || 0) })}
+        </div>
+    ` : '';
+
+    container.innerHTML = `
+        <div class="qr-code-wrapper">
+            <canvas id="qrCanvas"></canvas>
+        </div>
+        ${slugHtml}
+        ${scanHtml}
+        <div class="qr-actions">
+            <button class="btn-action btn-fill" onclick="downloadQrPng()">${t('prof_qr_png')}</button>
+            <button class="btn-action btn-outline" onclick="downloadQrSvg('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_svg')}</button>
             <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
@@ -665,6 +707,8 @@ document.addEventListener('langchange', function () {
     if (content && _lastQrProfileId) {
         if (_lastQrMode === 'display' || _lastQrMode === 'mock') {
             renderQrDisplay(content, _lastQrData || { slug: _lastQrProfileId + '-mock', scan_count: 0 }, _lastQrProfileId);
+        } else if (_lastQrMode === 'public_fallback') {
+            renderQrDisplay(content, _lastQrData || { url: getPublicProfileUrl(_lastQrProfileId) }, _lastQrProfileId);
         } else if (_lastQrMode === 'create') {
             renderQrCreate(content, _lastQrProfileId);
         } else if (_lastQrMode === 'admin') {
