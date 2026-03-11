@@ -78,7 +78,7 @@ export default function ServicesPage() {
                     <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10 text-green-500" />
                     </div>
-                    <h1 className="text-3xl font-bold mb-4">ИншаАллах!</h1>
+                    <h1 className="text-3xl font-bold mb-4">Заказ принят!</h1>
                     <p className="text-foreground/70 text-lg mb-8">
                         Ваш заказ принят. Исполнитель свяжется с вами в течение 24 часов. После выполнения вы
                         получите фотоотчёт «До/После».

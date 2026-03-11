@@ -602,7 +602,6 @@
             <label for="passwordInput" style="display:none;">Пароль</label>
             <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль"
                 autocomplete="current-password" onkeydown="if(event.key==='Enter') loginUser()" />
-            <p class="gate-note" style="margin-top:-2px;">Основной вход выполняется по email и паролю. Magic Link оставлен как резервный способ восстановления доступа.</p>
             </div>
             <div class="gate-success" id="gateSuccess"></div>
             <div class="mfa-step" id="mfaStep">
@@ -625,7 +624,6 @@
                     </div>
                 </div>
             </div>
-            <div class="gate-hint">Вход разрешен только для email, который уже зарегистрирован в Supabase как администратор. Без серверных RLS-политик браузерную админку нельзя считать защищенной.</div>
             <div class="gate-actions">
                 <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
                 <button class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()">Отправить Magic Link</button>

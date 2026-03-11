@@ -13,7 +13,7 @@ export default function Home() {
 
         <div className="relative z-10 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] font-semibold text-sm mb-8 animate-fade-in">
-            🕌 Бисмиллях • Казахстан
+            Цифровой архив Казахстана
           </div>
 
           <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tighter text-foreground mb-2 leading-[1.05]">
@@ -216,7 +216,7 @@ export default function Home() {
         <p className="mb-1">
           <strong><span className="text-accent">З</span>иратстан</strong> — Цифровой архив захоронений Казахстана
         </p>
-        <p className="text-sm text-foreground/40">ИншаАллах, память о близких живёт вечно · © 2025</p>
+        <p className="text-sm text-foreground/40">Память о близких живёт вечно · © 2025</p>
       </footer>
     </main>
   );

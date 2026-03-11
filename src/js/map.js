@@ -762,7 +762,7 @@
             document.getElementById('ugcModal').innerHTML = `
                 <div style="background:var(--surface); padding:30px; border-radius:12px; border:1px solid var(--border); width:90%; max-width:400px; text-align:center;">
                     <div style="font-size:3rem; margin-bottom:10px;">✨</div>
-                    <h3 style="color:var(--gold); margin-bottom:10px;">МашаАллах, Рахмет!</h3>
+                    <h3 style="color:var(--gold); margin-bottom:10px;">Рахмет!</h3>
                     <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Атау модерацияға сәтті жіберілді. Тексерістен кейін ол картада пайда болады.</p>
                     <button type="button" onclick="closeUgcModal()" style="width:100%; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;">Жабу</button>
                 </div>
@@ -819,7 +819,7 @@
                 document.getElementById('addProfileModal').innerHTML = `
                     <div style="background:var(--surface); padding:30px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:440px; text-align:center;">
                         <div style="font-size:3rem; margin-bottom:12px;">✨</div>
-                        <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Outfit', sans-serif;">МашаАллах, Рахмет!</h3>
+                        <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Outfit', sans-serif;">Рахмет!</h3>
                         <p style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;"><strong style="color:var(--text);">${data.fullName}</strong></p>
                         <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">Профиль модерацияға жіберілді. Тексерістен кейін ол осы зираттың картасында пайда болады.</p>
                         <button type="button" onclick="closeAddProfileModal()" style="padding:12px 24px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жабу</button>

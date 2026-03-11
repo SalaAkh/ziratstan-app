@@ -350,7 +350,7 @@ async function submitBio(event) {
         document.getElementById('addBioModal').innerHTML = `
             <div style="background:var(--surface); padding:32px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:460px; text-align:center;">
                 <div style="font-size:3rem; margin-bottom:12px;">✨</div>
-                <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">МашаАллах, Рахмет!</h3>
+                <h3 style="color:var(--gold); margin-bottom:10px; font-family:Outfit;">Рахмет!</h3>
                 <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Сіздің мәліметтеріңіз тексеруге жіберілді. Модерациядан кейін олар осы парақшада пайда болады.</p>
                 <button onclick="closeModal('addBioModal')" style="padding:12px 24px; background:var(--gold); color:var(--bg); border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">Жабу</button>
             </div>`;
