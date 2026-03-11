@@ -1625,9 +1625,38 @@
     <p data-i18n="footer_motto">Жақындар туралы естелік мәңгі жасайды · © 2025</p>
   </footer>
 
+  <!-- Supabase & Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="src/js/auth/supabase-auth.js"></script>
+
+  <!-- Core Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
   <script src="src/js/core/locales.js"></script>
   <script src="src/js/core/i18n.js"></script>
+
+  <script>
+    // Navigation & Mobile Menu
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('active');
+    }
+    
+    function closeMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.remove('active');
+    }
+
+    // Modal overlay click
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'auth-modal') {
+        if(window.ZiratAuth) window.ZiratAuth.closeAuthModal();
+      }
+    }
+
+    // Generate Demo QR
+    const qrCanvas = document.getElementById('qrDemoCanvas');
+    if (qrCanvas) {
+      QRCode.toCanvas(qrCanvas, 'https://ziratstan.kz/profile.html', {
         width: 110,
         margin: 1,
         color: { dark: '#2d3748', light: '#ffffff' },

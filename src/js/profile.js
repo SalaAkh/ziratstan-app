@@ -646,19 +646,46 @@ function downloadQrPng() {
 async function downloadQrSvg(url, slug) {
     if (typeof QRCode === 'undefined') return;
     try {
-        let svgString = await QRCode.toString(url, {
-            type: 'svg',
-            width: 300,
-            margin: 2,
-            color: { dark: '#000000', light: '#ffffff' },
-            errorCorrectionLevel: 'H'
-        });
+        const safeSlug = String(slug || 'memorial').replace(/[^a-zA-Z0-9_-]/g, '-');
+        let svgString = '';
 
-        if (!svgString.startsWith('<?xml')) {
-            svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+        // Build SVG with filled modules (not stroke-lines) for max compatibility in viewers/editors.
+        if (typeof QRCode.create === 'function') {
+            const qrData = QRCode.create(url, { errorCorrectionLevel: 'H' });
+            const size = qrData.modules.size;
+            const data = qrData.modules.data;
+            const margin = 2;
+            const total = size + margin * 2;
+
+            let darkRects = '';
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (data[r * size + c]) {
+                        darkRects += `<rect x="${c + margin}" y="${r + margin}" width="1" height="1"/>`;
+                    }
+                }
+            }
+
+            svgString =
+                `<?xml version="1.0" encoding="UTF-8"?>\n` +
+                `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges">` +
+                `<rect width="${total}" height="${total}" fill="#ffffff"/>` +
+                `<g fill="#000000">${darkRects}</g>` +
+                `</svg>`;
+        } else {
+            svgString = await QRCode.toString(url, {
+                type: 'svg',
+                width: 300,
+                margin: 2,
+                color: { dark: '#000000', light: '#ffffff' },
+                errorCorrectionLevel: 'H'
+            });
+
+            if (!svgString.startsWith('<?xml')) {
+                svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+            }
         }
 
-        const safeSlug = String(slug || 'memorial').replace(/[^a-zA-Z0-9_-]/g, '-');
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
         const objectUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
