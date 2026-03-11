@@ -646,19 +646,31 @@ function downloadQrPng() {
 async function downloadQrSvg(url, slug) {
     if (typeof QRCode === 'undefined') return;
     try {
-        const svgString = await QRCode.toString(url, {
+        let svgString = await QRCode.toString(url, {
             type: 'svg',
             width: 300,
             margin: 2,
             color: { dark: '#000000', light: '#ffffff' },
             errorCorrectionLevel: 'H'
         });
-        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+
+        if (!svgString.startsWith('<?xml')) {
+            svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+        }
+
+        const safeSlug = String(slug || 'memorial').replace(/[^a-zA-Z0-9_-]/g, '-');
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const objectUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.download = 'ziratstan-qr-' + slug + '.svg';
-        link.href = URL.createObjectURL(blob);
+        link.download = 'ziratstan-qr-' + safeSlug + '.svg';
+        link.href = objectUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
         link.click();
-        URL.revokeObjectURL(link.href);
+        setTimeout(() => {
+            URL.revokeObjectURL(objectUrl);
+            link.remove();
+        }, 1000);
     } catch (e) {
         console.error('[Ziratstan QR] SVG generation error:', e);
     }

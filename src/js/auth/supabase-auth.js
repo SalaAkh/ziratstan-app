@@ -86,7 +86,7 @@ async function getMyDeceasedProfiles() {
   const sb = getSupabase();
   if (!currentUser) return [];
   const { data, error } = await sb
-    .from('deceased')
+    .from('profiles')
     .select('*')
     .eq('owner_id', currentUser.id)
     .order('created_at', { ascending: false });
