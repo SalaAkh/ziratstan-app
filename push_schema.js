@@ -1,12 +1,17 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
 const SUPABASE_KEY = 'sb_secret_N_0MJRrrjcFfZ4AcgmpGWg_TmirxTK5'; // admin / service role key
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
 
 async function run() {
     console.log('Бисмиллях, начинаем создавать таблицы в Supabase...');
 
-    const schemaSql = fs.readFileSync('./supabase/schema.sql', 'utf8');
+    const schemaSql = fs.readFileSync(path.join(ROOT_DIR, 'supabase', 'schema.sql'), 'utf8');
 
     // Supabase REST API for executing SQL directly is not exposed to anon/service_role keys
     // normally (it requires postgres credentials or pg connection).

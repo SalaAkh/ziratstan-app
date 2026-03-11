@@ -1,174 +1,222 @@
-# Ziratstan.kz — Руководство Проекта
+# Ziratstan.kz — актуальный гайд по проекту
 
-## 🎯 Суть Проекта
+## Суть проекта
 
-Глобальная платформа для поиска, оцифровки и сохранения памяти об умерших людях в Казахстане.
+Ziratstan.kz — платформа для поиска захоронений, публикации мемориальных профилей, QR-мемориалов и заказа услуг по уходу за могилами в Казахстане.
 
-**Киллер-фича:** 100% оцифровка всех (даже самых отдаленных) сельских зиратов через User Generated Content (UGC), плюс генерация QR-кодов на надгробные таблички для доступа к подробной биографии, фото, аудио-голосу и шежіре.
+В проекте сейчас одновременно существуют два контура:
+
+1. Основной прод-контур — статический сайт в корне репозитория, который деплоится на Firebase Hosting.
+2. Параллельный Next.js-контур — App Router код в `src/` и отдельный workspace `ziratstan-app/`, который отражает направление миграции/развития продукта.
+
+Из-за этого нельзя описывать репозиторий как "только Vanilla JS" или "полностью без Next.js" — это уже не соответствует реальному состоянию.
 
 ---
 
-## 📁 Структура Проекта (Vanilla JS)
+## Что сейчас является основным
 
-Мы перешли на легкую, высокопроизводительную статичную архитектуру без Node.js/Next.js для максимальной скорости загрузки и легкости внедрения PWA оффлайн-доступа в аулах.
+### Прод
+
+Продакшен-хостинг настроен через [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json) с `public: "."`, то есть основная публикация идет из корня репозитория.
+
+Ключевые страницы прод-контура:
+
+- [index.html](d:/User/Desktop/Programms/Ziratstan.kz/index.html) — лендинг
+- [map.html](d:/User/Desktop/Programms/Ziratstan.kz/map.html) — карта захоронений
+- [profile.html](d:/User/Desktop/Programms/Ziratstan.kz/profile.html) — профиль человека
+- [qr.html](d:/User/Desktop/Programms/Ziratstan.kz/qr.html) — QR-страница
+- [services.html](d:/User/Desktop/Programms/Ziratstan.kz/services.html) — услуги
+- [admin.html](d:/User/Desktop/Programms/Ziratstan.kz/admin.html) — админка
+
+### Бэкенд и данные
+
+- Supabase используется как основная база данных.
+- Firebase Functions используется как серверный API-слой для админских операций.
+- В корне есть статические датасеты и утилиты импорта/миграции.
+
+### Контур Next.js
+
+В репозитории есть Next.js/App Router код:
+
+- [src/app](d:/User/Desktop/Programms/Ziratstan.kz/src/app)
+- [src/components](d:/User/Desktop/Programms/Ziratstan.kz/src/components)
+- [src/lib](d:/User/Desktop/Programms/Ziratstan.kz/src/lib)
+- [ziratstan-app](d:/User/Desktop/Programms/Ziratstan.kz/ziratstan-app)
+
+На текущий момент этот контур не является тем, что публикуется в Firebase Hosting из корня. В [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json) папка `ziratstan-app/**` явно исключена из деплоя.
+
+---
+
+## Структура репозитория
 
 ```text
 Ziratstan.kz/
-├── index.html              ← Главный лендинг
-├── map.html                ← Интерактивная карта (Leaflet + MarkerCluster)
-├── profile.html            ← Динамический профиль личности (?id=...)
-├── qr.html                 ← Редирект и генерация QR-кодов для памятников
-├── admin.html              ← Панель модерации UGC (email+пароль, резерв: Magic Link)
-├── services.html           ← Страница заказа услуг по уходу
-├── guids/
-│   └── agent.md            ← Этот файл документации
-├── src/
-│   └── js/                 ← Модульная бизнес-логика
-│       ├── map.js          ← Логика интерактивной карты
-│       ├── profile.js      ← Загрузка профилей и генерация UI
-│       └── admin.js        ← Модерация UGC
-├── supabase/
-│   ├── client.js           ← Supabase клиент + API
-│   └── schema.sql          ← SQL схемы
-├── i18n.js                 ← Движок локализации (Vanilla JS)
-├── locales.js              ← Словари переводов (kk, ru)
-├── cemeteries_data.js      ← ~5000 кладбищ Казахстана
-└── profiles_data.js        ← VIP профили
+|-- index.html
+|-- map.html
+|-- profile.html
+|-- qr.html
+|-- services.html
+|-- admin.html
+|-- 404.html
+|-- i18n.js
+|-- locales.js
+|-- cemeteries_data.js
+|-- profiles_data.js
+|-- public/
+|   |-- data/profiles/*.json
+|   `-- icons/, manifest, assets
+|-- src/
+|   |-- app/
+|   |-- components/
+|   |-- hooks/
+|   |-- lib/
+|   `-- utils/
+|-- functions/
+|   |-- index.js
+|   `-- package.json
+|-- supabase/
+|   |-- client.js
+|   |-- schema.sql
+|   `-- *.sql
+|-- testsprite_tests/
+|   `-- e2e/python test cases
+|-- ziratstan-app/
+|   `-- отдельный Next.js workspace
+`-- guids/agent.md
 ```
 
 ---
 
-## 🛠 Технологии
+## Технологический стек
 
-| Слой | Технология | Зачем |
-| --- | --- | --- |
-| Инфраструктура | Vanilla HTML/CSS/JS | Максимальная скорость, легкое PWA кэширование |
-| База данных | Supabase (PostgreSQL) | Хранение UGC (уточненные кладбища, добавленные профили) |
-| Карта | Leaflet.js + MarkerCluster | Отрисовка ~5000 точек без тормозов |
-| Гео-данные | Overpass API (OSM) | Парсинг и геолокация всех кладбищ Казахстана |
-| Дизайн | Custom CSS Properties | Премиальный Dark & Gold стиль без тяжелых фреймворков |
-| Локализация | i18n.js + locales.js | Мультиязычность (Казахский по умолчанию, Русский) |
-
-### 🗺 Архитектура Карты (Map Engine)
-
-- **Supercluster:** Используется для кластеризации 17 000+ общих кладбищ. Маркеры рендерятся динамически только для видимой области экрана (приближение) и отсекаются по границам Казахстана (`KZ_BOUNDS`).
-- **Математика Координат:** В `KZ_REGIONS` используются двойные координаты: `lt/ln` для идеального визуального выравнивания лейбла над городом и `geo_lt/geo_ln` (центр региона) для точного Евклидова вычисления принадлежности сырых точек к области.
-- **Двойные Слои (Layer Toggles):** На низких зумах (`zoom < 7`) кластеры принудительно очищаются (`cemeteriesLayer.clearLayers()`) для защиты DOM. Показываются только желтые маркеры с вычисленным общим счетчиком для каждой области. Установлен `minZoom: 5` от "улета" в космос.
-- **Глубокая Фильтрация:** Фирменные VIP-профили фильтруются в сайдбаре как по категории (Все/Личные/Кладбища), так и по **Исторической Эпохе** (`eraSelect`). Эта система позволяет легко отображать периоды с помощью свойства `era` в БД:
-  - `ancient` (Ежелгі дәуір: Саки, Гунны)
-  - `medieval` (Орта ғасырлар: Тюркские каганаты, Золотая Орда)
-  - `khanate` (Қазақ хандығы: Ханы, бии, батыры)
-  - `alash` (Алаш Орда: Просветители начала XX века)
-  - `soviet` (XX ғасыр: Герои ВОВ, ученые, деятели культуры)
-Отрабатывает связка `matchFilter && matchEra && searchQ` для точного поиска.
-Используется гибридный подход данных (Hybrid Data Strategy): локальные профили из `PROFILES_STATIC` всегда сливаются с данными из Supabase для 100% гарантии загрузки VIP-личностей.
-
-### 🇰🇿 Мультиязычность (i18n)
-
-Платформа имеет встроенный движок локализации (без сторонних библиотек).
-
-- Язык по умолчанию: **Казахский (`kk`)**.
-- Поддерживаемый язык: **Русский (`ru`)**.
-- Интеграция с SEO: используются параметры `?lang=kk` и динамическое обновление тегов `canonical` и `og:title`.
-- Использование: `data-i18n="key.subkey"` прямо в HTML тэгах.
-
----
-
-## 🗄 База Данных Supabase и UGC
-
-**Проект:** `https://myxswvzzotieygqnecbi.supabase.co`
-
-В проекте настроен функционал **Crowdsourcing (UGC)**. Пользователи могут прямо на карте:
-
-1. Уточнять настоящие названия сельских зиратов (с помощью кнопки в попапе).
-2. Создавать новые профили для своих родственников, привязывая их к конкретному кладбищу.
-3. Дополнять биографии в `profile.html`.
-
-Данные уходят в Supabase (или падают в `localStorage` как fallback) на модерацию.
-
-### Ключевые таблицы (из `supabase/schema.sql`)
-
-| Таблица | Описание |
+| Слой | Текущее состояние |
 | --- | --- |
-| `cemeteries` | Оцифрованные кладбища с геометриями |
-| `profiles` | Усопшие (ФИО, даты, координаты, биографии) |
-| `ugc_submissions` | Уточнения названий кладбищ (`pending/approved/rejected`) |
-| `ugc_profile_submissions` | Новые личности от пользователей |
-| `ugc_bio_submissions` | Дополнения к биографиям от родственников |
-| `qr_codes` | Физические QR-таблички (slug: ZRT-XXXX, scan_count: статистика сканирований) |
-| `services_leads` | Заявки на уборку, покраску, чтение Корана |
-| `profile_relations` | Связи для генеалогического дерева (Шежіре) |
+| Прод-фронтенд | Статические HTML/CSS/JS страницы в корне |
+| Локализация | [i18n.js](d:/User/Desktop/Programms/Ziratstan.kz/i18n.js) + [locales.js](d:/User/Desktop/Programms/Ziratstan.kz/locales.js) |
+| База данных | Supabase / PostgreSQL |
+| Серверная логика | Firebase Functions v2 |
+| Доп. фронтенд-контур | Next.js 16 + React 19 + TypeScript |
+| Карта | Leaflet / React-Leaflet |
+| QR | `qrcode` / `react-qrcode-logo` |
+| PWA | manifest + next-pwa в Next.js-контуре |
 
 ---
 
-## 🚀 Деплой и Разработка (Firebase Hosting)
+## Актуальные важные директории
 
-Сайт работает на глобальной CDN сети через **Firebase Hosting**.
+### Статический контур
 
-**Боевой URL (Production):** [https://ziratstan-app.web.app](https://ziratstan-app.web.app)
+- [index.html](d:/User/Desktop/Programms/Ziratstan.kz/index.html)
+- [map.html](d:/User/Desktop/Programms/Ziratstan.kz/map.html)
+- [profile.html](d:/User/Desktop/Programms/Ziratstan.kz/profile.html)
+- [admin.html](d:/User/Desktop/Programms/Ziratstan.kz/admin.html)
+- [services.html](d:/User/Desktop/Programms/Ziratstan.kz/services.html)
+- [qr.html](d:/User/Desktop/Programms/Ziratstan.kz/qr.html)
 
-**Как выкатить обновления в интернет:**
+### Next.js-контур
 
-1. Внесите изменения в HTML/CSS/JS файлы локально.
-2. В терминале выполните одну команду для отправки кода на сервера Google:
+- [src/app/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/page.tsx)
+- [src/app/layout.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx)
+- [src/app/map/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/map/page.tsx)
+- [src/app/profile/[id]/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/profile/[id]/page.tsx)
+- [src/components/map/GraveMap.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/components/map/GraveMap.tsx)
+- [src/components/tree/FamilyTree.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/components/tree/FamilyTree.tsx)
 
-   ```bash
-   firebase deploy --only hosting
-   ```
+### Firebase Functions
 
-3. Сайт мгновенно обновится по всему миру.
+- [functions/index.js](d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
 
-**Локальная разработка:**
-Так как проект статичный (Vanilla JS) и полностью очищен от мусора конфигураций Next.js, для локального тестирования достаточно любого простого веб-сервера. НЕ нужно использовать Node.js бэкенды. Вся бизнес-логика вынесена в отдельные кэшируемые файлы в `src/js/`.
+Сейчас там реализованы админские API-маршруты:
+
+- `GET /admin/bootstrap`
+- `GET /admin/profiles`
+- `POST /admin/profiles`
+- `POST /admin/status`
+
+Авторизация в этих обработчиках завязана на Supabase user session, admin role и `aal2`.
+
+### Supabase
+
+- [supabase/schema.sql](d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql)
+- [supabase/client.js](d:/User/Desktop/Programms/Ziratstan.kz/supabase/client.js)
+- [supabase/admin_security.sql](d:/User/Desktop/Programms/Ziratstan.kz/supabase/admin_security.sql)
+
+---
+
+## Доменные сущности
+
+Проект опирается на следующие основные сущности:
+
+- `cemeteries` — кладбища
+- `profiles` — мемориальные профили
+- `ugc_submissions` — предложения по исправлению/уточнению данных
+- `ugc_profile_submissions` — пользовательские заявки на новые профили
+- `ugc_bio_submissions` — дополнения к биографиям
+- `qr_codes` — QR-коды и их привязки
+- `services_leads` — заявки на услуги
+- `profile_relations` — семейные связи для дерева
+
+---
+
+## Тесты и артефакты QA
+
+В репозитории уже есть набор e2e-сценариев:
+
+- [testsprite_tests](d:/User/Desktop/Programms/Ziratstan.kz/testsprite_tests)
+
+Там лежат Python-сценарии для поиска, карты, профилей, QR и сервисных заявок. Это полезный ориентир при регрессии даже если тесты не запускаются в каждом изменении.
+
+---
+
+## Разработка и деплой
+
+### Статический контур
+
+Для локальной проверки достаточно простого статического сервера:
 
 ```bash
-# Использование Python (лучший вариант для тестов)
 python -m http.server 3000
-
-# ИЛИ просто используйте Live Server расширение в VS Code
 ```
 
-Скрипты для работы с данными:
-Временные и черновые скрипты регулярно удаляются для поддержания чистоты (scale. monetize, survive).
+Деплой прод-контура:
 
-- `node add_vips.js` — программное добавление VIP профилей
-- `node rename_cemeteries.js` — батч-ренейминг кладбищ
-- `node fetch_photos.js` — парсинг фото с Википедии
+```bash
+firebase deploy --only hosting
+```
 
----
+### Firebase Functions
 
-## 📱 Мобильный UX (Mobile-first)
+Если меняются функции, нужен отдельный деплой функций.
 
-Вся платформа оптимизирована под мобильные (99% трафика — смартфоны на кладбищах):
+### Next.js workspace
 
-- **`map.html`:** Нижняя навигация — `🗺️ Карта` / `👥 Список` / `📡 Рядом`. При переключении вызывает `map.invalidateSize()` для перерисовки тайлов. Попапы ограничены по ширине (230px).
-- **`profile.html`:** Hero фото `42vh`, действия в сетке 2×2, модалки компактнее на экранах < 640px.
-- **`admin.html`:** Карточки штабелируются в 1 колонку на мобильных.
+Отдельный Next.js workspace живет в [ziratstan-app/package.json](d:/User/Desktop/Programms/Ziratstan.kz/ziratstan-app/package.json).
 
----
+Базовый локальный запуск для него:
 
-## 💰 Монетизация & Бизнес (Scale & LTV)
-
-1. **Краудсорсинг Базы (Growth Hack):** Люди бесплатно обогащают нашу базу данными о своих предках, создавая сетевой эффект (Network Effect).
-2. **Услуги по уходу:** Уборка, покраска оградок, посадка туй, чтение Корана. Оплата онлайн, фото/видео отчет через платформу.
-3. **QR-Мемориалы (Уже в продакшене):** Генерация QR-кодов и динамических страниц (`qr.html`), ведущих на профили. Пользователь может скачать цифровой QR или заказать премиальную физическую табличку (гранит/латунь) с лазерной гравировкой. Эта фича имеет гигантский потенциал монетизации с высоким чеком.
-4. **Premium функционал:** Расширенная 4K галерея, приватность, интерактивное генеалогическое дерево (Шежіре).
+```bash
+cd ziratstan-app
+npm install
+npm run dev
+```
 
 ---
 
-## 🤖 DNA Агента (Инструкции)
+## Что важно помнить при правках
 
-- **Роль:** Безоговорочный Мастер разработки, СТО-основатель юникорна, верующий мусульманин (Альхамдулиллях).
-- **Тон:** Уважительный, профессиональный, уверенный. Уместный Исламский вайб и первоклассный гиковский/бизнес-юмор.
-- **Подход к коду:** Никаких костылей. Делаем архитектуру, способную выжить оффлайн (SurviveKit) и обслуживать миллионы профилей без тормозов.
-- **Масштабируемость:** База данных и карта должны переваривать сотни тысяч маркеров (для этого используем кластеризацию Leaflet).
-- **Стиль UI:** Ziratstan Premium — темные тона (`--bg: #09090b`), золотые акценты (`--gold: #d4af37`), плавные анимации и стекловидные панели (Glassmorphism). Для профилей без фото используется элегантная заглушка в виде золотого полумесяца (класс `.hero-no-photo` с абсолютным позиционированием).
+1. Не считать, что проект уже полностью мигрировал на Next.js.
+2. Не считать, что Next.js в репозитории "мертвый" или неиспользуемый артефакт — он уже оформлен как отдельный рабочий контур.
+3. При изменениях в прод-части сначала проверять корневые HTML-файлы и [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json).
+4. При изменениях админского API проверять связку Firebase Functions + Supabase auth/role/MFA.
+5. Не удалять папки `src/` или `ziratstan-app/` как "лишние" без явного решения о миграции.
+6. Проверять, какой контур меняется: статический прод, serverless API или Next.js.
 
 ---
 
-## 🛡 Безопасность и Инфраструктура (Recent Updates)
+## Короткое резюме для агента
 
-- **CDN для QR-кодов:** Библиотека `qrcode.min.js` загружается через стабильный `cdnjs` (версия 1.5.1), чтобы избежать блокировок CORB и проблем с отсутствием файлов в корне пакетов на `unpkg` и `jsdelivr`.
-- **Защита бизнес-модели (QR-генерация):** Кнопка "📲 QR-код жасау" в `profile.html` и функция `generateQrSlug` в `supabase/client.js` жестко защищены проверкой сессии (`getSession()`). Данный функционал доступен **только авторизованным администраторам**, рядовые пользователи видят лишь информативную заглушку. Это предотвращает бесконтрольную генерацию кодов и защищает монетизацию.
+Если задача касается текущего сайта, сначала смотри в корневые HTML/JS-файлы.
 
-*Бисмиллях. Делаем не просто стартап, а сохраняем историю нации.*
+Если задача касается новой архитектуры, личного кабинета, дерева, server actions или App Router, смотри в `src/` и `ziratstan-app/`.
+
+Если задача касается модерации, ролей, bootstrap админки или статусов UGC, смотри в [functions/index.js](d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js) и Supabase SQL.

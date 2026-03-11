@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const profilesPath = path.join(__dirname, 'profiles_data.js');
+const ROOT_DIR = path.resolve(__dirname, '..');
+const profilesPath = path.join(ROOT_DIR, 'profiles_data.js');
 let profilesContent = fs.readFileSync(profilesPath, 'utf8');
 
 let profiles = [];
@@ -14,7 +15,7 @@ try {
     process.exit(1);
 }
 
-const OUT_DIR = path.join(__dirname, 'public', 'data', 'profiles');
+const OUT_DIR = path.join(ROOT_DIR, 'public', 'data', 'profiles');
 if (!fs.existsSync(OUT_DIR)) {
     fs.mkdirSync(OUT_DIR, { recursive: true });
 }

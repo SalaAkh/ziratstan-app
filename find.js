@@ -1,5 +1,8 @@
 const fs = require('fs');
-const content = fs.readFileSync('profiles_data.js', 'utf8');
+const path = require('path');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const content = fs.readFileSync(path.join(ROOT_DIR, 'profiles_data.js'), 'utf8');
 
 const objects = [];
 const blocks = content.match(/\{[\s\S]*?\}/g);

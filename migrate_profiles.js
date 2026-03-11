@@ -5,6 +5,7 @@
 // ============================================================
 
 const fs = require('fs');
+const path = require('path');
 
 // --- НАСТРОЙКИ SUPABASE (service_role key для записи) ---
 const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
@@ -13,7 +14,8 @@ const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
 const SUPABASE_KEY = 'sb_secret_N_0MJRrrjcFfZ4AcgmpGWg_TmirxTK5';
 
 // --- Загружаем profiles_data.js ---
-const raw = fs.readFileSync('./profiles_data.js', 'utf8');
+const ROOT_DIR = path.resolve(__dirname, '..');
+const raw = fs.readFileSync(path.join(ROOT_DIR, 'profiles_data.js'), 'utf8');
 let PROFILES_STATIC;
 
 // Eval в CommonJS контексте
@@ -161,7 +163,7 @@ async function runMigration() {
         errors.forEach(e => console.log(`  [${e.slug}] ${e.name}: ${e.status} ${e.error}`));
 
         // Сохраняем ошибки в файл
-        fs.writeFileSync('./migration_errors.json', JSON.stringify(errors, null, 2));
+        fs.writeFileSync(path.join(ROOT_DIR, 'migration_errors.json'), JSON.stringify(errors, null, 2));
         console.log('\nОшибки сохранены в migration_errors.json');
     }
 }

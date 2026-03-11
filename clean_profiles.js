@@ -1,5 +1,8 @@
 const fs = require('fs');
-const file = 'd:/User/Desktop/Programms/Ziratstan.kz/profiles_data.js';
+const path = require('path');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const file = path.join(ROOT_DIR, 'profiles_data.js');
 let content = fs.readFileSync(file, 'utf8');
 
 const blocks = [...content.matchAll(/\{[\s\S]*?\}/g)];

@@ -1,6 +1,8 @@
 const fs = require('fs');
+const path = require('path');
 
-const content = fs.readFileSync('profiles_data.js', 'utf8');
+const ROOT_DIR = path.resolve(__dirname, '..');
+const content = fs.readFileSync(path.join(ROOT_DIR, 'profiles_data.js'), 'utf8');
 
 // Match all fullName: '...' values
 const nameMatches = [...content.matchAll(/fullName:\s*'([^']+)'/g)];
@@ -27,7 +29,7 @@ for (const obj of objects) {
     }
 }
 
-fs.writeFileSync('dupes_to_remove.json', JSON.stringify(idsToRemove, null, 2));
+fs.writeFileSync(path.join(ROOT_DIR, 'dupes_to_remove.json'), JSON.stringify(idsToRemove, null, 2));
 
 // Create a new version of profiles_data.js
 let newContent = content;
@@ -70,5 +72,5 @@ for (let i = 0; i < lines.length; i++) {
     resultLines.push(line);
 }
 
-fs.writeFileSync('profiles_data_cleaned.js', resultLines.join('\n'));
+fs.writeFileSync(path.join(ROOT_DIR, 'profiles_data_cleaned.js'), resultLines.join('\n'));
 console.log(`Created profiles_data_cleaned.js with ${idsToRemove.length} duplicates removed!`);

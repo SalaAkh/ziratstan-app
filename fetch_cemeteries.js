@@ -1,5 +1,9 @@
 const fs = require('fs');
 const https = require('https');
+const path = require('path');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const CEMETERIES_DATA_PATH = path.join(ROOT_DIR, 'cemeteries_data.js');
 
 console.log("Бисмиллях, начинаем сбор данных о кладбищах Казахстана из OpenStreetMap (Overpass API)...");
 
@@ -82,7 +86,7 @@ const req = https.request(options, (res) => {
             console.log("МашаАллах, найдено кладбищ: " + cemeteries.length);
 
             const fileContent = 'const CEMETERIES_DATA = ' + JSON.stringify(cemeteries) + ';\n';
-            fs.writeFileSync('cemeteries_data.js', fileContent);
+            fs.writeFileSync(CEMETERIES_DATA_PATH, fileContent);
             console.log("Данные успешно сохранены в cemeteries_data.js");
 
         } catch (e) {

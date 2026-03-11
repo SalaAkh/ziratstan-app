@@ -1,5 +1,9 @@
 const fs = require('fs');
-let html = fs.readFileSync('map.html', 'utf8');
+const path = require('path');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const MAP_PATH = path.join(ROOT_DIR, 'map.html');
+let html = fs.readFileSync(MAP_PATH, 'utf8');
 
 const newVips = `
             { id: 'al_farabi_104', name: 'Әл-Фараби', fullName: 'Әбу Насыр әл-Фараби', birth: '870', death: '950', cemetery: 'Баб әс-Сағир', city: 'Дамаск (Сирия)', filter: 'historical', lat: 33.5068, lng: 36.3031, photo: null },
@@ -23,7 +27,7 @@ const newVips = `
 let insertionPoint = html.lastIndexOf('        ];', html.indexOf('let currentFilter'));
 if (insertionPoint > -1) {
     html = html.substring(0, insertionPoint) + newVips + html.substring(insertionPoint);
-    fs.writeFileSync('map.html', html);
+    fs.writeFileSync(MAP_PATH, html);
     console.log('Added ' + process.argv[2] + ' new VIPs.');
 } else {
     console.log('Could not find PROFILES array end.');

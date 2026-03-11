@@ -16,6 +16,7 @@ BG_COLOR = (15, 15, 18)       # #0f0f12
 ACCENT_COLOR = (212, 175, 55) # #d4af37 (Gold)
 TEXT_COLOR = (244, 244, 245)  # #f4f4f5
 MUTED_COLOR = (140, 140, 145) # lighter muted
+ROOT_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, "..")))
 
 def main():
     img = Image.new('RGB', (WIDTH, HEIGHT), color=BG_COLOR)
@@ -29,8 +30,8 @@ def main():
     draw.rectangle([20, 20, WIDTH-20, HEIGHT-20], outline=(30, 30, 35), width=2)
 
     # Load font or download Roboto
-    font_bold_path = "Roboto-Bold.ttf"
-    font_reg_path = "Roboto-Regular.ttf"
+    font_bold_path = os.path.join(ROOT_DIR, "Roboto-Bold.ttf")
+    font_reg_path = os.path.join(ROOT_DIR, "Roboto-Regular.ttf")
     
     def download_font(url, path):
         if not os.path.exists(path):
@@ -64,11 +65,11 @@ def main():
     draw.text((80, 530), "ziratstan.kz", font=font_url, fill=ACCENT_COLOR)
 
     # Save format
-    out_path = "d:/User/Desktop/Programms/Ziratstan.kz/og-image.jpg"
+    out_path = os.path.join(ROOT_DIR, "og-image.jpg")
     img.save(out_path, quality=95)
     print(f"OG Image generated at {out_path}")
 
-    out_path_public = "d:/User/Desktop/Programms/Ziratstan.kz/public/og-image.jpg"
+    out_path_public = os.path.join(ROOT_DIR, "public", "og-image.jpg")
     try:
         img.save(out_path_public, quality=95)
         print(f"OG Image generated at {out_path_public}")

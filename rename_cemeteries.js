@@ -1,5 +1,9 @@
 const fs = require('fs');
 const https = require('https');
+const path = require('path');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const CEMETERIES_DATA_PATH = path.join(ROOT_DIR, 'cemeteries_data.js');
 
 // Calculate distance between two lat/lon points
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -66,7 +70,7 @@ const req = https.request(overpassUrl, options, (res) => {
             console.log(`Fetched ${places.length} populated places.`);
 
             // Now read cemeteries_data.js
-            const cemRaw = fs.readFileSync('cemeteries_data.js', 'utf8');
+            const cemRaw = fs.readFileSync(CEMETERIES_DATA_PATH, 'utf8');
             // format is: const CEMETERIES_DATA = [...];
             const jsonStr = cemRaw.substring(cemRaw.indexOf('['), cemRaw.lastIndexOf(']') + 1);
             const cemeteries = JSON.parse(jsonStr);
@@ -99,7 +103,7 @@ const req = https.request(overpassUrl, options, (res) => {
             console.log(`Renamed ${renamedCount} unnamed cemeteries using nearest places.`);
 
             const newJsContent = 'const CEMETERIES_DATA = ' + JSON.stringify(cemeteries) + ';\n';
-            fs.writeFileSync('cemeteries_data.js', newJsContent);
+            fs.writeFileSync(CEMETERIES_DATA_PATH, newJsContent);
             console.log('Updated cemeteries_data.js');
 
         } catch (e) {
