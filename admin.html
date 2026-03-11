@@ -89,8 +89,8 @@
             color: var(--text);
             font-family: inherit;
             font-size: 1rem;
-            text-align: center;
-            letter-spacing: 0.2em;
+            text-align: left;
+            letter-spacing: normal;
             margin-bottom: 14px;
             outline: none;
             transition: border 0.2s;
@@ -118,11 +118,46 @@
             opacity: 0.88;
         }
 
+        .gate-note {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .gate-hint {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-top: 12px;
+            text-align: left;
+        }
+
+        .gate-success {
+            color: var(--green);
+            background: var(--green-dim);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 10px;
+            font-size: 0.82rem;
+            margin-top: 12px;
+            padding: 11px 12px;
+            display: none;
+            text-align: left;
+            line-height: 1.5;
+        }
+
         .gate-error {
             color: var(--red);
+            background: var(--red-dim);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 10px;
             font-size: 0.82rem;
-            margin-top: 10px;
+            margin-top: 12px;
+            padding: 11px 12px;
             display: none;
+            text-align: left;
+            line-height: 1.5;
         }
 
         /* ── ADMIN PANEL ── */
@@ -488,10 +523,14 @@
             <div class="gate-logo"><span>З</span>иратстан</div>
             <div class="gate-sub">Панель модерации UGC контента</div>
             <label for="emailInput" style="display:none;">Электронная почта</label>
-            <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz" />
+            <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
+                autocomplete="email" onkeydown="if(event.key==='Enter') loginUser()" />
+            <p class="gate-note" style="margin-top:-2px;">Вход выполняется через Magic Link. На почту придет одноразовая ссылка для входа.</p>
             <label for="passwordInput" style="display:none;">Пароль</label>
             <input type="password" class="gate-input" id="passwordInput" placeholder="••••••••"
-                onkeydown="if(event.key==='Enter') loginUser()" />
+                style="display:none;" tabindex="-1" aria-hidden="true" />
+            <div class="gate-success" id="gateSuccess"></div>
+            <div class="gate-hint">Вход разрешен только для email, который уже зарегистрирован в Supabase как администратор.</div>
             <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
             <div class="gate-error" id="gateError">Неверный логин или пароль.</div>
         </div>

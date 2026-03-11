@@ -1,74 +1,202 @@
-// ─────────────────────────────────────────────
-//  ADMIN PANEL LOGIC — src/js/admin.js
-//  Extracted from inline <script> in admin.html
-// ─────────────────────────────────────────────
+// ------------------------------------------------------------
+// ADMIN PANEL LOGIC - src/js/admin.js
+// ------------------------------------------------------------
 
 let currentTab = 'names';
 let allData = { names: [], profiles: [], bios: [], manage: [] };
+let hasLoadedDashboard = false;
 
-// ── INIT AUTH ──
-document.addEventListener('DOMContentLoaded', async () => {
-    const session = await getSession(); // From supabase/client.js
-    if (session) {
-        document.getElementById('gate').style.display = 'none';
-        document.getElementById('panel').style.display = 'block';
-        loadAllData();
+const ADMIN_EMAIL_STORAGE_KEY = 'ziratstan_admin_email';
+
+function getGateElements() {
+    return {
+        gate: document.getElementById('gate'),
+        panel: document.getElementById('panel'),
+        emailInput: document.getElementById('emailInput'),
+        loginBtn: document.getElementById('loginBtn'),
+        success: document.getElementById('gateSuccess'),
+        error: document.getElementById('gateError'),
+    };
+}
+
+function resetGateMessages() {
+    const { success, error } = getGateElements();
+
+    if (success) {
+        success.style.display = 'none';
+        success.textContent = '';
     }
-});
 
-// ── GATE ──
-async function loginUser() {
-    const email = document.getElementById('emailInput').value;
-    const password = document.getElementById('passwordInput').value;
-    const btn = document.getElementById('loginBtn');
-    const err = document.getElementById('gateError');
+    if (error) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
+}
 
-    if (!email || !password) {
-        err.textContent = 'Введите email и пароль';
-        err.style.display = 'block';
+function showGateMessage(type, message) {
+    const { success, error } = getGateElements();
+    resetGateMessages();
+
+    if (type === 'success' && success) {
+        success.textContent = message;
+        success.style.display = 'block';
         return;
     }
 
-    btn.textContent = 'Вход...';
-    btn.disabled = true;
-
-    const { data, error } = await db.auth.signInWithPassword({ email, password });
-
     if (error) {
-        err.textContent = error.message === 'Invalid login credentials' ? 'Неверный логин или пароль.' : error.message;
-        err.style.display = 'block';
-        document.getElementById('passwordInput').style.borderColor = 'var(--red)';
-        btn.textContent = 'Войти';
-        btn.disabled = false;
-    } else {
-        err.style.display = 'none';
-        document.getElementById('gate').style.display = 'none';
-        document.getElementById('panel').style.display = 'block';
+        error.textContent = message;
+        error.style.display = 'block';
+    }
+}
+
+function setLoginButtonState(isLoading) {
+    const { loginBtn } = getGateElements();
+    if (!loginBtn) {
+        return;
+    }
+
+    loginBtn.disabled = isLoading;
+    loginBtn.textContent = isLoading ? 'Отправляем...' : 'Отправить ссылку';
+}
+
+function getAdminRedirectUrl() {
+    return `${window.location.origin}${window.location.pathname}`;
+}
+
+function cleanupAuthUrl() {
+    const url = new URL(window.location.href);
+    const hasAuthHash = url.hash.includes('access_token') || url.hash.includes('refresh_token');
+    const hasAuthCode = url.searchParams.has('code');
+    const hasAuthType = url.searchParams.has('type');
+    const hasAuthError = url.searchParams.has('error') || url.searchParams.has('error_description');
+
+    if (!hasAuthHash && !hasAuthCode && !hasAuthType && !hasAuthError) {
+        return;
+    }
+
+    window.history.replaceState({}, document.title, getAdminRedirectUrl());
+}
+
+function showPanel() {
+    const { gate, panel } = getGateElements();
+
+    if (gate) {
+        gate.style.display = 'none';
+    }
+
+    if (panel) {
+        panel.style.display = 'block';
+    }
+
+    if (!hasLoadedDashboard) {
+        hasLoadedDashboard = true;
         loadAllData();
     }
+}
+
+function showGate() {
+    const { gate, panel, emailInput } = getGateElements();
+
+    if (gate) {
+        gate.style.display = 'flex';
+    }
+
+    if (panel) {
+        panel.style.display = 'none';
+    }
+
+    hasLoadedDashboard = false;
+
+    const savedEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY);
+    if (savedEmail && emailInput) {
+        emailInput.value = savedEmail;
+    }
+
+    setLoginButtonState(false);
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const { emailInput } = getGateElements();
+    const savedEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY);
+
+    if (savedEmail && emailInput) {
+        emailInput.value = savedEmail;
+    }
+
+    db.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+            cleanupAuthUrl();
+            showPanel();
+            return;
+        }
+
+        showGate();
+    });
+
+    const session = await getSession();
+    if (session) {
+        cleanupAuthUrl();
+        showPanel();
+        return;
+    }
+
+    showGate();
+});
+
+async function loginUser() {
+    const { emailInput } = getGateElements();
+    const email = emailInput?.value.trim().toLowerCase();
+
+    if (!email) {
+        showGateMessage('error', 'Введите admin email, на который нужно отправить Magic Link.');
+        return;
+    }
+
+    resetGateMessages();
+    setLoginButtonState(true);
+    localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
+
+    const { error } = await db.auth.signInWithOtp({
+        email,
+        options: {
+            emailRedirectTo: getAdminRedirectUrl(),
+            shouldCreateUser: false,
+        },
+    });
+
+    if (error) {
+        const message = error.message && error.message.includes('Signups not allowed for otp')
+            ? 'Этот email не зарегистрирован как администратор. Сначала добавьте его через register_admin_email.js.'
+            : (error.message || 'Не удалось отправить ссылку для входа.');
+        showGateMessage('error', message);
+        setLoginButtonState(false);
+        return;
+    }
+
+    showGateMessage('success', 'Письмо отправлено. Откройте ссылку из почты на этом же устройстве, чтобы вернуться в админку.');
+    setLoginButtonState(false);
 }
 
 async function logout() {
     await db.auth.signOut();
-    document.getElementById('gate').style.display = 'flex';
-    document.getElementById('panel').style.display = 'none';
-    document.getElementById('passwordInput').value = '';
-    document.getElementById('gateError').style.display = 'none';
-    document.getElementById('loginBtn').textContent = 'Войти';
-    document.getElementById('loginBtn').disabled = false;
+    showGate();
+    resetGateMessages();
+    setLoginButtonState(false);
 }
 
-// ── TABS ──
 function switchTab(tab, btn) {
     currentTab = tab;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
     btn.classList.add('active');
-    ['names', 'profiles', 'bios', 'manage'].forEach(t => {
+
+    ['names', 'profiles', 'bios', 'manage'].forEach((t) => {
         const el = document.getElementById(`content-${t}`);
-        if (el) {
-            el.style.display = t === tab ? 'flex' : 'none';
-            el.style.flexDirection = 'column';
+        if (!el) {
+            return;
         }
+
+        el.style.display = t === tab ? 'flex' : 'none';
+        el.style.flexDirection = 'column';
     });
 
     if (tab === 'manage' && (!allData.manage || allData.manage.length === 0)) {
@@ -78,7 +206,8 @@ function switchTab(tab, btn) {
 
 async function loadManageProfiles() {
     const listContainer = document.getElementById('manage-profiles-list');
-    listContainer.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+    listContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
     try {
         if (typeof fetchAllAdminProfiles === 'function') {
             const data = await fetchAllAdminProfiles();
@@ -87,32 +216,34 @@ async function loadManageProfiles() {
         }
     } catch (err) {
         console.error(err);
-        showToast('❌ Ошибка загрузки базы профилей', 'error');
-        listContainer.innerHTML = `<div class="empty"><p>Ошибка загрузки</p></div>`;
+        showToast('Ошибка загрузки базы профилей', 'error');
+        listContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки</p></div>';
     }
 }
 
 function renderManageTab(items) {
     const container = document.getElementById('manage-profiles-list');
     if (!items.length) {
-        container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Профилей пока нет</p></div>`;
+        container.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><p>Профилей пока нет</p></div>';
         return;
     }
+
     container.innerHTML = '';
-    items.forEach(item => {
+
+    items.forEach((item) => {
         const div = document.createElement('div');
         div.className = 'card';
         div.style.gridTemplateColumns = '1fr auto';
 
-        const years = `${item.birth_date ? item.birth_date.substring(0, 4) : '?'} — ${item.death_date ? item.death_date.substring(0, 4) : '?'}`;
+        const years = `${item.birth_date ? item.birth_date.substring(0, 4) : '?'} - ${item.death_date ? item.death_date.substring(0, 4) : '?'}`;
         const name = `${item.last_name || ''} ${item.first_name || ''}`.trim();
 
         div.innerHTML = `
         <div>
             <div class="card-title">${name}</div>
             <div class="card-meta-row" style="margin-top:8px;">
-                <div class="card-meta-item">📅 <span>${years}</span></div>
-                <div class="card-meta-item">Старый ID (slug): <span>${item.epitaph || '—'}</span></div>
+                <div class="card-meta-item">Годы: <span>${years}</span></div>
+                <div class="card-meta-item">Старый ID (slug): <span>${item.epitaph || '-'}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${item.id}</span></div>
@@ -127,6 +258,7 @@ function renderManageTab(items) {
 
 async function handleCreateProfile(e) {
     e.preventDefault();
+
     const btn = document.getElementById('cp_submitBtn');
     btn.disabled = true;
     btn.textContent = 'Создание...';
@@ -136,28 +268,29 @@ async function handleCreateProfile(e) {
         last_name: document.getElementById('cp_lastName').value,
         birth_year: document.getElementById('cp_birthYear').value,
         death_year: document.getElementById('cp_deathYear').value,
-        biography: document.getElementById('cp_bio').value
+        biography: document.getElementById('cp_bio').value,
     };
 
     try {
         if (typeof createAdminProfile === 'function') {
             await createAdminProfile(payload);
-            showToast('✅ Профиль успешно создан!', 'success');
+            showToast('Профиль успешно создан', 'success');
             document.getElementById('createProfileForm').reset();
             loadManageProfiles();
         }
     } catch (err) {
         console.error(err);
-        showToast('❌ Ошибка при создании профиля', 'error');
+        showToast('Ошибка при создании профиля', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = 'Создать профиль';
     }
 }
 
-// ── LOAD DATA ──
 async function loadAllData() {
-    showLoading('names'); showLoading('profiles'); showLoading('bios');
+    showLoading('names');
+    showLoading('profiles');
+    showLoading('bios');
 
     try {
         const [namesRes, profilesRes, biosRes] = await Promise.all([
@@ -173,11 +306,10 @@ async function loadAllData() {
         renderTab('names', allData.names);
         renderTab('profiles', allData.profiles);
         renderTab('bios', allData.bios);
-
         updateCounts();
     } catch (err) {
         console.error('Error loading data:', err);
-        showToast('❌ Ошибка загрузки данных из Supabase', 'error');
+        showToast('Ошибка загрузки данных из Supabase', 'error');
         showEmpty('names', 'Ошибка подключения к базе данных');
         showEmpty('profiles', 'Ошибка подключения к базе данных');
         showEmpty('bios', 'Ошибка подключения к базе данных');
@@ -185,9 +317,9 @@ async function loadAllData() {
 }
 
 function updateCounts() {
-    const pendingN = allData.names.filter(x => x.status === 'pending').length;
-    const pendingP = allData.profiles.filter(x => x.status === 'pending').length;
-    const pendingB = allData.bios.filter(x => x.status === 'pending').length;
+    const pendingN = allData.names.filter((x) => x.status === 'pending').length;
+    const pendingP = allData.profiles.filter((x) => x.status === 'pending').length;
+    const pendingB = allData.bios.filter((x) => x.status === 'pending').length;
     const total = pendingN + pendingP + pendingB;
 
     document.getElementById('cnt-names').textContent = pendingN;
@@ -196,9 +328,8 @@ function updateCounts() {
     document.getElementById('totalPendingBadge').textContent = `${total} на проверке`;
 }
 
-// ── RENDER ──
 function showLoading(tab) {
-    document.getElementById(`content-${tab}`).innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+    document.getElementById(`content-${tab}`).innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 }
 
 function showEmpty(tab, msg = 'Заявок нет') {
@@ -206,10 +337,14 @@ function showEmpty(tab, msg = 'Заявок нет') {
 }
 
 function renderTab(tab, items) {
-    if (!items.length) { showEmpty(tab); return; }
+    if (!items.length) {
+        showEmpty(tab);
+        return;
+    }
+
     const container = document.getElementById(`content-${tab}`);
     container.innerHTML = '';
-    items.forEach(item => container.appendChild(createCard(tab, item)));
+    items.forEach((item) => container.appendChild(createCard(tab, item)));
 }
 
 function createCard(type, item) {
@@ -219,7 +354,11 @@ function createCard(type, item) {
 
     const submitted = new Date(item.submitted_at).toLocaleString('ru-KZ');
     const statusClass = `status-${item.status}`;
-    const statusText = item.status === 'pending' ? 'На проверке' : item.status === 'approved' ? 'Одобрено' : 'Отклонено';
+    const statusText = item.status === 'pending'
+        ? 'На проверке'
+        : item.status === 'approved'
+            ? 'Одобрено'
+            : 'Отклонено';
 
     let content = '';
     let badgeClass = '';
@@ -230,17 +369,17 @@ function createCard(type, item) {
         title = item.suggested_name;
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Текущее название: <span>${item.current_name || '—'}</span></div>
+            <div class="card-meta-item">Текущее название: <span>${item.current_name || '-'}</span></div>
             <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
         </div>
-        ${item.comment ? `<div class="card-detail" style="margin-top:8px;">💬 ${item.comment}</div>` : ''}`;
+        ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
     } else if (type === 'profiles') {
         badgeClass = 'badge-profiles';
         title = item.full_name;
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Годы: <span>${item.birth_year || '?'} — ${item.death_year || '?'}</span></div>
-            <div class="card-meta-item">Кладбище: <span>${item.cemetery_name || '—'}</span></div>
+            <div class="card-meta-item">Годы: <span>${item.birth_year || '?'} - ${item.death_year || '?'}</span></div>
+            <div class="card-meta-item">Кладбище: <span>${item.cemetery_name || '-'}</span></div>
         </div>
         ${item.description ? `<div class="card-detail" style="margin-top:8px;">${item.description}</div>` : ''}`;
     } else if (type === 'bios') {
@@ -259,53 +398,68 @@ function createCard(type, item) {
         <div class="card-title">${title}</div>
         ${content}
         <div class="card-meta-row" style="margin-top:12px;">
-            <div class="card-meta-item">🕐 <span>${submitted}</span></div>
+            <div class="card-meta-item">Время: <span>${submitted}</span></div>
             <span class="status-chip ${statusClass}">${statusText}</span>
         </div>
     </div>
     <div class="card-actions">
         ${item.status === 'pending' ? `
-            <button class="btn-approve" onclick="updateStatus('${type}', '${item.id}', 'approved')">✅ Одобрить</button>
-            <button class="btn-reject" onclick="updateStatus('${type}', '${item.id}', 'rejected')">❌ Отклонить</button>
-        ` : `<span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>`}
+            <button class="btn-approve" onclick="updateStatus('${type}', '${item.id}', 'approved')">Одобрить</button>
+            <button class="btn-reject" onclick="updateStatus('${type}', '${item.id}', 'rejected')">Отклонить</button>
+        ` : '<span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>'}
     </div>`;
+
     return div;
 }
 
-// ── ACTIONS ──
 async function updateStatus(type, id, status) {
     const tableMap = {
         names: 'ugc_submissions',
         profiles: 'ugc_profile_submissions',
-        bios: 'ugc_bio_submissions'
+        bios: 'ugc_bio_submissions',
     };
+
     const table = tableMap[type];
     const btn = document.querySelector(`#card-${id} .btn-${status === 'approved' ? 'approve' : 'reject'}`);
-    if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '...';
+    }
 
     try {
         const { error } = await db.from(table).update({ status }).eq('id', id);
-        if (error) throw error;
+        if (error) {
+            throw error;
+        }
 
-        const item = allData[type].find(x => x.id === id);
-        if (item) item.status = status;
+        const item = allData[type].find((x) => x.id === id);
+        if (item) {
+            item.status = status;
+        }
+
         updateCounts();
 
         const card = document.getElementById(`card-${id}`);
-        if (card) {
+        if (card && item) {
             const newCard = createCard(type, item);
             card.replaceWith(newCard);
         }
 
-        showToast(status === 'approved' ? '✅ Одобрено и опубликовано!' : '❌ Заявка отклонена', status === 'approved' ? 'success' : 'error');
+        showToast(
+            status === 'approved' ? 'Одобрено и опубликовано' : 'Заявка отклонена',
+            status === 'approved' ? 'success' : 'error'
+        );
     } catch (err) {
         console.error('Error updating status:', err);
-        showToast('❌ Ошибка при обновлении статуса', 'error');
-        if (btn) { btn.disabled = false; btn.textContent = status === 'approved' ? '✅ Одобрить' : '❌ Отклонить'; }
+        showToast('Ошибка при обновлении статуса', 'error');
+
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = status === 'approved' ? 'Одобрить' : 'Отклонить';
+        }
     }
 }
 
-// ── TOAST ──
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
