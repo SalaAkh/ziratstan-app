@@ -1,0 +1,10 @@
+851c31e feat: Implement Supabase client and profile page logic, updating Firebase configuration.
+238e2b3 feat: add profile data for multiple historical figures.
+ce38738 feat: Add new profile data files and a script to fetch biographical information.
+e32c55a docs: Add agent guide markdown file.
+fb2cc80 Downgrade QR code library in `profile.html` and add new `qrcode-1.5.4.tgz` package and Firebase hosting cache.
+8b4fb36 chore: Regenerate Firebase hosting cache and update profile.html.
+ea3f852 refactor: Extract inline JavaScript from HTML into `src/js` modules and remove unused build configuration and temporary scripts.
+0527cc4 ESLI CHO OTKAT
+fbaa744 feat: Regenerate Firebase hosting cache and update profiles data.
+c954c54 docs: update agent.md with latest schema and scripts info
