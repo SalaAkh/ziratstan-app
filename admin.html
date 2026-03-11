@@ -595,14 +595,21 @@
         <div class="gate-box">
             <div class="gate-logo"><span>З</span>иратстан</div>
             <div class="gate-sub">Панель модерации UGC контента</div>
-            <label for="emailInput" style="display:none;">Электронная почта</label>
-            <div id="loginStep">
-            <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
-                autocomplete="email" onkeydown="if(event.key==='Enter') loginUser()" />
-            <label for="passwordInput" style="display:none;">Пароль</label>
-            <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль"
-                autocomplete="current-password" onkeydown="if(event.key==='Enter') loginUser()" />
-            </div>
+            <form onsubmit="event.preventDefault(); loginUser();">
+                <label for="emailInput" style="display:none;">Электронная почта</label>
+                <div id="loginStep">
+                    <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
+                        autocomplete="email" />
+                    <label for="passwordInput" style="display:none;">Пароль</label>
+                    <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль"
+                        autocomplete="current-password" />
+                </div>
+                <div class="gate-actions">
+                    <button type="submit" class="gate-btn" id="loginBtn">Войти</button>
+                    <button type="button" class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()">Отправить Magic Link</button>
+                </div>
+                <div class="gate-error" id="gateError">Не удалось выполнить вход.</div>
+            </form>
             <div class="gate-success" id="gateSuccess"></div>
             <div class="mfa-step" id="mfaStep">
                 <div class="mfa-card">
@@ -619,16 +626,11 @@
                         inputmode="numeric" autocomplete="one-time-code"
                         onkeydown="if(event.key==='Enter') verifyMfaCode()" />
                     <div class="gate-actions">
-                        <button class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()">Подтвердить код</button>
-                        <button class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()">Выйти</button>
+                        <button type="button" class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()">Подтвердить код</button>
+                        <button type="button" class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()">Выйти</button>
                     </div>
                 </div>
             </div>
-            <div class="gate-actions">
-                <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
-                <button class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()">Отправить Magic Link</button>
-            </div>
-            <div class="gate-error" id="gateError">Не удалось выполнить вход.</div>
         </div>
     </div>
 
