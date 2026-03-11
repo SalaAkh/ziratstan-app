@@ -55,14 +55,14 @@ Ziratstan.kz — платформа для поиска захоронений, 
 ### Файлы
 
 | Файл | Назначение |
-|---|---|
+| --- | --- |
 | `src/js/auth/supabase-auth.js` | Модуль авторизации: login/register/logout/session/UI |
 | `dashboard.html` | Личный кабинет: мои профили, видимость, настройки |
 | `supabase/migrations/20260312_user_auth_rls.sql` | SQL-миграция: таблицы + RLS политики |
 
 ### Схема безопасности
 
-```
+```text
 Supabase Auth → auth.users (встроенная)
            ↓
      public.profiles (расширение пользователя)
@@ -229,7 +229,7 @@ Ziratstan.kz/
 
 ## Разработка и деплой
 
-### Статический контур
+### Локальный запуск статики
 
 ```bash
 # Локальный запуск
@@ -239,7 +239,7 @@ python -m http.server 3000
 firebase deploy --only hosting
 ```
 
-### Firebase Functions
+### Деплой Firebase Functions
 
 Если меняются функции, нужен отдельный деплой функций.
 

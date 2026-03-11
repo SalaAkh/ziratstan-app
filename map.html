@@ -662,6 +662,403 @@
         }
 
         .marker-cluster-large div {
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .detail-avatar img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .detail-name {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .detail-dates {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .detail-place {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .detail-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.25rem;
+            background: var(--gold);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            margin-top: 0.75rem;
+        }
+
+        .detail-btn:hover {
+            opacity: 0.85;
+        }
+
+        /* ── MAP ── */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Leaflet popup override */
+        .leaflet-popup-content-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--surface);
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+        }
+
+        /* Mobile bottom nav */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+            height: 58px;
+            background: rgba(17, 17, 19, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            padding: 0 8px;
+            gap: 6px;
+            align-items: center;
+            justify-content: stretch;
+        }
+
+        .mobile-nav-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .mobile-nav-btn.active {
+            background: var(--gold-dim);
+            color: var(--gold);
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --sidebar: 100vw;
+            }
+
+            .layout {
+                padding-bottom: 58px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 56px;
+                bottom: 58px;
+                left: 0;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 100vw;
+                min-width: 100vw;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .mobile-bottom-nav {
+                display: flex;
+            }
+
+            .nav-btns .nav-btn:not(.active) {
+                display: none;
+            }
+
+            .leaflet-popup-content-wrapper {
+                max-width: 230px !important;
+            }
+        }
+
+        /* MarkerCluster Custom Styles (Ziratstan Premium) */
+        .marker-cluster-custom {
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-gold 2s infinite;
+        }
+
+        .marker-cluster-custom div {
+            background: rgba(212, 175, 55, 0.9);
+            border: 2px solid #09090b;
+            color: #09090b;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        .marker-cluster-small div {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .marker-cluster-medium div {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+
+        .marker-cluster-large div {
+            width: 50px;
+            height: 50px;
+            font-size: 16px;
+        }
+
+        @keyframes pulse-gold {
+            0% {
+                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+            }
+        }
+
+        .user-marker img {
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .detail-name {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .detail-dates {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .detail-place {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .detail-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.25rem;
+            background: var(--gold);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            margin-top: 0.75rem;
+        }
+
+        .detail-btn:hover {
+            opacity: 0.85;
+        }
+
+        /* ── MAP ── */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Leaflet popup override */
+        .leaflet-popup-content-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--surface);
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+        }
+
+        /* Mobile bottom nav */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+            height: 58px;
+            background: rgba(17, 17, 19, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            padding: 0 8px;
+            gap: 6px;
+            align-items: center;
+            justify-content: stretch;
+        }
+
+        .mobile-nav-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .mobile-nav-btn.active {
+            background: var(--gold-dim);
+            color: var(--gold);
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --sidebar: 100vw;
+            }
+
+            .layout {
+                padding-bottom: 58px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 56px;
+                bottom: 58px;
+                left: 0;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 100vw;
+                min-width: 100vw;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .mobile-bottom-nav {
+                display: flex;
+            }
+
+            .nav-btns .nav-btn:not(.active) {
+                display: none;
+            }
+
+            .leaflet-popup-content-wrapper {
+                max-width: 230px !important;
+            }
+        }
+
+        /* MarkerCluster Custom Styles (Ziratstan Premium) */
+        .marker-cluster-custom {
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-gold 2s infinite;
+        }
+
+        .marker-cluster-custom div {
+            background: rgba(212, 175, 55, 0.9);
+            border: 2px solid #09090b;
+            color: #09090b;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        .marker-cluster-small div {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .marker-cluster-medium div {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+
+        .marker-cluster-large div {
             width: 50px;
             height: 50px;
             font-size: 16px;
@@ -692,13 +1089,230 @@
             font-family: inherit;
             font-size: 0.82rem;
             font-weight: 600;
-            cursor: pointer;
-            outline: none;
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%2371717a" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>');
-            background-repeat: no-repeat;
             background-position: right 10px center;
             background-size: 16px;
+        }
+
+        /* ── AUTH MODAL (Copy from index.html) ── */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 20000;
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+        }
+
+        .auth-modal-overlay.open {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: #111113;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            padding: 2.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .auth-modal-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .auth-modal-logo span {
+            color: #d4af37;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.35rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab-btn {
+            flex: 1;
+            padding: 0.65rem;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: #71717a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tab-btn.active {
+            background: #18181b;
+            color: #f4f4f5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .auth-field label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #71717a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .auth-field input {
+            background: #18181b;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            padding: 0.75rem;
+            color: #f4f4f5;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .auth-field input:focus {
+            border-color: #d4af37;
+        }
+
+        .auth-submit {
+            background: #d4af37;
+            color: #09090b;
+            border: none;
+            border-radius: 10px;
+            padding: 0.85rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .auth-submit:hover {
+            opacity: 0.9;
+        }
+
+        .auth-error {
+            color: #ef4444;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .auth-success {
+            color: #22c55e;
+            font-size: 0.85rem;
+            text-align: center;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+
+        .auth-modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #71717a;
+            font-size: 1rem;
+            transition: background 0.15s;
+        }
+
+        .auth-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f4f4f5;
+        }
+
+        .auth-google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem;
+            background: white;
+            color: #1f2937;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .auth-google-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        .auth-google-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.25rem 0;
+            color: #71717a;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .auth-modal-wrapper {
+            position: relative;
         }
     </style>
 </head>
@@ -712,14 +1326,13 @@
             <a href="index.html" class="nav-btn" data-i18n="nav_home">Басты бет</a>
             <a href="map.html" class="nav-btn active"><span aria-hidden="true">📍</span> <span data-i18n="nav_map">Карта</span></a>
             <a href="services.html" class="nav-btn" data-i18n="nav_services">Қызметтер</a>
-            <a href="profile.html" class="nav-btn" data-i18n="nav_profile">Демо</a>
+            <a href="#" id="nav-auth-btn" class="nav-btn" onclick="ZiratAuth.openAuthModal(); return false;">🔑 Кіру</a>
+            <div id="nav-user-menu" style="display:none; align-items:center; gap:0.5rem;">
+                <span id="nav-user-name" style="font-size:0.75rem; color:var(--text); font-weight:600;"></span>
+                <button onclick="ZiratAuth.signOut()" style="background:transparent; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;">Шығу</button>
+            </div>
         </div>
     </nav>
-
-    <!-- Layout -->
-    <div class="layout">
-
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <!-- Header -->
             <div class="sidebar-header">
@@ -892,6 +1505,69 @@
             </div>
         </form>
     </div>
+
+    <!-- ═══════ AUTH MODAL (Copy from index.html) ═══════ -->
+    <div class="auth-modal-overlay" id="auth-modal">
+        <div class="auth-modal auth-modal-wrapper">
+            <button class="auth-modal-close" onclick="ZiratAuth.closeAuthModal()" aria-label="Жабу">✕</button>
+
+            <div class="auth-modal-logo"><span>З</span>иратстан — Кіру</div>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" data-tab="login" onclick="ZiratAuth.switchAuthTab('login')">🔑 Кіру</button>
+                <button class="auth-tab-btn" data-tab="register" onclick="ZiratAuth.switchAuthTab('register')">✨ Тіркелу</button>
+            </div>
+
+            <!-- Google Auth -->
+            <button class="auth-google-btn" onclick="ZiratAuth.signInWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+                Google арқылы кіру
+            </button>
+
+            <div class="auth-divider">немесе</div>
+
+            <!-- LOGIN FORM -->
+            <form class="auth-form" id="auth-login-form">
+                <div class="auth-field">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="example@mail.com" required autocomplete="email" />
+                </div>
+                <div class="auth-field">
+                    <label for="login-password">Пароль</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+                </div>
+                <div class="auth-error" id="login-error"></div>
+                <button type="submit" class="auth-submit">Кіру →</button>
+                <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
+                    Аккаунт жоқ па? <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('register'); return false;">Тіркелу</a>
+                </p>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form class="auth-form" id="auth-register-form" style="display:none;">
+                <div class="auth-field">
+                    <label for="reg-name">Аты-жөні</label>
+                    <input type="text" id="reg-name" placeholder="Сіздің атыңыз" autocomplete="name" />
+                </div>
+                <div class="auth-field">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" placeholder="example@mail.com" required autocomplete="email" />
+                </div>
+                <div class="auth-field">
+                    <label for="reg-password">Пароль (мин. 6 символ)</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
+                </div>
+                <div class="auth-error" id="reg-error"></div>
+                <div class="auth-success" id="reg-success" style="display:none;"></div>
+                <button type="submit" class="auth-submit">✨ Тіркелу →</button>
+                <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
+                    Аккаунтыңыз бар ма? <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('login'); return false;">Кіру</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
     <script>

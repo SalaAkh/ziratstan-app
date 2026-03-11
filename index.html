@@ -1122,6 +1122,57 @@
       color: var(--text);
     }
 
+    .auth-google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: white;
+      color: #1f2937;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .auth-google-btn:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+    }
+
+    .auth-google-btn:active {
+      transform: translateY(0);
+    }
+
+    .auth-google-btn img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.25rem 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
     .auth-modal-wrapper {
       position: relative;
     }
@@ -1205,6 +1256,14 @@
         <button class="auth-tab-btn" data-tab="register" onclick="ZiratAuth.switchAuthTab('register')">✨
           Тіркелу</button>
       </div>
+
+      <!-- Google Auth -->
+      <button class="auth-google-btn" onclick="ZiratAuth.signInWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+        Google арқылы кіру
+      </button>
+
+      <div class="auth-divider">немесе</div>
 
       <!-- LOGIN FORM -->
       <form class="auth-form" id="auth-login-form">
@@ -1604,6 +1663,7 @@
     </p>
     <div class="cta-btns">
       <a href="map.html" class="btn-primary" data-i18n="cta_btn_app">🗺️ Қосымшаны ашу</a>
+      <a href="#" class="btn-outline" onclick="ZiratAuth.openAuthModal(); return false;" data-i18n="hero_cta_create">Тұлға қосу</a>
       <a href="mailto:info@ziratstan.kz" class="btn-outline" data-i18n="cta_btn_email">✉️ info@ziratstan.kz</a>
       <a href="https://wa.me/77770000000" class="btn-gold" target="_blank" rel="noopener" data-i18n="cta_btn_wa">💬
         WhatsApp</a>

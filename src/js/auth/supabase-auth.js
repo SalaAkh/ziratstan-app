@@ -63,6 +63,18 @@ async function signIn({ email, password }) {
   return data;
 }
 
+async function signInWithGoogle() {
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname
+    }
+  });
+  if (error) throw error;
+  return data;
+}
+
 async function signOut() {
   const sb = getSupabase();
   const { error } = await sb.auth.signOut();
@@ -236,7 +248,7 @@ function formatAuthError(msg) {
 // ─── Exports & Auto-init ──────────────────────────────────────
 window.ZiratAuth = {
   init: initAuth,
-  signIn, signUp, signOut, resetPassword,
+  signIn, signUp, signOut, resetPassword, signInWithGoogle,
   openAuthModal, closeAuthModal, switchAuthTab,
   getMyDeceasedProfiles, getProfile,
   getUser: () => currentUser,

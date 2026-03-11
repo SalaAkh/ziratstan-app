@@ -751,12 +751,18 @@
             if (typeof renderList === 'function') renderList();
         });
 
-        // ── UGC MODAL LOGIC ──
-        function openUgcModal(cemeteryId, defaultName, lat, lng) {
-            document.getElementById('ugcNameInput').value = defaultName;
+        // ── UGC MODALS ──
+        function openUgcModal(cemeteryId, currentName) {
+            // AUTH GUARD
+            if (!sb.auth.getUser() || !sb.auth.getSession()) {
+                if (typeof ZiratAuth !== 'undefined') {
+                    ZiratAuth.openAuthModal();
+                    return;
+                }
+            }
+            window.currentUgcCemeteryId = cemeteryId;
+            document.getElementById('ugcNameInput').value = currentName || '';
             document.getElementById('ugcModal').style.display = 'flex';
-            // Save state for submission
-            window.currentUgcCemetery = { id: cemeteryId, lat: lat, lng: lng };
         }
 
         function closeUgcModal() {
@@ -774,12 +780,12 @@
             submitBtn.disabled = true;
 
             try {
-                await submitUgcSuggestion({
-                    current_name: window.currentUgcCemetery?.id || 'Белгісіз',
-                    suggested_name: newName,
-                    lat: window.currentUgcCemetery?.lat,
-                    lng: window.currentUgcCemetery?.lng,
-                });
+                if (typeof submitUgcSuggestion === 'function') {
+                    await submitUgcSuggestion({
+                        cemeteryId: window.currentUgcCemeteryId,
+                        suggestedName: newName
+                    });
+                }
             } catch (err) {
                 console.warn('[UGC] Supabase error (working offline?):', err);
                 // Fail gracefully — still show success to user
@@ -798,6 +804,13 @@
 
         // ── ADD PROFILE MODAL ──
         function openAddProfileModal(cemeteryId, cemeteryName, lat, lng) {
+            // AUTH GUARD
+            if (!sb.auth.getUser() || !sb.auth.getSession()) {
+                if (typeof ZiratAuth !== 'undefined') {
+                    ZiratAuth.openAuthModal();
+                    return;
+                }
+            }
             window.currentAddCemetery = { id: cemeteryId, name: cemeteryName, lat, lng };
             document.getElementById('addCemeteryInfo').innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName}</strong><br>${t('map_coords_label')}: ${lat}, ${lng}`;
             document.getElementById('addFullName').value = '';
