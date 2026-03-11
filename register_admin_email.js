@@ -6,6 +6,7 @@ const SUPABASE_URL =
     'https://myxswvzzotieygqnecbi.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Missing SUPABASE_SERVICE_ROLE_KEY.');
@@ -58,8 +59,9 @@ async function main() {
     if (existingUser) {
         const { error } = await adminClient.auth.admin.updateUserById(existingUser.id, {
             email_confirm: true,
-            user_metadata: {
-                ...(existingUser.user_metadata || {}),
+            ...(ADMIN_PASSWORD ? { password: ADMIN_PASSWORD } : {}),
+            app_metadata: {
+                ...(existingUser.app_metadata || {}),
                 role: 'admin',
             },
         });
@@ -75,7 +77,8 @@ async function main() {
     const { error } = await adminClient.auth.admin.createUser({
         email: ADMIN_EMAIL,
         email_confirm: true,
-        user_metadata: {
+        ...(ADMIN_PASSWORD ? { password: ADMIN_PASSWORD } : {}),
+        app_metadata: {
             role: 'admin',
         },
     });

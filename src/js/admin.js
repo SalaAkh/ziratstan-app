@@ -7,13 +7,30 @@ let allData = { names: [], profiles: [], bios: [], manage: [] };
 let hasLoadedDashboard = false;
 
 const ADMIN_EMAIL_STORAGE_KEY = 'ziratstan_admin_email';
+const MFA_FACTOR_NAME = 'Ziratstan Admin';
+
+let pendingMfa = null;
+let authFlowId = 0;
 
 function getGateElements() {
     return {
         gate: document.getElementById('gate'),
         panel: document.getElementById('panel'),
+        loginStep: document.getElementById('loginStep'),
+        mfaStep: document.getElementById('mfaStep'),
         emailInput: document.getElementById('emailInput'),
+        passwordInput: document.getElementById('passwordInput'),
         loginBtn: document.getElementById('loginBtn'),
+        magicLinkBtn: document.getElementById('magicLinkBtn'),
+        mfaTitle: document.getElementById('mfaTitle'),
+        mfaText: document.getElementById('mfaText'),
+        mfaQrWrap: document.getElementById('mfaQrWrap'),
+        mfaQrImage: document.getElementById('mfaQrImage'),
+        mfaSecretWrap: document.getElementById('mfaSecretWrap'),
+        mfaSecret: document.getElementById('mfaSecret'),
+        mfaCodeInput: document.getElementById('mfaCodeInput'),
+        mfaVerifyBtn: document.getElementById('mfaVerifyBtn'),
+        mfaCancelBtn: document.getElementById('mfaCancelBtn'),
         success: document.getElementById('gateSuccess'),
         error: document.getElementById('gateError'),
     };
@@ -56,7 +73,32 @@ function setLoginButtonState(isLoading) {
     }
 
     loginBtn.disabled = isLoading;
-    loginBtn.textContent = isLoading ? 'Отправляем...' : 'Отправить ссылку';
+    loginBtn.textContent = isLoading ? 'Входим...' : 'Войти';
+}
+
+function setMagicLinkButtonState(isLoading) {
+    const { magicLinkBtn } = getGateElements();
+    if (!magicLinkBtn) {
+        return;
+    }
+
+    magicLinkBtn.disabled = isLoading;
+    magicLinkBtn.textContent = isLoading ? 'Отправляем...' : 'Отправить Magic Link';
+}
+
+function setMfaButtonState(isLoading, label) {
+    const { mfaVerifyBtn, mfaCancelBtn } = getGateElements();
+
+    if (mfaVerifyBtn) {
+        mfaVerifyBtn.disabled = isLoading;
+        if (label) {
+            mfaVerifyBtn.textContent = isLoading ? 'Проверяем...' : label;
+        }
+    }
+
+    if (mfaCancelBtn) {
+        mfaCancelBtn.disabled = isLoading;
+    }
 }
 
 function getAdminRedirectUrl() {
@@ -77,6 +119,39 @@ function cleanupAuthUrl() {
     window.history.replaceState({}, document.title, getAdminRedirectUrl());
 }
 
+async function apiRequest(path, options = {}) {
+    const session = await getSession();
+
+    if (!session?.access_token) {
+        const error = new Error('Сессия администратора истекла. Войдите заново.');
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const response = await fetch(`/api${path}`, {
+        method: options.method || 'GET',
+        headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+            await db.auth.signOut();
+        }
+
+        const error = new Error(payload.error || 'Ошибка admin API');
+        error.statusCode = response.status;
+        throw error;
+    }
+
+    return payload;
+}
+
 function showPanel() {
     const { gate, panel } = getGateElements();
 
@@ -94,8 +169,115 @@ function showPanel() {
     }
 }
 
+function showLoginStep() {
+    const { loginStep, mfaStep, emailInput, passwordInput, loginBtn, magicLinkBtn } = getGateElements();
+
+    if (loginStep) {
+        loginStep.style.display = 'block';
+    }
+
+    if (mfaStep) {
+        mfaStep.style.display = 'none';
+    }
+
+    if (loginBtn) {
+        loginBtn.style.display = 'block';
+    }
+
+    if (magicLinkBtn) {
+        magicLinkBtn.style.display = 'block';
+    }
+
+    const savedEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY);
+    if (savedEmail && emailInput) {
+        emailInput.value = savedEmail;
+    }
+
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+
+    setLoginButtonState(false);
+    setMagicLinkButtonState(false);
+    setMfaButtonState(false);
+}
+
+function showMfaStep(config) {
+    const {
+        loginStep,
+        mfaStep,
+        mfaTitle,
+        mfaText,
+        mfaQrWrap,
+        mfaQrImage,
+        mfaSecretWrap,
+        mfaSecret,
+        mfaCodeInput,
+        mfaVerifyBtn,
+        mfaCancelBtn,
+        loginBtn,
+        magicLinkBtn,
+    } = getGateElements();
+
+    if (loginStep) {
+        loginStep.style.display = 'none';
+    }
+
+    if (mfaStep) {
+        mfaStep.style.display = 'block';
+    }
+
+    if (loginBtn) {
+        loginBtn.style.display = 'none';
+    }
+
+    if (magicLinkBtn) {
+        magicLinkBtn.style.display = 'none';
+    }
+
+    if (mfaTitle) {
+        mfaTitle.textContent = config.title;
+    }
+
+    if (mfaText) {
+        mfaText.textContent = config.text;
+    }
+
+    if (mfaQrWrap) {
+        mfaQrWrap.style.display = config.qrCode ? 'block' : 'none';
+    }
+
+    if (mfaQrImage) {
+        mfaQrImage.src = config.qrCode || '';
+        mfaQrImage.alt = config.qrCode ? 'QR code for authenticator app' : '';
+    }
+
+    if (mfaSecretWrap) {
+        mfaSecretWrap.style.display = config.secret ? 'block' : 'none';
+    }
+
+    if (mfaSecret) {
+        mfaSecret.textContent = config.secret || '';
+    }
+
+    if (mfaVerifyBtn) {
+        mfaVerifyBtn.textContent = config.buttonLabel || 'Подтвердить код';
+    }
+
+    if (mfaCancelBtn) {
+        mfaCancelBtn.textContent = config.cancelLabel || 'Выйти';
+    }
+
+    if (mfaCodeInput) {
+        mfaCodeInput.value = '';
+        mfaCodeInput.focus();
+    }
+
+    setMfaButtonState(false, config.buttonLabel || 'Подтвердить код');
+}
+
 function showGate() {
-    const { gate, panel, emailInput } = getGateElements();
+    const { gate, panel } = getGateElements();
 
     if (gate) {
         gate.style.display = 'flex';
@@ -106,13 +288,135 @@ function showGate() {
     }
 
     hasLoadedDashboard = false;
+    pendingMfa = null;
+    showLoginStep();
+}
 
-    const savedEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY);
-    if (savedEmail && emailInput) {
-        emailInput.value = savedEmail;
+function getMfaCode() {
+    const { mfaCodeInput } = getGateElements();
+    return (mfaCodeInput?.value || '').replace(/\s+/g, '');
+}
+
+async function getAuthenticatorAssuranceLevel() {
+    const { data, error } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) {
+        throw error;
     }
 
-    setLoginButtonState(false);
+    return data || { currentLevel: null, nextLevel: null };
+}
+
+async function getVerifiedTotpFactor() {
+    const { data, error } = await db.auth.mfa.listFactors();
+    if (error) {
+        throw error;
+    }
+
+    return data?.totp?.[0] || null;
+}
+
+async function cleanupUnverifiedTotpFactors() {
+    const { data, error } = await db.auth.getUser();
+    if (error) {
+        throw error;
+    }
+
+    const factors = data?.user?.factors || [];
+    const unverifiedFactors = factors.filter((factor) => factor.factor_type === 'totp' && factor.status !== 'verified');
+
+    for (const factor of unverifiedFactors) {
+        await db.auth.mfa.unenroll({ factorId: factor.id });
+    }
+}
+
+async function startTotpEnrollment() {
+    await cleanupUnverifiedTotpFactors();
+
+    const { data, error } = await db.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: MFA_FACTOR_NAME,
+        issuer: 'Ziratstan',
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    pendingMfa = {
+        mode: 'setup',
+        factorId: data.id,
+        buttonLabel: 'Включить защиту',
+    };
+
+    showMfaStep({
+        title: 'Подключите приложение-аутентификатор',
+        text: 'Отсканируйте QR-код в Google Authenticator или аналогичном приложении, затем введите 6-значный код.',
+        qrCode: data.totp?.qr_code || '',
+        secret: data.totp?.secret || '',
+        buttonLabel: pendingMfa.buttonLabel,
+        cancelLabel: 'Выйти',
+    });
+}
+
+async function promptForMfaVerification(factorId) {
+    pendingMfa = {
+        mode: 'verify',
+        factorId,
+        buttonLabel: 'Подтвердить вход',
+    };
+
+    showMfaStep({
+        title: 'Подтвердите вход',
+        text: 'Введите 6-значный код из Google Authenticator, чтобы открыть админку.',
+        qrCode: '',
+        secret: '',
+        buttonLabel: pendingMfa.buttonLabel,
+        cancelLabel: 'Выйти',
+    });
+}
+
+async function syncAuthUI(session) {
+    const flowId = ++authFlowId;
+
+    if (!session) {
+        showGate();
+        resetGateMessages();
+        return;
+    }
+
+    cleanupAuthUrl();
+
+    try {
+        const aal = await getAuthenticatorAssuranceLevel();
+        if (flowId !== authFlowId) {
+            return;
+        }
+
+        if (aal.currentLevel === 'aal2') {
+            pendingMfa = null;
+            resetGateMessages();
+            showPanel();
+            return;
+        }
+
+        const verifiedTotpFactor = await getVerifiedTotpFactor();
+        if (flowId !== authFlowId) {
+            return;
+        }
+
+        if (verifiedTotpFactor) {
+            showGateMessage('success', 'Пароль принят. Подтвердите вход кодом из приложения-аутентификатора.');
+            await promptForMfaVerification(verifiedTotpFactor.id);
+            return;
+        }
+
+        showGateMessage('success', 'Пароль принят. Теперь нужно один раз включить двухфакторную защиту.');
+        await startTotpEnrollment();
+    } catch (error) {
+        console.error(error);
+        showGate();
+        showGateMessage('error', error.message || 'Не удалось подготовить двухфакторную проверку.');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -123,27 +427,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         emailInput.value = savedEmail;
     }
 
-    db.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-            cleanupAuthUrl();
-            showPanel();
-            return;
-        }
-
-        showGate();
+    db.auth.onAuthStateChange(async (_event, session) => {
+        await syncAuthUI(session);
     });
 
     const session = await getSession();
-    if (session) {
-        cleanupAuthUrl();
-        showPanel();
-        return;
-    }
-
-    showGate();
+    await syncAuthUI(session);
 });
 
 async function loginUser() {
+    const { emailInput, passwordInput } = getGateElements();
+    const email = emailInput?.value.trim().toLowerCase();
+    const password = passwordInput?.value || '';
+
+    if (!email) {
+        showGateMessage('error', 'Введите admin email.');
+        return;
+    }
+
+    if (!password) {
+        showGateMessage('error', 'Введите пароль администратора.');
+        return;
+    }
+
+    resetGateMessages();
+    setLoginButtonState(true);
+    setMagicLinkButtonState(true);
+    localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
+
+    const { error } = await db.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        const message = error.message === 'Invalid login credentials'
+            ? 'Неверный email или пароль.'
+            : (error.message || 'Не удалось выполнить вход.');
+        showGateMessage('error', message);
+        setLoginButtonState(false);
+        setMagicLinkButtonState(false);
+        return;
+    }
+
+    setLoginButtonState(false);
+    setMagicLinkButtonState(false);
+}
+
+async function sendMagicLink() {
     const { emailInput } = getGateElements();
     const email = emailInput?.value.trim().toLowerCase();
 
@@ -154,6 +482,7 @@ async function loginUser() {
 
     resetGateMessages();
     setLoginButtonState(true);
+    setMagicLinkButtonState(true);
     localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
 
     const { error } = await db.auth.signInWithOtp({
@@ -170,14 +499,56 @@ async function loginUser() {
             : (error.message || 'Не удалось отправить ссылку для входа.');
         showGateMessage('error', message);
         setLoginButtonState(false);
+        setMagicLinkButtonState(false);
         return;
     }
 
-    showGateMessage('success', 'Письмо отправлено. Откройте ссылку из почты на этом же устройстве, чтобы вернуться в админку.');
+    showGateMessage('success', 'Письмо отправлено. После перехода по ссылке админка всё равно попросит код из приложения-аутентификатора.');
     setLoginButtonState(false);
+    setMagicLinkButtonState(false);
+}
+
+async function verifyMfaCode() {
+    if (!pendingMfa?.factorId) {
+        showGateMessage('error', 'Сначала выполните вход по email и паролю.');
+        return;
+    }
+
+    const code = getMfaCode();
+    if (!/^\d{6}$/.test(code)) {
+        showGateMessage('error', 'Введите 6-значный код из приложения-аутентификатора.');
+        return;
+    }
+
+    resetGateMessages();
+    setMfaButtonState(true, pendingMfa.buttonLabel);
+
+    const { error } = await db.auth.mfa.challengeAndVerify({
+        factorId: pendingMfa.factorId,
+        code,
+    });
+
+    if (error) {
+        showGateMessage('error', error.message || 'Не удалось подтвердить код.');
+        setMfaButtonState(false, pendingMfa.buttonLabel);
+        return;
+    }
+
+    pendingMfa = null;
+    showGateMessage('success', 'Вход подтверждён.');
+    setMfaButtonState(false);
+    await syncAuthUI(await getSession());
+}
+
+async function cancelMfaStep() {
+    pendingMfa = null;
+    await db.auth.signOut();
+    showGate();
+    resetGateMessages();
 }
 
 async function logout() {
+    pendingMfa = null;
     await db.auth.signOut();
     showGate();
     resetGateMessages();
@@ -209,14 +580,12 @@ async function loadManageProfiles() {
     listContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
     try {
-        if (typeof fetchAllAdminProfiles === 'function') {
-            const data = await fetchAllAdminProfiles();
-            allData.manage = data || [];
-            renderManageTab(allData.manage);
-        }
+        const payload = await apiRequest('/admin/profiles');
+        allData.manage = payload.items || [];
+        renderManageTab(allData.manage);
     } catch (err) {
         console.error(err);
-        showToast('Ошибка загрузки базы профилей', 'error');
+        showToast(err.message || 'Ошибка загрузки базы профилей', 'error');
         listContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки</p></div>';
     }
 }
@@ -224,7 +593,7 @@ async function loadManageProfiles() {
 function renderManageTab(items) {
     const container = document.getElementById('manage-profiles-list');
     if (!items.length) {
-        container.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><p>Профилей пока нет</p></div>';
+        container.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Профилей пока нет</p></div>';
         return;
     }
 
@@ -272,15 +641,13 @@ async function handleCreateProfile(e) {
     };
 
     try {
-        if (typeof createAdminProfile === 'function') {
-            await createAdminProfile(payload);
-            showToast('Профиль успешно создан', 'success');
-            document.getElementById('createProfileForm').reset();
-            loadManageProfiles();
-        }
+        await apiRequest('/admin/profiles', { method: 'POST', body: payload });
+        showToast('Профиль успешно создан', 'success');
+        document.getElementById('createProfileForm').reset();
+        loadManageProfiles();
     } catch (err) {
         console.error(err);
-        showToast('Ошибка при создании профиля', 'error');
+        showToast(err.message || 'Ошибка при создании профиля', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = 'Создать профиль';
@@ -293,15 +660,11 @@ async function loadAllData() {
     showLoading('bios');
 
     try {
-        const [namesRes, profilesRes, biosRes] = await Promise.all([
-            db.from('ugc_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-            db.from('ugc_profile_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-            db.from('ugc_bio_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-        ]);
+        const payload = await apiRequest('/admin/bootstrap');
 
-        allData.names = namesRes.data || [];
-        allData.profiles = profilesRes.data || [];
-        allData.bios = biosRes.data || [];
+        allData.names = payload.names || [];
+        allData.profiles = payload.profiles || [];
+        allData.bios = payload.bios || [];
 
         renderTab('names', allData.names);
         renderTab('profiles', allData.profiles);
@@ -333,7 +696,7 @@ function showLoading(tab) {
 }
 
 function showEmpty(tab, msg = 'Заявок нет') {
-    document.getElementById(`content-${tab}`).innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>${msg}</p></div>`;
+    document.getElementById(`content-${tab}`).innerHTML = `<div class="empty"><div class="empty-icon">✓</div><p>${msg}</p></div>`;
 }
 
 function renderTab(tab, items) {
@@ -413,13 +776,6 @@ function createCard(type, item) {
 }
 
 async function updateStatus(type, id, status) {
-    const tableMap = {
-        names: 'ugc_submissions',
-        profiles: 'ugc_profile_submissions',
-        bios: 'ugc_bio_submissions',
-    };
-
-    const table = tableMap[type];
     const btn = document.querySelector(`#card-${id} .btn-${status === 'approved' ? 'approve' : 'reject'}`);
     if (btn) {
         btn.disabled = true;
@@ -427,10 +783,10 @@ async function updateStatus(type, id, status) {
     }
 
     try {
-        const { error } = await db.from(table).update({ status }).eq('id', id);
-        if (error) {
-            throw error;
-        }
+        await apiRequest('/admin/status', {
+            method: 'POST',
+            body: { type, id, status },
+        });
 
         const item = allData[type].find((x) => x.id === id);
         if (item) {

@@ -118,6 +118,18 @@
             opacity: 0.88;
         }
 
+        .gate-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gate-btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
         .gate-note {
             color: var(--muted);
             font-size: 0.88rem;
@@ -158,6 +170,67 @@
             display: none;
             text-align: left;
             line-height: 1.5;
+        }
+
+        .mfa-step {
+            display: none;
+            text-align: left;
+        }
+
+        .mfa-card {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #18181b;
+        }
+
+        .mfa-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .mfa-text {
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .mfa-qr-wrap {
+            display: none;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .mfa-qr-wrap img {
+            width: 180px;
+            height: 180px;
+            border-radius: 12px;
+            background: #fff;
+            padding: 8px;
+        }
+
+        .mfa-secret-wrap {
+            display: none;
+            margin-bottom: 14px;
+        }
+
+        .mfa-secret-label {
+            color: var(--muted);
+            font-size: 0.74rem;
+            margin-bottom: 6px;
+        }
+
+        .mfa-secret {
+            font-family: monospace;
+            font-size: 0.92rem;
+            word-break: break-all;
+            background: #111113;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
         }
 
         /* ── ADMIN PANEL ── */
@@ -523,16 +596,41 @@
             <div class="gate-logo"><span>З</span>иратстан</div>
             <div class="gate-sub">Панель модерации UGC контента</div>
             <label for="emailInput" style="display:none;">Электронная почта</label>
+            <div id="loginStep">
             <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
                 autocomplete="email" onkeydown="if(event.key==='Enter') loginUser()" />
-            <p class="gate-note" style="margin-top:-2px;">Вход выполняется через Magic Link. На почту придет одноразовая ссылка для входа.</p>
             <label for="passwordInput" style="display:none;">Пароль</label>
-            <input type="password" class="gate-input" id="passwordInput" placeholder="••••••••"
-                style="display:none;" tabindex="-1" aria-hidden="true" />
+            <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль"
+                autocomplete="current-password" onkeydown="if(event.key==='Enter') loginUser()" />
+            <p class="gate-note" style="margin-top:-2px;">Основной вход выполняется по email и паролю. Magic Link оставлен как резервный способ восстановления доступа.</p>
+            </div>
             <div class="gate-success" id="gateSuccess"></div>
-            <div class="gate-hint">Вход разрешен только для email, который уже зарегистрирован в Supabase как администратор.</div>
-            <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
-            <div class="gate-error" id="gateError">Неверный логин или пароль.</div>
+            <div class="mfa-step" id="mfaStep">
+                <div class="mfa-card">
+                    <div class="mfa-title" id="mfaTitle">Подтвердите вход</div>
+                    <div class="mfa-text" id="mfaText"></div>
+                    <div class="mfa-qr-wrap" id="mfaQrWrap">
+                        <img id="mfaQrImage" src="" alt="" />
+                    </div>
+                    <div class="mfa-secret-wrap" id="mfaSecretWrap">
+                        <div class="mfa-secret-label">Секрет для ручного добавления</div>
+                        <div class="mfa-secret" id="mfaSecret"></div>
+                    </div>
+                    <input type="text" class="gate-input" id="mfaCodeInput" placeholder="6-значный код"
+                        inputmode="numeric" autocomplete="one-time-code"
+                        onkeydown="if(event.key==='Enter') verifyMfaCode()" />
+                    <div class="gate-actions">
+                        <button class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()">Подтвердить код</button>
+                        <button class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()">Выйти</button>
+                    </div>
+                </div>
+            </div>
+            <div class="gate-hint">Вход разрешен только для email, который уже зарегистрирован в Supabase как администратор. Без серверных RLS-политик браузерную админку нельзя считать защищенной.</div>
+            <div class="gate-actions">
+                <button class="gate-btn" id="loginBtn" onclick="loginUser()">Войти</button>
+                <button class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()">Отправить Magic Link</button>
+            </div>
+            <div class="gate-error" id="gateError">Не удалось выполнить вход.</div>
         </div>
     </div>
 

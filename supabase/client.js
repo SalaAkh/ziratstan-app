@@ -322,32 +322,3 @@ async function fetchProfileIdBySlug(slug) {
   return data.id;
 }
 
-/**
- * Получить все профили для админки
- */
-async function fetchAllAdminProfiles() {
-  const { data, error } = await db
-    .from('profiles')
-    .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, cemeteries(name)')
-    .order('created_at', { ascending: false })
-    .limit(300);
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Создать профиль администратором
- */
-async function createAdminProfile(data) {
-  const payload = {
-    first_name: data.first_name,
-    last_name: data.last_name || null,
-    birth_date: data.birth_year ? data.birth_year + '-01-01' : null,
-    death_date: data.death_year ? data.death_year + '-01-01' : null,
-    biography: data.biography || null,
-    visibility_status: 'public'
-  };
-  const { data: result, error } = await db.from('profiles').insert([payload]).select('id').single();
-  if (error) throw error;
-  return result;
-}

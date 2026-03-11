@@ -18,7 +18,7 @@ Ziratstan.kz/
 ├── map.html                ← Интерактивная карта (Leaflet + MarkerCluster)
 ├── profile.html            ← Динамический профиль личности (?id=...)
 ├── qr.html                 ← Редирект и генерация QR-кодов для памятников
-├── admin.html              ← Панель модерации UGC (Magic Link по admin email)
+├── admin.html              ← Панель модерации UGC (email+пароль, резерв: Magic Link)
 ├── services.html           ← Страница заказа услуг по уходу
 ├── guids/
 │   └── agent.md            ← Этот файл документации
