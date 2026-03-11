@@ -68,6 +68,7 @@ npm run lint
 ## Авторизация и приватность
 
 В корневом прод-контуре реализована система авторизации через Supabase Auth:
+
 - Модуль `src/js/auth/supabase-auth.js` — login/register/logout/session
 - Страница `dashboard.html` — личный кабинет
 - Supabase RLS — `owner_id` + `visibility` (`public`/`family_only`/`private`) на таблице `deceased`
