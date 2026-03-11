@@ -16,7 +16,7 @@ BG_COLOR = (15, 15, 18)       # #0f0f12
 ACCENT_COLOR = (212, 175, 55) # #d4af37 (Gold)
 TEXT_COLOR = (244, 244, 245)  # #f4f4f5
 MUTED_COLOR = (140, 140, 145) # lighter muted
-ROOT_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, "..")))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 def main():
     img = Image.new('RGB', (WIDTH, HEIGHT), color=BG_COLOR)

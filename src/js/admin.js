@@ -605,7 +605,7 @@ async function sendMagicLink() {
 
     if (error) {
         const message = error.message && error.message.includes('Signups not allowed for otp')
-            ? 'Этот email не зарегистрирован как администратор. Сначала добавьте его через register_admin_email.js.'
+            ? 'Этот email не зарегистрирован как администратор. Сначала добавьте его через scripts/register_admin_email.js.'
             : (error.message || 'Не удалось отправить ссылку для входа.');
         showGateMessage('error', message);
         setLoginButtonState(false);

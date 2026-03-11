@@ -13,14 +13,7 @@
       "!public/data/**/*.json",
       "ziratstan-app/**",
       "guids/**",
-      "add_vips.js",
-      "clean_profiles.js",
-      "fetch_cemeteries.js",
-      "find.js",
-      "find_dupes.js",
-      "migrate_profiles.js",
-      "push_schema.js",
-      "rename_cemeteries.js"
+      "scripts/**"
     ]
   }
 }

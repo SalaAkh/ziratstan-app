@@ -1,7 +1,7 @@
 // ============================================================
 //  migrate_profiles.js — Ziratstan.kz
 //  Бисмиллях! Загружаем все профили из profiles_data.js в Supabase
-//  Запуск: node migrate_profiles.js
+//  Запуск: node scripts/migrate_profiles.js
 // ============================================================
 
 const fs = require('fs');
