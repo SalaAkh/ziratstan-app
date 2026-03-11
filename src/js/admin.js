@@ -157,6 +157,10 @@ async function touchAdminSession(reason = null) {
         .maybeSingle());
 
     if (existing.error) {
+        if (isTableNotFoundError(existing.error)) {
+            console.warn('[Ziratstan] admin_sessions table not found — session tracking disabled.');
+            return;
+        }
         throw existing.error;
     }
 
@@ -170,6 +174,9 @@ async function touchAdminSession(reason = null) {
 
         const insertRes = await withAuthRetry(() => db.from('admin_sessions').insert([insertPayload]));
         if (insertRes.error) {
+            if (isTableNotFoundError(insertRes.error)) {
+                return;
+            }
             throw insertRes.error;
         }
         return;
@@ -194,8 +201,16 @@ async function touchAdminSession(reason = null) {
         .update(updatePayload)
         .eq('track_id', trackId));
     if (updateRes.error) {
+        if (isTableNotFoundError(updateRes.error)) {
+            return;
+        }
         throw updateRes.error;
     }
+}
+
+
+function isTableNotFoundError(error) {
+    return error && (error.code === 'PGRST205' || error.code === '42P01' || (error.message && error.message.includes("Could not find the table")));
 }
 
 function isSessionTerminatedError(error) {
