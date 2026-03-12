@@ -1172,13 +1172,19 @@
       height: 1px;
       background: var(--border);
     }
-
     .auth-modal-wrapper {
       position: relative;
     }
 
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
     @media (max-width: 768px) {
-      .nav-links {
+      .nav-links,
+      .nav-controls {
         display: none;
       }
 
@@ -1218,6 +1224,9 @@
       <a href="#services" data-i18n="nav_services">Қызметтер</a>
       <a href="#contact" data-i18n="nav_contact">Байланыс</a>
       <a href="map.html" class="nav-cta" data-i18n="nav_open_map">Картаны ашу →</a>
+    </div>
+    
+    <div class="nav-controls">
       <button id="nav-auth-btn" onclick="ZiratAuth.openAuthModal()" data-i18n="nav_login"></button>
       <div id="nav-user-menu">
         <span id="nav-user-name"></span>

@@ -117,44 +117,55 @@
       .lang-switcher {
         display: flex;
         align-items: center;
-        gap: 2px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 8px;
-        padding: 2px;
+        gap: 4px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 4px;
         margin-left: 0.5rem;
       }
       .lang-btn {
-        background: none;
+        background: transparent;
         border: none;
         cursor: pointer;
-        padding: 0.3rem 0.6rem;
-        font-size: 0.7rem;
-        font-weight: 700;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
         font-family: inherit;
         letter-spacing: 0.05em;
         color: #71717a;
-        border-radius: 6px;
-        transition: color 0.15s, background 0.15s;
+        border-radius: 8px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .lang-btn:hover {
         color: #f4f4f5;
+        background: rgba(255,255,255,0.05);
       }
       .lang-btn--active {
-        background: rgba(212,175,55,0.15);
-        color: #d4af37;
+        background: #d4af37;
+        color: #09090b;
+        box-shadow: 0 2px 8px rgba(212,175,55,0.25);
+      }
+      .lang-btn--active:hover {
+        color: #09090b;
+        background: #e5c358;
       }
     `;
         document.head.appendChild(style);
 
-        // Try to put the switcher in the desktop nav-links
-        const navLinks = document.querySelector('.nav-links');
-        if (navLinks) {
-            navLinks.appendChild(switcher);
+        // Try to put the switcher in the desktop nav-controls
+        const navControls = document.querySelector('.nav-controls');
+        if (navControls) {
+            navControls.appendChild(switcher);
         } else {
-            // Fallback: in the <nav> itself
-            const nav = document.querySelector('nav');
-            if (nav) nav.appendChild(switcher);
+            // Fallback: in the nav-links or nav itself
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) {
+                navLinks.appendChild(switcher);
+            } else {
+                const nav = document.querySelector('nav');
+                if (nav) nav.appendChild(switcher);
+            }
         }
 
         // Also add a copy in mobile menu
