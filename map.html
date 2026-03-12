@@ -33,11 +33,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/supercluster@8.0.1/dist/supercluster.min.js"></script>
-    <!-- Supabase -->
-    <!-- Environment Config -->
-    <script src="src/js/config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase/client.js"></script>
+    <!-- Public API (Firebase Functions proxy) -->
+    <script src="src/js/api/public-api.js"></script>
     <style>
         *,
         *::before,
@@ -1413,12 +1410,11 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="data/cemeteries_data.js"></script>
     <script src="data/profiles_data.js"></script>
-    <!-- Environment Config -->
+    <!-- Supabase Auth (requires public Supabase config) -->
     <script src="src/js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase/client.js"></script>
+    <script src="src/js/auth/supabase-auth.js"></script>
     <script src="src/js/map.js"></script>
-    </script>
 
     <!-- UGC Modal Form -->
     <div id="ugcModal"

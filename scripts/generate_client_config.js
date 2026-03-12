@@ -50,6 +50,7 @@ const supabaseAnonKey = getEnv('SUPABASE_ANON_KEY') || getEnv('NEXT_PUBLIC_SUPAB
 const hasPlaceholders =
   (supabaseUrl || '').includes('YOUR_NEW_SUPABASE_URL') ||
   (supabaseAnonKey || '').includes('YOUR_NEW_SUPABASE_ANON_KEY');
+const looksLikeServiceRoleKey = (supabaseAnonKey || '').startsWith('sb_secret_');
 
 if (!supabaseUrl || hasPlaceholders) {
   console.error('Missing real SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL in .env.local');
@@ -58,6 +59,11 @@ if (!supabaseUrl || hasPlaceholders) {
 
 if (!supabaseAnonKey || hasPlaceholders) {
   console.error('Missing real SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local');
+  process.exit(1);
+}
+
+if (looksLikeServiceRoleKey) {
+  console.error('Refusing to write sb_secret_* key into src/js/config.js. Use the Publishable/Anon key instead.');
   process.exit(1);
 }
 

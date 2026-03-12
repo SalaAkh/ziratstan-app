@@ -754,7 +754,7 @@
         // ── UGC MODALS ──
         function openUgcModal(cemeteryId, currentName) {
             // AUTH GUARD
-            if (!sb.auth.getUser() || !sb.auth.getSession()) {
+            if (typeof ZiratAuth === 'undefined' || !ZiratAuth.isLoggedIn()) {
                 if (typeof ZiratAuth !== 'undefined') {
                     ZiratAuth.openAuthModal();
                     return;
@@ -805,7 +805,7 @@
         // ── ADD PROFILE MODAL ──
         function openAddProfileModal(cemeteryId, cemeteryName, lat, lng) {
             // AUTH GUARD
-            if (!sb.auth.getUser() || !sb.auth.getSession()) {
+            if (typeof ZiratAuth === 'undefined' || !ZiratAuth.isLoggedIn()) {
                 if (typeof ZiratAuth !== 'undefined') {
                     ZiratAuth.openAuthModal();
                     return;

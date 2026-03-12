@@ -1,6 +1,12 @@
 {
   "hosting": {
     "public": ".",
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "api"
+      }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -31,4 +37,3 @@
     ]
   }
 }
-

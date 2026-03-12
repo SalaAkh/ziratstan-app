@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Firebase CLI stores state in a global configstore. If that state is corrupted,
+# commands can fail with "Invalid project id ...". Use a repo-local config dir.
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export XDG_CONFIG_HOME="$ROOT_DIR/.firebase-config"
+mkdir -p "$XDG_CONFIG_HOME"
+
+exec npx firebase-tools "$@"
+
