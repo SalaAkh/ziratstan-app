@@ -1,6 +1,7 @@
 -- Ziratstan (Зиратстан) Database Schema (Supabase)
 -- Бисмиллях! Эта схема создает фундамент для хранения профилей, локаций и медиа.
 -- Включаем PostGIS (для геолокации могил)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS postgis;
 -- 1. Таблица Кладбищ (Cemeteries)
 CREATE TABLE IF NOT EXISTS cemeteries (
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS cemeteries (
 -- 2. Таблица Профилей / Мемориалов (Profiles)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100),
   patronymic VARCHAR(100),
@@ -36,7 +38,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     -- Медиа (Главное фото)
     main_photo_url TEXT,
     -- Статус профиля (public - видят все при скане, private - только по пин-коду)
-    visibility_status VARCHAR(20) DEFAULT 'public' CHECK (visibility_status IN ('public', 'private')),
+    visibility_status VARCHAR(20) DEFAULT 'public' CHECK (visibility_status IN ('public', 'family_only', 'private')),
     pin_code VARCHAR(4),
     -- Для приватных профилей
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -44,6 +46,15 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 -- Индекс для быстрого поиска по локации (Spatial Index)
 CREATE INDEX IF NOT EXISTS idx_profiles_location ON profiles USING GIST (location);
+CREATE INDEX IF NOT EXISTS idx_profiles_owner_id ON profiles(owner_id);
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  phone TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 -- 3. Таблица QR-кодов (QR Codes)
 -- Связывает физическую наклейку/табличку с цифровым профилем
 CREATE TABLE IF NOT EXISTS qr_codes (
@@ -77,7 +88,7 @@ CREATE TABLE IF NOT EXISTS services_orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   customer_name VARCHAR(100) NOT NULL,
-  customer_email VARCHAR(255),
+  customer_email VARCHAR(255) NOT NULL,
   customer_phone VARCHAR(20),
   service_type VARCHAR(50) NOT NULL,
   -- 'cleaning', 'painting', 'quran_reading'
@@ -116,6 +127,7 @@ CREATE INDEX IF NOT EXISTS idx_relations_p2 ON profile_relations(profile_id_2);
 -- 7. UGC: Предложения пользователей о названиях кладбищ
 CREATE TABLE IF NOT EXISTS ugc_submissions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  cemetery_id VARCHAR(255),
   current_name VARCHAR(255),
   suggested_name VARCHAR(255) NOT NULL,
   lat DECIMAL(10, 7),

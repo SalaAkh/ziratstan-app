@@ -1,98 +1,268 @@
 # Ziratstan.kz — актуальный гайд по проекту
 
+Обновлено: 2026-03-13
+
 ## Суть проекта
 
 Ziratstan.kz — платформа для поиска захоронений, публикации мемориальных профилей, QR-мемориалов и заказа услуг по уходу за могилами в Казахстане.
 
-В проекте сейчас объединенный контур:
+Проект находится в переходном состоянии. В репозитории одновременно существуют:
 
-1. **Единый репозиторий**: Стандартизированный Next.js App Router проект в корне (`src/app/`).
-2. **Legacy-статика**: Старые HTML-файлы (напр., `index.html`, `map.html`) по-прежнему живут в корне и раздаются через Firebase Hosting.
-3. *Архитектурный сдвиг*: Ранее существовала папка `ziratstan-app/` с Next.js, но теперь весь код и зависимости Next.js консолидированы в корне. Папка `ziratstan-app/` устарела и ее можно игнорировать/удалить.
+1. legacy-frontend на корневых HTML-страницах;
+2. новый Next.js App Router-контур в корне через `src/`;
+3. дополнительный вложенный контур `ziratstan-app/`;
+4. Firebase Hosting / Firebase Functions;
+5. Supabase как база данных, auth-слой и часть backend-контрактов.
+
+Главный риск проекта сейчас — не отдельные синтаксические ошибки, а конфликт архитектур, схем данных и runtime-контрактов между legacy-частью, новым Next.js и Supabase-миграциями.
 
 ---
 
 ## Что сейчас является основным
 
-### Прод
+### Прод-контур
 
-Продакшен-хостинг настроен через [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json) с `public: "."`, то есть основная публикация идет из корня репозитория.
+Продакшен-хостинг настроен через [firebase.json](/d:/User/Desktop/Programms/Ziratstan.kz/firebase.json) с `public: "."`, то есть фактическая публикация идет из корня репозитория и опирается на legacy-страницы.
 
-Ключевые страницы прод-контура:
+Ключевые страницы текущего прод-контура:
 
-- [index.html](d:/User/Desktop/Programms/Ziratstan.kz/index.html) — лендинг + **auth modal (login/register)**
-- [map.html](d:/User/Desktop/Programms/Ziratstan.kz/map.html) — карта захоронений
-- [profile.html](d:/User/Desktop/Programms/Ziratstan.kz/profile.html) — профиль человека
-- [qr.html](d:/User/Desktop/Programms/Ziratstan.kz/qr.html) — QR-страница
-- [services.html](d:/User/Desktop/Programms/Ziratstan.kz/services.html) — услуги
-- [admin.html](d:/User/Desktop/Programms/Ziratstan.kz/admin.html) — админка
-- [dashboard.html](d:/User/Desktop/Programms/Ziratstan.kz/dashboard.html) — **личный кабинет пользователя** (NEW, март 2026)
+- [index.html](/d:/User/Desktop/Programms/Ziratstan.kz/index.html) — лендинг + auth modal
+- [map.html](/d:/User/Desktop/Programms/Ziratstan.kz/map.html) — карта захоронений
+- [profile.html](/d:/User/Desktop/Programms/Ziratstan.kz/profile.html) — профиль человека
+- [qr.html](/d:/User/Desktop/Programms/Ziratstan.kz/qr.html) — QR-страница
+- [services.html](/d:/User/Desktop/Programms/Ziratstan.kz/services.html) — услуги
+- [admin.html](/d:/User/Desktop/Programms/Ziratstan.kz/admin.html) — админка
+- [dashboard.html](/d:/User/Desktop/Programms/Ziratstan.kz/dashboard.html) — личный кабинет пользователя
 
-### Бэкенд и данные
+### Next.js-контур
 
-- Supabase используется как основная база данных.
-- Firebase Functions используется как серверный API-слой для админских операций.
-- В корне есть статические датасеты и утилиты импорта/миграции.
+Современный стек расположен в корне репозитория:
 
-### Контур Next.js (Основной)
+- `src/app/`
+- `src/components/`
+- `src/hooks/`
+- `src/lib/`
+- `src/utils/`
+- корневые `package.json`, `next.config.ts`, `tsconfig.json`
 
-Весь современный стек (Next.js 16, React 19, Tailwind) теперь живёт в корне репозитория:
+Этот контур активен для разработки, но еще не стабилизирован как единственный production runtime.
 
-- `src/app/` — основные роуты
-- `src/components/` — React-компоненты
-- `src/hooks/`, `src/lib/`, `src/utils/`
-- `package.json`, `next.config.ts`, `tsconfig.json` (в корне)
+### Вложенный `ziratstan-app/`
 
-Настройки Firebase Hosting временно откачены к раздаче статики (legacy HTML) из-за тарифных ограничений Blaze-плана на Cloud Functions для Next.js SSR. Однако разработка идет в `src/`.
+Папку `ziratstan-app/` нельзя считать безопасно выведенной из игры:
+
+- она все еще существует в репозитории;
+- попадает в часть инструментального контура;
+- создает конфликты двух Next.js-приложений;
+- ломает достоверный typecheck и усложняет сопровождение.
+
+Пока репозиторий явно не очищен, `ziratstan-app/` нужно считать источником технического долга.
 
 ---
 
-## Система авторизации (NEW — март 2026)
+## Бэкенд и данные
 
-В прод-контуре реализована полноценная система **User Auth + Row Level Security**:
+- Supabase используется как основная база данных.
+- Firebase Functions используется как серверный API-слой, особенно для admin и части legacy flow.
+- В проекте есть статические датасеты, SQL-схемы, миграции и локальные утилиты импорта/подготовки данных.
+
+### Текущее состояние модели данных
+
+Ключевой архитектурный дефект:
+
+- [supabase/schema.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql) использует `profiles` как доменную таблицу мемориалов;
+- [20260312_user_auth_rls.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql) использует `public.profiles` как таблицу профилей пользователей.
+
+Это означает, что auth-модель и доменная модель сейчас не согласованы.
+
+Нельзя исходить из предположения, что текущая схема уже корректно разделяет:
+
+- пользовательские профили;
+- мемориальные профили;
+- ownership;
+- collaborators;
+- visibility / RLS.
+
+---
+
+## Система авторизации и RLS
+
+В проекте есть попытка внедрить полноценный контур **Supabase Auth + Row Level Security**, но его нужно считать частично внедренным и требующим стабилизации.
 
 ### Файлы
 
 | Файл | Назначение |
 | --- | --- |
 | `src/js/auth/supabase-auth.js` | Модуль авторизации: login/register/logout/session/UI |
-| `dashboard.html` | Личный кабинет: мои профили, видимость, настройки |
-| `supabase/migrations/20260312_user_auth_rls.sql` | SQL-миграция: таблицы + RLS политики |
+| `dashboard.html` | Личный кабинет, управление связанными сущностями и пользовательскими данными |
+| `supabase/migrations/20260312_user_auth_rls.sql` | Миграция auth/RLS-контура |
+| `supabase/admin_security.sql` | Отдельные admin security-настройки |
 
-### Настройка Google OAuth (Важные нюансы)
+### Что важно понимать
+
+Миграция `20260312_user_auth_rls.sql` сама по себе не гарантирует корректную безопасность проекта, потому что она конфликтует с текущей доменной схемой.
+
+То есть:
+
+- применять миграцию нужно, если задача связана с auth/RLS тестированием;
+- но считать, что после применения модель уже корректна, нельзя;
+- любые изменения в auth и ownership нужно сверять сразу с обеими SQL-точками: схемой и миграциями.
+
+### Настройка Google OAuth
+
 Для корректной работы входа через Google на боевом домене:
-1. В Google Cloud Console добавить точный URI: `https://[PROJECT_REF].supabase.co/auth/v1/callback`
-2. В Supabase Dashboard (`Authentication -> URL Configuration`) обязательно указать:
+
+1. В Google Cloud Console добавить точный URI: `https://[PROJECT_REF].supabase.co/auth/v1/callback`.
+2. В Supabase Dashboard (`Authentication -> URL Configuration`) указать:
    - Site URL: `https://ziratstan-app.web.app/`
    - Redirect URLs: `https://ziratstan-app.web.app/*`
-3. Учитывать **Google Server Cache**: обновления ключей в Google Cloud Console могут занимать **от 5 до 60 минут**. Если вы уверены в ключах, но получаете ошибку `400: redirect_uri_mismatch` — подождите.
+3. Учитывать задержку применения изменений со стороны Google: обновления могут занимать от 5 до 60 минут. Если возникает `400: redirect_uri_mismatch`, это не всегда означает неверную конфигурацию в текущую минуту.
 
-### Схема безопасности
+### Intended security model
+
+В кодовой базе прослеживается такой целевой замысел:
 
 ```text
-Supabase Auth → auth.users (встроенная)
-           ↓
-     public.profiles (расширение пользователя)
-           ↓
- public.deceased.owner_id → RLS-политики
-           ↓
- public.deceased_collaborators (совместное владение)
+Supabase Auth -> auth.users
+             -> user profile extension
+             -> memorial ownership / collaborators
+             -> RLS policies for read/write access
 ```
 
-### RLS-политики (ключевые)
+Но этот замысел пока не доведен до консистентного состояния в SQL и runtime-коде.
 
-- `SELECT`: `visibility='public'` ИЛИ `owner_id = auth.uid()` ИЛИ пользователь в `deceased_collaborators`
-- `INSERT`: только `auth.uid() IS NOT NULL` и `owner_id = auth.uid()`
-- `UPDATE/DELETE`: только владелец или editor-коллаборатор
+### UI-слой auth
 
-### UI
+Сейчас auth UI завязан на:
 
-- **Nav (index.html)**: кнопка `🔑 Кіру / Тіркелу` (gold), при входе — имя + кнопка `Басқару →` + `Шығу`
-- **Auth modal**: glassmorphism overlay, вкладки Кіру / Тіркелу, email + пароль, i18n-ошибки
+- `index.html` — кнопка входа / регистрации;
+- `src/js/auth/supabase-auth.js` — клиентская логика сессии;
+- `dashboard.html` — пользовательский кабинет.
 
-### ⚠️ Важно для агента
+При изменениях здесь важно помнить, что UI уже существует, но его backend-контракт нестабилен.
 
-Перед тем как создавать/тестировать любую MFA или RLS-логику — **убедиться, что `20260312_user_auth_rls.sql` был применён** в Supabase SQL Editor. Без этого RLS не существует и любой API-запрос пройдет без ограничений.
+---
+
+## Критичные проблемы проекта
+
+### 1. Конфликт схемы данных Supabase
+
+Файлы:
+
+- [supabase/schema.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql)
+- [20260312_user_auth_rls.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql)
+
+Проблема:
+
+- `public.profiles` используется и как таблица мемориалов, и как таблица профилей пользователей.
+
+Последствия:
+
+- ломается доменная модель;
+- RLS-политики становятся недостоверными;
+- frontend и backend могут ожидать разные структуры одной и той же таблицы.
+
+### 2. Сломанный поток заказа услуг
+
+Файлы:
+
+- [services.actions.ts](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/actions/services.actions.ts)
+- [services/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/services/page.tsx)
+- [cabinet/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/cabinet/page.tsx)
+
+Проблема:
+
+- схема, server action и UI не согласованы;
+- `profile_id` и `customer_email` обрабатываются некорректно;
+- интерфейс может показывать успех даже при ошибке записи.
+
+### 3. Некорректная Next.js-страница профиля
+
+Файл:
+
+- [profile/[id]/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/profile/[id]/page.tsx)
+
+Проблема:
+
+- для отсутствующего профиля отдаются mock-данные вместо `404`;
+- ссылка на дерево собрана с ошибкой и ведет на битый путь.
+
+### 4. Legacy dashboard не соответствует текущей схеме
+
+Файл:
+
+- [dashboard.html](/d:/User/Desktop/Programms/Ziratstan.kz/dashboard.html)
+
+Проблема:
+
+- legacy UI ожидает старые имена полей;
+- текущая схема использует другую модель колонок.
+
+### 5. Сломанный UGC rename flow
+
+Файлы:
+
+- [map.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/map.js)
+- [functions/index.js](/d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
+
+Проблема:
+
+- frontend и backend ожидают разные payload-структуры.
+
+### 6. Неверный slug resolution
+
+Файлы:
+
+- [functions/index.js](/d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
+- [public-api.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/api/public-api.js)
+
+Проблема:
+
+- slug резолвится через `epitaph`, что логически неверно.
+
+### 7. Скрытые build/typecheck-проблемы
+
+Файлы:
+
+- [next.config.ts](/d:/User/Desktop/Programms/Ziratstan.kz/next.config.ts)
+- [tsconfig.json](/d:/User/Desktop/Programms/Ziratstan.kz/tsconfig.json)
+
+Проблема:
+
+- `ignoreBuildErrors` скрывает реальные дефекты;
+- корневой typecheck контур подтягивает `ziratstan-app/`.
+
+### 8. Сборка зависит от внешнего Google Fonts fetch
+
+Файл:
+
+- [layout.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx)
+
+Проблема:
+
+- build ломается в средах без нормального доступа наружу.
+
+### 9. Новый Next.js-контур частично demo
+
+Файлы:
+
+- [page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/page.tsx)
+- [map/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/map/page.tsx)
+- [search/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/search/page.tsx)
+
+Проблема:
+
+- присутствуют mock-данные, `test-id` и продуктовые заглушки.
+
+---
+
+## Что уже проверялось
+
+- `npm.cmd run build` ранее падал из-за загрузки Google Fonts в [layout.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx).
+- `npx.cmd tsc --noEmit` ранее падал из-за конфликта root app и `ziratstan-app/`.
+- `npx.cmd eslint src functions --ext .ts,.tsx,.js` ранее давал `4 errors` и `54 warnings`.
+
+Эти результаты нужно считать индикатором того, что quality gates пока не очищены.
 
 ---
 
@@ -100,33 +270,39 @@ Supabase Auth → auth.users (встроенная)
 
 ```text
 Ziratstan.kz/
-|-- package.json            (Общие зависимости Next.js и проекта)
+|-- package.json
 |-- next.config.ts
 |-- tsconfig.json
 |-- firebase.json
-|-- index.html              (legacy лендинг + auth modal)
+|-- index.html
 |-- map.html
-|-- dashboard.html          ← НОВЫЙ (личный кабинет)
-|-- data/
-|   |-- cemeteries_data.js
-|   |-- profiles_data.js
+|-- profile.html
+|-- services.html
+|-- dashboard.html
+|-- admin.html
+|-- qr.html
 |-- assets/
-|-- src/
-|   |-- app/                ← Next.js App Router (основной код)
-|   |-- components/
-|   |-- utils/
-|   |-- js/                 ← Legacy JavaScript
-|   |   |-- core/
-|   |   `-- auth/
-|   |       `-- supabase-auth.js
+|-- data/
 |-- public/
+|-- src/
+|   |-- app/
+|   |-- components/
+|   |-- hooks/
+|   |-- lib/
+|   |-- utils/
+|   `-- js/
+|       |-- api/
+|       |-- auth/
+|       `-- core/
 |-- functions/
 |-- supabase/
 |   |-- migrations/
-|   |   `-- 20260312_user_auth_rls.sql
-|   `-- *.sql
+|   |-- schema.sql
+|   |-- client.js
+|   `-- admin_security.sql
 |-- testsprite_tests/
-`-- guids/agent.md
+|-- ziratstan-app/
+`-- guids/
 ```
 
 ---
@@ -136,86 +312,84 @@ Ziratstan.kz/
 | Слой | Текущее состояние |
 | --- | --- |
 | Прод-фронтенд | Статические HTML/CSS/JS страницы в корне |
-| Авторизация | Supabase Auth (email+пароль+Google) via `supabase-auth.js` |
-| Локализация | `src/js/core/i18n.js` + `locales.js` |
-| База данных | Supabase / PostgreSQL + RLS |
+| Новый фронтенд | Next.js 16 + React 19 + TypeScript |
+| Авторизация | Supabase Auth через `src/js/auth/supabase-auth.js` |
+| База данных | Supabase / PostgreSQL |
+| Безопасность | Частично внедренный RLS-контур |
 | Серверная логика | Firebase Functions v2 |
-| Доп. фронтенд-контур | Next.js 16 + React 19 + TypeScript |
+| Локализация | `src/js/core/i18n.js` + `locales.js` |
 | Карта | Leaflet / React-Leaflet |
 | QR | `qrcode` / `react-qrcode-logo` |
 | PWA | manifest + next-pwa в Next.js-контуре |
 
 ---
 
-## Актуальные важные директории
+## Актуальные важные директории и файлы
 
 ### Статический контур
 
-- [index.html](d:/User/Desktop/Programms/Ziratstan.kz/index.html) — лендинг + auth modal
-- [dashboard.html](d:/User/Desktop/Programms/Ziratstan.kz/dashboard.html) — кабинет **NEW**
-- [map.html](d:/User/Desktop/Programms/Ziratstan.kz/map.html)
-- [profile.html](d:/User/Desktop/Programms/Ziratstan.kz/profile.html)
-- [admin.html](d:/User/Desktop/Programms/Ziratstan.kz/admin.html)
-- [services.html](d:/User/Desktop/Programms/Ziratstan.kz/services.html)
-- [qr.html](d:/User/Desktop/Programms/Ziratstan.kz/qr.html)
+- [index.html](/d:/User/Desktop/Programms/Ziratstan.kz/index.html)
+- [map.html](/d:/User/Desktop/Programms/Ziratstan.kz/map.html)
+- [profile.html](/d:/User/Desktop/Programms/Ziratstan.kz/profile.html)
+- [services.html](/d:/User/Desktop/Programms/Ziratstan.kz/services.html)
+- [dashboard.html](/d:/User/Desktop/Programms/Ziratstan.kz/dashboard.html)
+- [admin.html](/d:/User/Desktop/Programms/Ziratstan.kz/admin.html)
+- [qr.html](/d:/User/Desktop/Programms/Ziratstan.kz/qr.html)
 
-### Auth-модуль
+### Legacy JS / auth
 
-- [src/js/auth/supabase-auth.js](d:/User/Desktop/Programms/Ziratstan.kz/src/js/auth/supabase-auth.js) **NEW**
-
-### Supabase-миграции
-
-- [supabase/migrations/20260312_user_auth_rls.sql](d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql) **NEW**
-- [supabase/schema.sql](d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql)
-- [supabase/client.js](d:/User/Desktop/Programms/Ziratstan.kz/supabase/client.js)
-- [supabase/admin_security.sql](d:/User/Desktop/Programms/Ziratstan.kz/supabase/admin_security.sql)
+- [supabase-auth.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/auth/supabase-auth.js)
+- [map.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/map.js)
+- [public-api.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/api/public-api.js)
 
 ### Next.js-контур
 
-- [src/app/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/page.tsx)
-- [src/app/layout.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx)
-- [src/app/map/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/map/page.tsx)
-- [src/app/profile/[id]/page.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/app/profile/[id]/page.tsx)
-- [src/components/map/GraveMap.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/components/map/GraveMap.tsx)
-- [src/components/tree/FamilyTree.tsx](d:/User/Desktop/Programms/Ziratstan.kz/src/components/tree/FamilyTree.tsx)
+- [page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/page.tsx)
+- [layout.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx)
+- [map/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/map/page.tsx)
+- [profile/[id]/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/profile/[id]/page.tsx)
+- [services.actions.ts](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/actions/services.actions.ts)
+- [cabinet/page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/cabinet/page.tsx)
+
+### Supabase
+
+- [schema.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql)
+- [20260312_user_auth_rls.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql)
+- [client.js](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/client.js)
+- [admin_security.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/admin_security.sql)
 
 ### Firebase Functions
 
-- [functions/index.js](d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
+- [index.js](/d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
 
-Сейчас там реализованы админские API-маршруты:
-
-- `GET /admin/bootstrap`
-- `GET /admin/profiles`
-- `POST /admin/profiles`
-- `POST /admin/status`
-
-Авторизация в этих обработчиках завязана на Supabase user session, admin role и `aal2`.
+Сейчас там реализованы admin и service-level маршруты, которые нужно читать вместе со схемой Supabase, а не изолированно.
 
 ---
 
 ## Доменные сущности
 
-Проект опирается на следующие основные сущности:
+В проекте встречаются следующие основные сущности:
 
-- `cemeteries` — кладбища
-- `deceased` — профили усопших (добавлены `owner_id`, `visibility`) **UPDATED**
-- `profiles` — пользователи (расширение auth.users) **NEW**
-- `deceased_collaborators` — соавторы профиля **NEW**
-- `ugc_submissions` — предложения по исправлению/уточнению данных
-- `ugc_profile_submissions` — пользовательские заявки на новые профили
-- `ugc_bio_submissions` — дополнения к биографиям
-- `qr_codes` — QR-коды и их привязки
-- `services_leads` — заявки на услуги
-- `profile_relations` — семейные связи для дерева
+- `cemeteries`
+- memorial profiles / memorial records
+- user profiles
+- ownership / collaborators
+- `ugc_submissions`
+- `ugc_profile_submissions`
+- `ugc_bio_submissions`
+- `qr_codes`
+- service leads / service orders
+- `profile_relations`
+
+Важно: этот список отражает смысловую модель проекта, но не гарантирует, что текущая SQL-реализация уже согласована по именам таблиц и колонок.
 
 ---
 
 ## Тесты и артефакты QA
 
-- [testsprite_tests](d:/User/Desktop/Programms/Ziratstan.kz/testsprite_tests)
+- [testsprite_tests](/d:/User/Desktop/Programms/Ziratstan.kz/testsprite_tests)
 
-Там лежат Python-сценарии для поиска, карты, профилей, QR и сервисных заявок.
+Там лежат Python-сценарии для поиска, карты, профилей, QR и сервисных заявок. Использовать их как вспомогательный smoke-слой, но не как доказательство полной готовности проекта.
 
 ---
 
@@ -224,37 +398,114 @@ Ziratstan.kz/
 ### Локальный запуск Next.js
 
 ```bash
-# Весь код теперь в корне
 npm install
 npm run dev
 ```
 
-### Деплой Firebase Hosting (Статика)
+### Typecheck / lint / build
+
+```bash
+npx.cmd tsc --noEmit
+npx.cmd eslint src functions --ext .ts,.tsx,.js
+npm.cmd run build
+```
+
+### Деплой Firebase Hosting
 
 ```bash
 firebase deploy --only hosting
 ```
 
-*(Next.js Web Frameworks деплой временно приостановлен из-за несовместимости с бесплатным тарифом).*
+Важно: деплой статики не означает, что Next.js-контур уже готов к полноценному production запуску.
+
+---
+
+## Приоритетный план стабилизации
+
+### Этап 1. Зафиксировать единый контур запуска
+
+Нужно определить, что является основным runtime для первого тестового запуска:
+
+- либо legacy-контур;
+- либо root Next.js.
+
+### Этап 2. Развести user и memorial сущности в Supabase
+
+Нужно явно разделить:
+
+- user profiles;
+- memorial profiles;
+- ownership;
+- collaborators;
+- visibility / access policies.
+
+### Этап 3. Починить critical user flows
+
+В первую очередь:
+
+- services submit;
+- cabinet orders view;
+- profile page;
+- slug resolve;
+- QR resolve;
+- UGC rename submit.
+
+### Этап 4. Вернуть честные quality gates
+
+Нужно:
+
+- убрать маскирующие build-настройки;
+- изолировать active app от `ziratstan-app/`;
+- сделать сборку предсказуемой;
+- перестать прятать типовые ошибки конфигом.
+
+### Этап 5. Убрать demo/mocks из пользовательских маршрутов
+
+Минимум:
+
+- убрать `test-id`;
+- убрать fallback на mock profile;
+- перевести map/search на реальные данные или честный restricted mode.
+
+### Этап 6. Подготовить первый test launch
+
+Нужно иметь:
+
+- проверяемый auth flow;
+- рабочий кабинет;
+- рабочий сервисный заказ;
+- корректный profile route;
+- рабочий QR flow;
+- smoke-сценарии на основные пользовательские потоки.
 
 ---
 
 ## Что важно помнить при правках
 
 1. Не считать, что проект уже полностью мигрировал на Next.js.
-2. При изменениях в прод-части сначала проверять корневые HTML-файлы и [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json).
-3. **Файл `supabase/migrations/20260312_user_auth_rls.sql` должен быть применён в Supabase перед тестированием авторизации.**
-4. При добавлении новых записей в `deceased` через код — всегда задавать `owner_id = auth.uid()`, иначе RLS заблокирует UPDATE/DELETE.
-5. При изменениях в `src/js/auth/supabase-auth.js` — проверять, что `window.ZiratAuth` экспортируется корректно (используется inline в HTML).
-6. При изменениях админского API проверять связку Firebase Functions + Supabase auth/role/MFA.
+2. Не считать, что `dashboard.html` уже согласован с текущей схемой данных.
+3. Не считать, что `public.profiles` уже окончательно определена как таблица пользователей.
+4. Перед изменениями в auth/RLS всегда сверять [schema.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql) и [20260312_user_auth_rls.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql) вместе.
+5. При изменениях в `src/js/auth/supabase-auth.js` проверять, что `window.ZiratAuth` продолжает корректно экспортироваться.
+6. При изменениях в admin API проверять связку Firebase Functions + Supabase auth/role/MFA.
+7. Перед выводом "все работает" прогонять build, typecheck и lint.
+8. Если build/typecheck ломаются, не скрывать проблему флагами, а чинить источник конфликта.
 
 ---
 
 ## Короткое резюме для агента
 
-Если задача касается **legacy-сайта (HTML)** → смотри в корневые HTML-файлы и `src/js/`.
-Если задача касается **новой архитектуры, компонентов** → всё теперь живет в корне: `src/app/`, `src/components/`. Не использовать папку `ziratstan-app/`.
-Если задача касается **модерации, ролей, bootstrap** → `functions/index.js` и Supabase SQL.
+Если задача касается legacy-сайта, сначала смотреть корневые HTML-файлы и `src/js/`.
+
+Если задача касается нового frontend-контура, смотреть `src/app/`, `src/components/`, `src/lib/`, но всегда учитывать, что этот контур еще не является единственным production runtime.
+
+Если задача касается модерации, ролей, bootstrap, ownership или auth, смотреть одновременно:
+
+- [functions/index.js](/d:/User/Desktop/Programms/Ziratstan.kz/functions/index.js)
+- [schema.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/schema.sql)
+- [20260312_user_auth_rls.sql](/d:/User/Desktop/Programms/Ziratstan.kz/supabase/migrations/20260312_user_auth_rls.sql)
+
+Если задача касается сборки, отдельно проверять влияние `ziratstan-app/` на корневой toolchain.
 
 ---
 
@@ -271,10 +522,10 @@ Use this checklist when admin sign-in or admin session tracking fails.
    - re-login (new token);
    - ensure `supabase/admin_security.sql` is applied.
 6. If you see `Failed to register admin email: User not allowed`:
-   - key is wrong (usually anon/publishable);
-   - replace with real `service_role` / `sb_secret_*` key from Supabase API settings.
+   - key is wrong, usually anon/publishable;
+   - replace with real `service_role` or `sb_secret_*` key from Supabase API settings.
 7. `AuthSessionMissingError` after failed sign-in means no active session; treat as auth-state fallback, not DB corruption.
-8. Security: if keys/password were exposed in terminal/chat logs, rotate keys and reset admin password immediately.
+8. Security: if keys or passwords were exposed in terminal/chat logs, rotate keys and reset admin password immediately.
 
 Quick key-role check for JWT-like keys:
 
@@ -282,4 +533,4 @@ Quick key-role check for JWT-like keys:
 node -e "const t=process.env.SUPABASE_SERVICE_ROLE_KEY||'';const p=t.split('.')[1];if(!p){console.log('non-JWT key format');process.exit(0)};console.log(JSON.parse(Buffer.from(p,'base64url').toString()).role)"
 ```
 
-Expected for admin scripts: `service_role` (or non-JWT `sb_secret_*` key).
+Expected for admin scripts: `service_role` or non-JWT `sb_secret_*` key.
