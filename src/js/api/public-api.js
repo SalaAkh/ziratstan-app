@@ -65,6 +65,10 @@
 
   function getDirectClient() {
     if (directClient) return directClient;
+    if (global._sb) {
+      directClient = global._sb;
+      return directClient;
+    }
     if (!global.ZiratConfig || typeof global.ZiratConfig.getSupabaseConfig !== 'function') {
       throw new Error('Missing ZiratConfig');
     }
@@ -78,6 +82,7 @@
       throw new Error('Supabase config is missing');
     }
     directClient = global.supabase.createClient(url, key);
+    global._sb = directClient;
     return directClient;
   }
 

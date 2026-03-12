@@ -338,6 +338,7 @@ function formatAuthError(msg) {
 window.ZiratAuth = {
   init: initAuth,
   signIn, signUp, signOut, resetPassword, signInWithGoogle,
+  logout: signOut,
   openAuthModal, closeAuthModal, switchAuthTab,
   getMyDeceasedProfiles, getProfile,
   getUser: () => currentUser,

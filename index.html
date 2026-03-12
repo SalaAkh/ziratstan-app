@@ -1233,7 +1233,7 @@
       <div id="nav-user-menu">
         <span id="nav-user-name"></span>
         <a href="dashboard.html" class="nav-dash-btn" data-i18n="user_manage">Басқару →</a>
-        <button class="nav-logout-btn" onclick="ZiratAuth.logout()" data-i18n="user_logout">Шығу</button>
+        <button class="nav-logout-btn" onclick="ZiratAuth.signOut()" data-i18n="user_logout">Шығу</button>
       </div>
     </div>
     <button class="hamburger" onclick="toggleMenu()" data-i18n-aria="nav_menu_aria" aria-label="Мәзір">
@@ -1696,7 +1696,6 @@
   </footer>
 
   <!-- Supabase & Auth -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="src/js/auth/supabase-auth.js"></script>
 
   <!-- Core Scripts -->
