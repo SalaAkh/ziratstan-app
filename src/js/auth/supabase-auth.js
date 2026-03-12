@@ -33,7 +33,8 @@ function syncAuthProviderUI() {
   const googleButtons = document.querySelectorAll('.auth-google-btn');
   googleButtons.forEach((button) => {
     button.hidden = !GOOGLE_OAUTH_ENABLED;
-    button.setAttribute('aria-hidden', GOOGLE_OAUTH_ENABLED ? 'false' : 'true');
+    button.disabled = !GOOGLE_OAUTH_ENABLED;
+    button.tabIndex = GOOGLE_OAUTH_ENABLED ? 0 : -1;
   });
 
   const dividers = document.querySelectorAll('.auth-divider');
@@ -41,16 +42,15 @@ function syncAuthProviderUI() {
     const previous = divider.previousElementSibling;
     if (previous && previous.classList.contains('auth-google-btn')) {
       divider.hidden = !GOOGLE_OAUTH_ENABLED;
-      divider.setAttribute('aria-hidden', GOOGLE_OAUTH_ENABLED ? 'false' : 'true');
     }
   });
 }
 
 // ─── Session Management ───────────────────────────────────────
 async function initAuth() {
+  syncAuthProviderUI();
   const sb = getSupabase();
   if (!sb) return;
-  syncAuthProviderUI();
 
   // 1. Parse OAuth redirect hash from URL (Google sign-in returns here)
   //    Supabase v2 does this automatically, but explicitly calling it ensures
