@@ -889,6 +889,13 @@ async function syncAuthUI(session) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!window.db || !window.getSession) {
+        console.error('[Admin] Supabase client is not initialized. Check src/js/config.public.js / src/js/config.js.');
+        showGate();
+        showGateMessage('error', 'Supabase client is not configured. Check SUPABASE_URL and SUPABASE_ANON_KEY.');
+        return;
+    }
+
     const { emailInput } = getGateElements();
     const savedEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY);
 

@@ -4,11 +4,13 @@
  */
 (function initAdminSupabase(global) {
   if (!global.ZiratConfig || typeof global.ZiratConfig.getSupabaseConfig !== 'function') {
-    throw new Error('[Admin] Missing ZiratConfig. Load src/js/config.js before supabase-admin-client.js');
+    console.error('[Admin] Missing ZiratConfig. Load src/js/config.js before supabase-admin-client.js');
+    return;
   }
 
   if (!global.supabase || typeof global.supabase.createClient !== 'function') {
-    throw new Error('[Admin] Supabase SDK is not loaded.');
+    console.error('[Admin] Supabase SDK is not loaded.');
+    return;
   }
 
   var cfg = global.ZiratConfig.getSupabaseConfig();
@@ -16,7 +18,8 @@
   var anonKey = cfg.SUPABASE_ANON_KEY || '';
 
   if (!url || !anonKey) {
-    throw new Error('[Admin] Supabase URL/Anon key is missing.');
+    console.error('[Admin] Supabase URL/Anon key is missing.');
+    return;
   }
 
   var dbClient = global.db || global.supabase.createClient(url, anonKey);
