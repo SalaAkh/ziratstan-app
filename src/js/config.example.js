@@ -7,6 +7,7 @@
   var config = Object.freeze({
     SUPABASE_URL: 'YOUR_SUPABASE_URL',
     SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+    GOOGLE_OAUTH_ENABLED: false,
   });
 
   Object.defineProperty(global, 'ZiratConfig', {

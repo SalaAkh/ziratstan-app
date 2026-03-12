@@ -11,6 +11,7 @@ if (!window.ZiratConfig || typeof window.ZiratConfig.getSupabaseConfig !== 'func
 const supabaseConfig = window.ZiratConfig.getSupabaseConfig();
 const SUPABASE_URL = supabaseConfig.SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
+const GOOGLE_OAUTH_ENABLED = supabaseConfig.GOOGLE_OAUTH_ENABLED === true;
 
 // Initialize Supabase client (shared with rest of app)
 let _supabase = null;
@@ -28,10 +29,28 @@ function getSupabase() {
 // ─── State ────────────────────────────────────────────────────
 let currentUser = null;
 
+function syncAuthProviderUI() {
+  const googleButtons = document.querySelectorAll('.auth-google-btn');
+  googleButtons.forEach((button) => {
+    button.hidden = !GOOGLE_OAUTH_ENABLED;
+    button.setAttribute('aria-hidden', GOOGLE_OAUTH_ENABLED ? 'false' : 'true');
+  });
+
+  const dividers = document.querySelectorAll('.auth-divider');
+  dividers.forEach((divider) => {
+    const previous = divider.previousElementSibling;
+    if (previous && previous.classList.contains('auth-google-btn')) {
+      divider.hidden = !GOOGLE_OAUTH_ENABLED;
+      divider.setAttribute('aria-hidden', GOOGLE_OAUTH_ENABLED ? 'false' : 'true');
+    }
+  });
+}
+
 // ─── Session Management ───────────────────────────────────────
 async function initAuth() {
   const sb = getSupabase();
   if (!sb) return;
+  syncAuthProviderUI();
 
   // 1. Parse OAuth redirect hash from URL (Google sign-in returns here)
   //    Supabase v2 does this automatically, but explicitly calling it ensures
@@ -95,6 +114,12 @@ async function signIn({ email, password }) {
 }
 
 async function signInWithGoogle() {
+  if (!GOOGLE_OAUTH_ENABLED) {
+    console.warn('[Auth] Google Sign-In is disabled in client config.');
+    window.alert('Google арқылы кіру қазір қолжетімсіз. Email мен пароль арқылы кіріңіз.');
+    return null;
+  }
+
   const sb = getSupabase();
   console.log('[Auth] Initiating Google Sign-In...');
   
