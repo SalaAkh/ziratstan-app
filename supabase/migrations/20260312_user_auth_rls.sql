@@ -138,17 +138,11 @@ CREATE POLICY "Profile owners can view collaborators"
   ON public.profile_collaborators FOR SELECT
   USING (public.is_profile_owner(profile_id, auth.uid()));
 
--- 2. Collaborators can VIEW themselves and others on the same profile
+-- 2. Collaborators can view their own row (no self-reference, avoids infinite recursion)
 DROP POLICY IF EXISTS "Collaborators can view other collaborators on the same profile" ON public.profile_collaborators;
-CREATE POLICY "Collaborators can view other collaborators on the same profile"
+CREATE POLICY "Collaborators can view their own records"
   ON public.profile_collaborators FOR SELECT
-  USING (
-    user_id = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM public.profile_collaborators pc
-      WHERE pc.profile_id = profile_id AND pc.user_id = auth.uid()
-    )
-  );
+  USING (user_id = auth.uid());
 
 -- 3. Owners of the profile can INSERT new collaborators
 DROP POLICY IF EXISTS "Profile owners can insert collaborators" ON public.profile_collaborators;
