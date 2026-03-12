@@ -1,18 +1,9 @@
 # Зависимости
 node_modules/
-google4a672bfea76db3c6.html
-firebase-debug.log
-firebase-debug.log*
-firebase
-.firebase
 
 # Next.js build output
 .next/
-.next
 out/
-ziratstan-app/out/
-ziratstan-app/.next/
-ziratstan-app/node_modules/
 
 # PWA generated files
 public/sw.js
@@ -22,40 +13,30 @@ public/sw.js.map
 public/workbox-*.js.map
 
 # Переменные окружения — НИКОГДА не коммить ключи!
-.env
 .env.local
 .env*.local
 
-# Системные файлы macOS / Windows
+# Системные файлы
 .DS_Store
 Thumbs.db
-desktop.ini
 
 # Логи
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# TestSprite
-testsprite_tests/
-
-# Python cache
-__pycache__/
-*.pyc
+.env
 .env.*
 !.env.example
 !.env.*.example
 
-# Firebase and local credentials
+# Firebase local credentials
 .runtimeconfig.json
-functions/.runtimeconfig.json
-functions/.env
-functions/.env.*
-!functions/.env.example
 serviceAccountKey.json
 *firebase*adminsdk*.json
 *-service-account*.json
 
-# Local Codex state
-.codex/
+# Firebase Web Frameworks and deployment logs
+.firebase/
+firebase-debug.log
+firebase-deploy.log
+next-build*.log
+test-final-build.log

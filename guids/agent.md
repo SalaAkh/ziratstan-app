@@ -4,12 +4,11 @@
 
 Ziratstan.kz — платформа для поиска захоронений, публикации мемориальных профилей, QR-мемориалов и заказа услуг по уходу за могилами в Казахстане.
 
-В проекте сейчас одновременно существуют два контура:
+В проекте сейчас объединенный контур:
 
-1. Основной прод-контур — статический сайт в корне репозитория, который деплоится на Firebase Hosting.
-2. Параллельный Next.js-контур — App Router код в `src/` и отдельный workspace `ziratstan-app/`, который отражает направление миграции/развития продукта.
-
-Из-за этого нельзя описывать репозиторий как "только Vanilla JS" или "полностью без Next.js" — это уже не соответствует реальному состоянию.
+1. **Единый репозиторий**: Стандартизированный Next.js App Router проект в корне (`src/app/`).
+2. **Legacy-статика**: Старые HTML-файлы (напр., `index.html`, `map.html`) по-прежнему живут в корне и раздаются через Firebase Hosting.
+3. *Архитектурный сдвиг*: Ранее существовала папка `ziratstan-app/` с Next.js, но теперь весь код и зависимости Next.js консолидированы в корне. Папка `ziratstan-app/` устарела и ее можно игнорировать/удалить.
 
 ---
 
@@ -35,16 +34,16 @@ Ziratstan.kz — платформа для поиска захоронений, 
 - Firebase Functions используется как серверный API-слой для админских операций.
 - В корне есть статические датасеты и утилиты импорта/миграции.
 
-### Контур Next.js
+### Контур Next.js (Основной)
 
-В репозитории есть Next.js/App Router код:
+Весь современный стек (Next.js 16, React 19, Tailwind) теперь живёт в корне репозитория:
 
-- [src/app](d:/User/Desktop/Programms/Ziratstan.kz/src/app)
-- [src/components](d:/User/Desktop/Programms/Ziratstan.kz/src/components)
-- [src/lib](d:/User/Desktop/Programms/Ziratstan.kz/src/lib)
-- [ziratstan-app](d:/User/Desktop/Programms/Ziratstan.kz/ziratstan-app)
+- `src/app/` — основные роуты
+- `src/components/` — React-компоненты
+- `src/hooks/`, `src/lib/`, `src/utils/`
+- `package.json`, `next.config.ts`, `tsconfig.json` (в корне)
 
-На текущий момент этот контур не является тем, что публикуется в Firebase Hosting из корня. В [firebase.json](d:/User/Desktop/Programms/Ziratstan.kz/firebase.json) папка `ziratstan-app/**` явно исключена из деплоя.
+Настройки Firebase Hosting временно откачены к раздаче статики (legacy HTML) из-за тарифных ограничений Blaze-плана на Cloud Functions для Next.js SSR. Однако разработка идет в `src/`.
 
 ---
 
@@ -93,47 +92,32 @@ Supabase Auth → auth.users (встроенная)
 
 ```text
 Ziratstan.kz/
-|-- index.html              (лендинг + auth modal)
+|-- package.json            (Общие зависимости Next.js и проекта)
+|-- next.config.ts
+|-- tsconfig.json
+|-- firebase.json
+|-- index.html              (legacy лендинг + auth modal)
 |-- map.html
-|-- profile.html
-|-- qr.html
-|-- services.html
-|-- admin.html
 |-- dashboard.html          ← НОВЫЙ (личный кабинет)
-|-- 404.html
 |-- data/
 |   |-- cemeteries_data.js
 |   |-- profiles_data.js
 |-- assets/
-|   |-- images/
 |-- src/
-|   |-- js/
-|   |   |-- core/
-|   |   |   |-- i18n.js
-|   |   |   `-- locales.js
-|   |   `-- auth/
-|   |       `-- supabase-auth.js   ← НОВЫЙ (auth модуль)
-|   |-- app/
+|   |-- app/                ← Next.js App Router (основной код)
 |   |-- components/
-|   |-- hooks/
-|   |-- lib/
-|   `-- utils/
+|   |-- utils/
+|   |-- js/                 ← Legacy JavaScript
+|   |   |-- core/
+|   |   `-- auth/
+|   |       `-- supabase-auth.js
 |-- public/
-|   |-- data/profiles/*.json
-|   `-- icons/, manifest, assets
 |-- functions/
-|   |-- index.js
-|   `-- package.json
 |-- supabase/
-|   |-- client.js
-|   |-- schema.sql
 |   |-- migrations/
-|   |   `-- 20260312_user_auth_rls.sql   ← НОВЫЙ (RLS)
+|   |   `-- 20260312_user_auth_rls.sql
 |   `-- *.sql
 |-- testsprite_tests/
-|   `-- e2e/python test cases
-|-- ziratstan-app/
-|   `-- отдельный Next.js workspace
 `-- guids/agent.md
 ```
 
@@ -229,27 +213,21 @@ Ziratstan.kz/
 
 ## Разработка и деплой
 
-### Локальный запуск статики
+### Локальный запуск Next.js
 
 ```bash
-# Локальный запуск
-python -m http.server 3000
-
-# Деплой прод-контура
-firebase deploy --only hosting
-```
-
-### Деплой Firebase Functions
-
-Если меняются функции, нужен отдельный деплой функций.
-
-### Next.js workspace
-
-```bash
-cd ziratstan-app
+# Весь код теперь в корне
 npm install
 npm run dev
 ```
+
+### Деплой Firebase Hosting (Статика)
+
+```bash
+firebase deploy --only hosting
+```
+
+*(Next.js Web Frameworks деплой временно приостановлен из-за несовместимости с бесплатным тарифом).*
 
 ---
 
@@ -266,10 +244,6 @@ npm run dev
 
 ## Короткое резюме для агента
 
-Если задача касается **текущего сайта** → смотри в корневые HTML/JS-файлы, `src/js/`.
-
-Если задача касается **авторизации или кабинета** → `src/js/auth/supabase-auth.js`, `dashboard.html`, `supabase/migrations/`.
-
-Если задача касается **новой архитектуры, дерева, server actions** → `src/app/`, `ziratstan-app/`.
-
+Если задача касается **legacy-сайта (HTML)** → смотри в корневые HTML-файлы и `src/js/`.
+Если задача касается **новой архитектуры, компонентов** → всё теперь живет в корне: `src/app/`, `src/components/`. Не использовать папку `ziratstan-app/`.
 Если задача касается **модерации, ролей, bootstrap** → `functions/index.js` и Supabase SQL.

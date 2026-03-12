@@ -1,14 +1,28 @@
+'use client'
+
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/client'
 import { LogIn } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
 
-export default async function AuthButton() {
-    const supabase = await createClient()
+export default function AuthButton() {
+    const supabase = createClient()
+    const [user, setUser] = useState<User | null>(null)
+    const [loading, setLoading] = useState(true)
 
-    // Safely check for user session without redirecting
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    useEffect(() => {
+        async function fetchUser() {
+            const { data: { user } } = await supabase.auth.getUser()
+            setUser(user)
+            setLoading(false)
+        }
+        fetchUser()
+    }, [supabase])
+
+    if (loading) {
+        return <div className="ml-4 w-20 h-9 bg-white/5 rounded-xl animate-pulse"></div>
+    }
 
     if (!user) {
         return (

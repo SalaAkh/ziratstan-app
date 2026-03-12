@@ -1,0 +1,1005 @@
+[
+  {
+    "id": "TC001",
+    "title": "Search for an existing person and open their profile from a highlighted marker",
+    "description": "Verifies that searching by a known person highlights matching markers and allows navigation to a profile page via the marker popup.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Mirzhakyp\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Highlighted search result marker\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the highlighted marker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Ашырту\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Ашырту\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/profile.html\""
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Search for a specific profile and verify the expected profile id appears in the URL",
+    "description": "Verifies that using search and opening the marker leads to the expected profile identifier in the profile URL when known.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Міржақып\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Highlighted search result marker\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the highlighted marker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Ашырту\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Ашырту\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"id=\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"mirzhakyp_24\""
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Filter map by era and verify markers update to the selected era",
+    "description": "Verifies that selecting an era filter updates the visible set of profiles/markers on the map.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Era filter buttons\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Alash\" era filter button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Alash\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map markers\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Soviet\" era filter button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Soviet\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map markers\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Use era filter, zoom via a cluster, then open a profile from an individual marker",
+    "description": "Verifies the full navigation path from filtered cluster to individual marker popup to profile page.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Alash\" era filter button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Cluster marker\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a cluster marker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map markers\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on an individual marker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Ашырту\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Ашырту\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/profile.html\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Open marker popup and verify profile summary content is shown before navigating",
+    "description": "Verifies that clicking a marker shows a popup with a profile summary and an action to open the full profile.",
+    "category": "Map Navigation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map markers\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on an individual marker"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Marker popup\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Ашырту\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Ашырту\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Profile page content\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Search with a non-existent name and verify a visible 'No results' state",
+    "description": "Verifies that searching for a name that does not exist shows a clear 'No results' message in the search UI.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ThisNameShouldNotExist123\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Create profile\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "From 'No results', open the Create Profile (UGC) submission modal/form",
+    "description": "Verifies that the Create Profile option is available from an empty search result state and opens a user submission form.",
+    "category": "Map Navigation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ThisNameShouldNotExist123\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Create profile\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"New profile UGC form\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Submit\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Clear/replace search input and verify results update accordingly",
+    "description": "Verifies that changing the search term updates the highlighted markers/results without requiring a page refresh.",
+    "category": "Map Navigation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /map.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Map\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ThisNameShouldNotExist123\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click in the search bar"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Mirzhakyp\" into the search bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Highlighted search result marker\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Load profile page and verify core profile details are visible",
+    "description": "Ensures the memorial profile page loads and shows key hero/basic information and short bio.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/profile.html\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"profile hero photo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"profile name/title\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"short biography preview\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"View family tree\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Expand biography to read full text",
+    "description": "Verifies the biography expand action reveals the full biography content on the profile page.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"short biography preview\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Read biography\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"full biography section\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"expanded biography text\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Collapse biography\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "View family tree schema from the profile page",
+    "description": "Validates that clicking the family tree entry point displays the family tree (шежіре) schema.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"View family tree\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"View family tree\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"family tree schema\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Шежіре\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"family tree nodes\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Open UGC biography modal from profile page",
+    "description": "Ensures the 'Өмірбаянды толықтыру' action opens the user contribution modal.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Өмірбаянды толықтыру\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"UGC biography modal\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"UGC biography text input\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Submit\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Close UGC biography modal without submitting",
+    "description": "Verifies the UGC modal can be dismissed and the user returns to the profile page state.",
+    "category": "View Profile",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"UGC biography modal\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Close\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"UGC biography modal\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"short biography preview\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "View existing QR from profile and land on QR page",
+    "description": "Validates that using 'View QR' (or equivalent) navigates to the QR page and shows a QR code.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"View QR\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"View QR\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/qr.html\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"QR code\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Copy link\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Download\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Generate QR from profile and land on QR page",
+    "description": "Ensures 'Generate QR' successfully navigates to the QR page and displays the QR code and actions.",
+    "category": "View Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Generate QR\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Generate QR\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/qr.html\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"slug=\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"QR code\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "QR page shows copy link feedback",
+    "description": "Verifies the QR page copy link control produces a visible confirmation message.",
+    "category": "View Profile",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /qr.html?slug=ZRT-1234"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"QR code\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Copy link\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Copy link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Link copied\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/qr.html\""
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Submit a valid biography suggestion successfully",
+    "description": "Verifies a visitor can open the UGC modal, submit author and biography, and see the moderation success message.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Өмірбаянды толықтыру\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Жіберу\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Ainur K.\" into the author name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"This is an additional biography detail submitted for review.\" into the biography text field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберу\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Submitted for moderation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Biography required validation when biography is empty",
+    "description": "Verifies submitting with an empty biography shows a visible validation error.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Жіберу\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберу\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Biography required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Recover from validation error and submit successfully",
+    "description": "Verifies the user can correct the missing biography after an error and then submit successfully.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберу\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Biography required\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Added biography details after validation error.\" into the biography text field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберу\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Submitted for moderation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Submit with author left blank (author optional)",
+    "description": "Verifies a suggestion can still be submitted when the author name is not provided, if the UI allows it.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Жіберу\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Biography suggestion without author name.\" into the biography text field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберу\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Submitted for moderation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "UGC modal can be opened and closed without submission",
+    "description": "Verifies the visitor can open the UGC modal and dismiss it without posting anything.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Жіберу\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\" key"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Өмірбаянды толықтыру\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Long biography text submission remains usable and succeeds",
+    "description": "Verifies the biography field accepts a long entry and the submission still completes successfully.",
+    "category": "Add Bio Suggestion (UGC)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /profile.html?id=mirzhakyp_24"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Өмірбаянды толықтыру\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Long Text Tester\" into the author name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Long biography text: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\" into the biography text field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Жіберu\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Submitted for moderation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Submit Premium care service order successfully",
+    "description": "Verifies a user can select Premium plan, submit required details, and see an 'Order received' confirmation.",
+    "category": "Order Care Service",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /services.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Services\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"Premium\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test User\" into the customer name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"+7 701 111 2233\" into the phone number field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Please clean the area and refresh flowers.\" into the comment/details field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Order received\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Submit Standard care service order without optional comment",
+    "description": "Verifies an order can be submitted when the optional comment/details field is left empty.",
+    "category": "Order Care Service",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /services.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Services\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"Standard\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Aidar S.\" into the customer name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"+7 777 123 4567\" into the phone number field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Order received\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "VIP plan order blocks submission when phone is missing, then succeeds after phone added",
+    "description": "Verifies phone number is required and the user can correct the error and submit successfully.",
+    "category": "Order Care Service",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /services.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Services\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"VIP\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Dana K.\" into the customer name field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Phone required\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"+7 702 999 0000\" into the phone number field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Order received\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Premium plan order blocks submission when name is missing",
+    "description": "Verifies the form prevents submitting when customer name is empty and shows a visible validation message.",
+    "category": "Order Care Service",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /services.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Services\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"Premium\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"+7 708 555 1212\" into the phone number field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Name required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "User can switch plans before ordering and order succeeds with the final selection",
+    "description": "Verifies that switching between plan options does not block ordering and the user can proceed to success confirmation.",
+    "category": "Order Care Service",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /services.html"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Services\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"Standard\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Select the \"VIP\" service plan option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Plan Switcher\" into the customer name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"+7 776 222 3344\" into the phone number field"
+      },
+      {
+        "type": "action",
+        "description": "Click the order button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Order received\" is visible"
+      }
+    ]
+  }
+]

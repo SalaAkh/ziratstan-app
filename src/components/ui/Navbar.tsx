@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link';
 import { Map, QrCode, Wrench, Home, Search } from 'lucide-react';
 import AuthButton from './AuthButton';

@@ -1,0 +1,103 @@
+version: "2"
+type: frontend
+tech_stack:
+  - HTML
+  - Vanilla JS
+  - CSS
+  - Supabase (Backend/Database)
+  - QR Code Library
+  - Leaflet (Maps)
+routes:
+  - path: /
+    file: index.html
+    auth_required: false
+    description: Landing page of Ziratstan.kz
+  - path: /map.html
+    file: map.html
+    auth_required: false
+    description: Interactive cemetery map with VIP profiles and clustering
+  - path: /profile.html
+    file: profile.html
+    auth_required: false
+    description: Memorial profile page with bio, family tree, and QR functions
+  - path: /services.html
+    file: services.html
+    auth_required: false
+    description: Cemetery care service ordering page
+  - path: /qr.html
+    file: qr.html
+    auth_required: false
+    description: QR code redirection page
+features:
+  - name: Map Navigation
+    description: View historical figures on the map, filter by era/city, search
+    files:
+      - map.html
+      - profiles_data.js
+      - cemeteries_data.js
+    entry_route: /map.html
+    user_interactions:
+      - Open the map page
+      - Search by name in the search bar
+      - Click on map markers or cluster markers
+      - Click "Ашырту" to navigate to profile
+      - Filter profiles by era using buttons (Xan, Alash, Soviet, etc)
+    api_calls: []
+    auth_required: false
+  
+  - name: View Profile
+    description: Read biography, examine family tree, generate or view QR codes
+    files:
+      - profile.html
+      - supabase/client.js
+    entry_route: /profile.html?id=mirzhakyp_24
+    user_interactions:
+      - Load profile details
+      - Click to read biography
+      - Generate new QR code or view existing QR code for the profile
+      - View family tree schema
+      - Click "Өмірбаянды толықтыру" to open UGC Modal
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/profiles
+      - method: GET
+        endpoint: /rest/v1/profile_relations
+      - method: GET
+        endpoint: /rest/v1/qr_codes
+    auth_required: false
+
+  - name: Add Bio Suggestion (UGC)
+    description: Submit a new biography detail for a profile
+    files:
+      - profile.html
+      - supabase/client.js
+    entry_route: /profile.html?id=mirzhakyp_24
+    user_interactions:
+      - Click "Өмірбаянды толықтыру" button
+      - Fill in author name 
+      - Fill in biography text
+      - Click "Жіберу" to submit
+      - See success message
+    api_calls:
+      - method: POST
+        endpoint: /rest/v1/ugc_bio_submissions
+    auth_required: false
+
+  - name: Order Care Service
+    description: Place an order for cemetery care
+    files:
+      - services.html
+      - supabase/client.js
+    entry_route: /services.html
+    user_interactions:
+      - Select a service plan (Standard/Premium/VIP)
+      - Fill customer name 
+      - Fill phone number
+      - Fill comment/details
+      - Click order button 
+    api_calls:
+      - method: POST
+        endpoint: /rest/v1/services_leads
+    auth_required: false
+
+known_limitations: []

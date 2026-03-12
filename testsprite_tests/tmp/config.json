@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:8080/D:\\User\\Desktop\\Programms\\Ziratstan.kz",
+  "executionArgs": {
+    "projectName": "Ziratstan.kz",
+    "projectPath": "d:\\User\\Desktop\\Programms\\Ziratstan.kz",
+    "testIds": [],
+    "additionalInstruction": "The local development server is running on http://localhost:8080 serving the root directory. To access files, strictly use URLs like http://localhost:8080/map.html or http://localhost:8080/profile.html. ABSOLUTELY DO NOT append the local Windows path (D:\\User\\Desktop\\...) to the URL, it will cause 404 errors.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-JTFAL75ANJ4n_iSqCXa36h4TIPod6NShUvdMOkmJ2_BHYHfmJbau2lu3X7CbSHkr0wG-Z5y5IOywJs8_4REopkJj1kHbXjjNUfa39QGCZ7o0jLxsABzCcYtiYt4nB8G8aac"
+    }
+  },
+  "serverPort": 57514,
+  "proxy": "http://58a16d05-cf9f-422b-bb4a-7c231ea52881:NepU1qAF8IKW5FSp1QCEwvwf33kDd1kK@tun.testsprite.com:8080"
+}

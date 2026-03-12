@@ -5,7 +5,7 @@
 
 // ─── Config ───────────────────────────────────────────────────
 const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eHN3dnp6b3RpZXlncW5lY2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDkxNjQ0NDUsImV4cCI6MjAyNDc0MDQ0NX0.gfIqlMhkqNivOVxfYgQHF8VqQFa_0a8R5FLdOwdxZ00';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eHN3dnp6b3RpZXlncW5lY2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NDg2NTgsImV4cCI6MjA4ODEyNDY1OH0.ddnHsnHG1Nx9MP9dRZzheJPNAd1KLBopOzKwxQtYVxg';
 
 // Initialize Supabase client (shared with rest of app)
 let _supabase = null;
@@ -28,17 +28,43 @@ async function initAuth() {
   const sb = getSupabase();
   if (!sb) return;
 
-  // Get current session
+  // 1. Parse OAuth redirect hash from URL (Google sign-in returns here)
+  //    Supabase v2 does this automatically, but explicitly calling it ensures
+  //    the session is set before we check getSession() below.
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    console.log('[Auth] Detected OAuth redirect hash, setting session...');
+    try {
+      // extractTokensFromUrl detects access_token in the hash and sets the session
+      const hashStr = window.location.hash.substring(1);
+      const params = new URLSearchParams(hashStr);
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+
+      if (access_token) {
+        const { error } = await sb.auth.setSession({ access_token, refresh_token });
+        if (error) {
+          console.error('[Auth] setSession from hash failed:', error.message);
+        } else {
+          console.log('[Auth] Session established from OAuth redirect!');
+          // Clean the URL so the token is not visible in the address bar
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+    } catch (e) {
+      console.warn('[Auth] Hash parsing failed:', e);
+    }
+  }
+
+  // 2. Get current session (now set if we just came from OAuth)
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
   updateAuthUI();
 
-  // Listen for auth state changes (login/logout)
+  // 3. Listen for future auth state changes (login/logout)
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user ?? null;
     updateAuthUI();
     if (currentUser) {
-      // Refresh map or page content after login
       if (typeof window.onUserLogin === 'function') window.onUserLogin(currentUser);
     }
   });
@@ -67,9 +93,12 @@ async function signInWithGoogle() {
   const sb = getSupabase();
   console.log('[Auth] Initiating Google Sign-In...');
   
-  // Use default Site URL configured in Supabase without explicit redirectTo
+  // Explicitly tell Supabase where to return to
   const { data, error } = await sb.auth.signInWithOAuth({
-    provider: 'google'
+    provider: 'google',
+    options: {
+      redirectTo: 'https://ziratstan-app.web.app/'
+    }
   });
   
   if (error) {

@@ -56,6 +56,21 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_collaborators ENABLE ROW LEVEL SECURITY;
 
 ----------------------------------------------------------------------------------
+-- HELPER FUNCTION TO PREVENT INFINITE RECURSION
+----------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.is_profile_owner(p_profile_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = p_profile_id AND owner_id = p_user_id
+  );
+$$;
+
+----------------------------------------------------------------------------------
 -- RLS POLICIES FOR 'profiles' TABLE
 ----------------------------------------------------------------------------------
 
@@ -121,12 +136,7 @@ CREATE POLICY "Owners can delete their own profiles"
 DROP POLICY IF EXISTS "Profile owners can view collaborators" ON public.profile_collaborators;
 CREATE POLICY "Profile owners can view collaborators"
   ON public.profile_collaborators FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = profile_id AND owner_id = auth.uid()
-    )
-  );
+  USING (public.is_profile_owner(profile_id, auth.uid()));
 
 -- 2. Collaborators can VIEW themselves and others on the same profile
 DROP POLICY IF EXISTS "Collaborators can view other collaborators on the same profile" ON public.profile_collaborators;
@@ -144,34 +154,19 @@ CREATE POLICY "Collaborators can view other collaborators on the same profile"
 DROP POLICY IF EXISTS "Profile owners can insert collaborators" ON public.profile_collaborators;
 CREATE POLICY "Profile owners can insert collaborators"
   ON public.profile_collaborators FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = profile_id AND owner_id = auth.uid()
-    )
-  );
+  WITH CHECK (public.is_profile_owner(profile_id, auth.uid()));
 
 -- 4. Owners of the profile can UPDATE collaborators' roles
 DROP POLICY IF EXISTS "Profile owners can update collaborators" ON public.profile_collaborators;
 CREATE POLICY "Profile owners can update collaborators"
   ON public.profile_collaborators FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = profile_id AND owner_id = auth.uid()
-    )
-  );
+  USING (public.is_profile_owner(profile_id, auth.uid()));
 
 -- 5. Owners of the profile can DELETE collaborators
 DROP POLICY IF EXISTS "Profile owners can delete collaborators" ON public.profile_collaborators;
 CREATE POLICY "Profile owners can delete collaborators"
   ON public.profile_collaborators FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = profile_id AND owner_id = auth.uid()
-    )
-  );
+  USING (public.is_profile_owner(profile_id, auth.uid()));
 
 -- ─── 8. HELPER: Get user's own profiles ──────────────
 CREATE OR REPLACE VIEW public.my_profiles AS

@@ -33,3 +33,10 @@ npm-debug.log*
 serviceAccountKey.json
 *firebase*adminsdk*.json
 *-service-account*.json
+
+# Firebase Web Frameworks and deployment logs
+.firebase/
+firebase-debug.log
+firebase-deploy.log
+next-build*.log
+test-final-build.log
