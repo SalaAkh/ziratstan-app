@@ -17,6 +17,11 @@ const GOOGLE_OAUTH_ENABLED = supabaseConfig.GOOGLE_OAUTH_ENABLED !== false;
 let _supabase = null;
 function getSupabase() {
   if (_supabase) return _supabase;
+  // Reuse existing client created by another module (avoids Multiple GoTrueClient warning)
+  if (window._sb) {
+    _supabase = window._sb;
+    return _supabase;
+  }
   if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
     _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window._sb = _supabase;
