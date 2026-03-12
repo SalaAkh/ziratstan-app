@@ -80,10 +80,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
 
-  <!-- Environment Config -->
-  <script src="src/js/config.js"></script>
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Public pages do not load Supabase client config directly -->
 
   <style>
     *,
@@ -1695,8 +1692,8 @@
     <p data-i18n="footer_motto">Жақындар туралы естелік мәңгі жасайды · © 2025</p>
   </footer>
 
-  <!-- Supabase & Auth -->
-  <script src="src/js/auth/supabase-auth.js"></script>
+  <!-- Public auth stub (no client-side Supabase keys) -->
+  <script src="src/js/auth/public-auth-stub.js"></script>
 
   <!-- Core Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>

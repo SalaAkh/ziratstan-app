@@ -3,10 +3,11 @@
     return;
   }
 
+  var runtime = global.__ZIRAT_CONFIG_OVERRIDE || {};
   var config = Object.freeze({
-    SUPABASE_URL: "https://atxqjzjerdvpiampxamk.supabase.co",
-    SUPABASE_ANON_KEY: "sb_publishable_CMxQcjFPPkTcR6_RKpnHOg_wdAml-qG",
-    GOOGLE_OAUTH_ENABLED: true,
+    SUPABASE_URL: typeof runtime.SUPABASE_URL === 'string' ? runtime.SUPABASE_URL.trim() : '',
+    SUPABASE_ANON_KEY: typeof runtime.SUPABASE_ANON_KEY === 'string' ? runtime.SUPABASE_ANON_KEY.trim() : '',
+    GOOGLE_OAUTH_ENABLED: Boolean(runtime.GOOGLE_OAUTH_ENABLED),
   });
 
   Object.defineProperty(global, 'ZiratConfig', {

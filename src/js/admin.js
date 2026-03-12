@@ -161,6 +161,9 @@ async function touchAdminSession(reason = null) {
             console.warn('[Ziratstan] admin_sessions table not found — session tracking disabled.');
             return;
         }
+        if (isRlsDeniedError(existing.error)) {
+            throw createAdminRoleRequiredError();
+        }
         throw existing.error;
     }
 
@@ -176,6 +179,9 @@ async function touchAdminSession(reason = null) {
         if (insertRes.error) {
             if (isTableNotFoundError(insertRes.error)) {
                 return;
+            }
+            if (isRlsDeniedError(insertRes.error)) {
+                throw createAdminRoleRequiredError();
             }
             throw insertRes.error;
         }
@@ -204,6 +210,9 @@ async function touchAdminSession(reason = null) {
         if (isTableNotFoundError(updateRes.error)) {
             return;
         }
+        if (isRlsDeniedError(updateRes.error)) {
+            throw createAdminRoleRequiredError();
+        }
         throw updateRes.error;
     }
 }
@@ -211,6 +220,43 @@ async function touchAdminSession(reason = null) {
 
 function isTableNotFoundError(error) {
     return error && (error.code === 'PGRST205' || error.code === '42P01' || (error.message && error.message.includes("Could not find the table")));
+}
+
+function isRlsDeniedError(error) {
+    const message = error?.message ? String(error.message) : '';
+    return error?.code === '42501' || message.toLowerCase().includes('row-level security policy');
+}
+
+function createAdminRoleRequiredError() {
+    const error = new Error('Admin role is required for this account. Run scripts/register_admin_email.js and sign in again.');
+    error.code = 'ADMIN_ROLE_REQUIRED';
+    return error;
+}
+
+function isAdminRoleRequiredError(error) {
+    return error && error.code === 'ADMIN_ROLE_REQUIRED';
+}
+
+async function ensureAdminRole(session) {
+    if (!session?.user?.id) {
+        return;
+    }
+
+    if (session.user.app_metadata?.role === 'admin') {
+        return;
+    }
+
+    // Session claims can be stale right after role changes; fetch canonical user metadata.
+    const userRes = await withAuthRetry(() => db.auth.getUser());
+    if (userRes.error) {
+        throw userRes.error;
+    }
+
+    if (userRes.data?.user?.app_metadata?.role === 'admin') {
+        return;
+    }
+
+    throw createAdminRoleRequiredError();
 }
 
 function isSessionTerminatedError(error) {
@@ -241,6 +287,18 @@ async function forceSignOutForTerminatedSession() {
         showGateMessage('error', 'Эта сессия была завершена с другого устройства.');
     } finally {
         remoteSignOutInProgress = false;
+    }
+}
+
+async function signOutForAdminRoleRequired(message = null) {
+    try {
+        await withAuthRetry(() => db.auth.signOut());
+    } catch (signOutError) {
+        console.error('Failed to sign out user without admin role:', signOutError);
+    } finally {
+        clearSessionTrackingState();
+        showGate();
+        showGateMessage('error', message || createAdminRoleRequiredError().message);
     }
 }
 
@@ -281,6 +339,13 @@ function startSessionHeartbeat() {
                 forceSignOutForTerminatedSession().catch((err) => {
                     console.error('Failed to sign out after remote termination:', err);
                 });
+                return;
+            }
+            if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
+                const message = isAdminRoleRequiredError(error)
+                    ? error.message
+                    : createAdminRoleRequiredError().message;
+                signOutForAdminRoleRequired(message);
                 return;
             }
 
@@ -745,6 +810,11 @@ async function syncAuthUI(session) {
     cleanupAuthUrl();
 
     try {
+        await ensureAdminRole(session);
+        if (flowId !== authFlowId) {
+            return;
+        }
+
         const aal = await getAuthenticatorAssuranceLevel();
         if (flowId !== authFlowId) {
             return;
@@ -781,12 +851,19 @@ async function syncAuthUI(session) {
             return;
         }
 
-        console.error(error);
         if (isSessionTerminatedError(error)) {
             await forceSignOutForTerminatedSession();
             return;
         }
+        if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
+            const message = isAdminRoleRequiredError(error)
+                ? error.message
+                : createAdminRoleRequiredError().message;
+            await signOutForAdminRoleRequired(message);
+            return;
+        }
 
+        console.error(error);
         showGate();
         showGateMessage('error', error.message || 'Не удалось подготовить двухфакторную проверку.');
     }
@@ -1104,6 +1181,13 @@ async function terminateOtherSessions() {
         showToast('Все остальные сессии завершены.', 'success');
         await loadSessionActivity();
     } catch (error) {
+        if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
+            const message = isAdminRoleRequiredError(error)
+                ? error.message
+                : createAdminRoleRequiredError().message;
+            await signOutForAdminRoleRequired(message);
+            return;
+        }
         console.error(error);
         showToast('Не удалось завершить остальные сессии.', 'error');
     }
@@ -1138,6 +1222,13 @@ async function loadSessionActivity() {
         renderSessionList('sessions-active-list', active, 'Сейчас нет активных устройств');
         renderSessionList('sessions-history-list', items, 'История входов пока пуста');
     } catch (error) {
+        if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
+            const message = isAdminRoleRequiredError(error)
+                ? error.message
+                : createAdminRoleRequiredError().message;
+            await signOutForAdminRoleRequired(message);
+            return;
+        }
         console.error(error);
         activeContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки активных устройств</p></div>';
         historyContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки истории</p></div>';

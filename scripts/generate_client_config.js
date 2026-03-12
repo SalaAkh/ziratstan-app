@@ -63,34 +63,23 @@ if (!supabaseAnonKey || hasPlaceholders) {
 }
 
 if (looksLikeServiceRoleKey) {
-  console.error('Refusing to write sb_secret_* key into src/js/config.js. Use the Publishable/Anon key instead.');
+  console.error('Refusing to write sb_secret_* key into client config. Use the Publishable/Anon key instead.');
   process.exit(1);
 }
 
-const targetPath = path.resolve(__dirname, '..', 'src', 'js', 'config.js');
+const targetDir = path.resolve(__dirname, '..', '.firebase-config');
+const targetPath = path.resolve(targetDir, 'client-config.override.js');
+fs.mkdirSync(targetDir, { recursive: true });
 
-const content = `(function initZiratConfig(global) {
-  if (global.ZiratConfig && typeof global.ZiratConfig.getSupabaseConfig === 'function') {
-    return;
-  }
-
-  var config = Object.freeze({
+const content = `(function initZiratPrivateClientConfig(global) {
+  global.__ZIRAT_CONFIG_OVERRIDE = Object.freeze({
     SUPABASE_URL: ${JSON.stringify(supabaseUrl)},
     SUPABASE_ANON_KEY: ${JSON.stringify(supabaseAnonKey)},
-  });
-
-  Object.defineProperty(global, 'ZiratConfig', {
-    value: Object.freeze({
-      getSupabaseConfig: function getSupabaseConfig() {
-        return config;
-      },
-    }),
-    writable: false,
-    configurable: false,
-    enumerable: false,
+    GOOGLE_OAUTH_ENABLED: true,
   });
 })(window);
 `;
 
 fs.writeFileSync(targetPath, content, 'utf8');
 console.log(`Generated ${targetPath}`);
+console.log('Note: this file is ignored by git and Firebase Hosting for safer key handling.');
