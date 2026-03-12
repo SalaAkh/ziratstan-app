@@ -11,7 +11,7 @@ if (!window.ZiratConfig || typeof window.ZiratConfig.getSupabaseConfig !== 'func
 const supabaseConfig = window.ZiratConfig.getSupabaseConfig();
 const SUPABASE_URL = supabaseConfig.SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
-const GOOGLE_OAUTH_ENABLED = supabaseConfig.GOOGLE_OAUTH_ENABLED === true;
+const GOOGLE_OAUTH_ENABLED = supabaseConfig.GOOGLE_OAUTH_ENABLED !== false;
 
 // Initialize Supabase client (shared with rest of app)
 let _supabase = null;
@@ -32,17 +32,30 @@ let currentUser = null;
 function syncAuthProviderUI() {
   const googleButtons = document.querySelectorAll('.auth-google-btn');
   googleButtons.forEach((button) => {
-    button.hidden = !GOOGLE_OAUTH_ENABLED;
-    button.disabled = !GOOGLE_OAUTH_ENABLED;
-    button.tabIndex = GOOGLE_OAUTH_ENABLED ? 0 : -1;
+    button.hidden = false;
+    button.disabled = false;
+    button.tabIndex = 0;
+    button.title = GOOGLE_OAUTH_ENABLED ? '' : 'Google login is currently unavailable';
   });
 
   const dividers = document.querySelectorAll('.auth-divider');
   dividers.forEach((divider) => {
     const previous = divider.previousElementSibling;
     if (previous && previous.classList.contains('auth-google-btn')) {
-      divider.hidden = !GOOGLE_OAUTH_ENABLED;
+      divider.hidden = false;
     }
+  });
+}
+
+function showAuthInlineError(message) {
+  const loginForm = document.getElementById('auth-login-form');
+  const registerForm = document.getElementById('auth-register-form');
+  const forms = [loginForm, registerForm];
+
+  forms.forEach((form) => {
+    if (!form) return;
+    const errorEl = form.querySelector('.auth-error');
+    if (errorEl) errorEl.textContent = message;
   });
 }
 
@@ -115,8 +128,10 @@ async function signIn({ email, password }) {
 
 async function signInWithGoogle() {
   if (!GOOGLE_OAUTH_ENABLED) {
-    console.warn('[Auth] Google Sign-In is disabled in client config.');
-    window.alert('Google арқылы кіру қазір қолжетімсіз. Email мен пароль арқылы кіріңіз.');
+    showAuthInlineError('Google login is currently unavailable. Use email and password.');
+    switchAuthTab('login');
+    const emailInput = document.getElementById('login-email');
+    if (emailInput) emailInput.focus();
     return null;
   }
 
@@ -132,8 +147,12 @@ async function signInWithGoogle() {
   });
   
   if (error) {
-    console.error('[Auth] Google Sign-In Error:', error.message);
-    throw error;
+    const message = error.message || 'Google login failed.';
+    showAuthInlineError(message);
+    switchAuthTab('login');
+    const emailInput = document.getElementById('login-email');
+    if (emailInput) emailInput.focus();
+    return null;
   }
   return data;
 }
