@@ -255,3 +255,31 @@ firebase deploy --only hosting
 Если задача касается **legacy-сайта (HTML)** → смотри в корневые HTML-файлы и `src/js/`.
 Если задача касается **новой архитектуры, компонентов** → всё теперь живет в корне: `src/app/`, `src/components/`. Не использовать папку `ziratstan-app/`.
 Если задача касается **модерации, ролей, bootstrap** → `functions/index.js` и Supabase SQL.
+
+---
+
+## Admin Auth Troubleshooting (2026-03-13)
+
+Use this checklist when admin sign-in or admin session tracking fails.
+
+1. `scripts/register_admin_email.js` requires `SUPABASE_SERVICE_ROLE_KEY` with service privileges.
+2. Do not use `sb_publishable_*` or JWT tokens with payload role `anon`.
+3. In Git Bash, set env vars with `export VAR='value'`. In PowerShell, use `$env:VAR='value'`.
+4. After running `register_admin_email.js`, force logout/login in admin page to refresh JWT claims.
+5. If you see `42501 new row violates row-level security policy for table "admin_sessions"`:
+   - verify user has `app_metadata.role = "admin"`;
+   - re-login (new token);
+   - ensure `supabase/admin_security.sql` is applied.
+6. If you see `Failed to register admin email: User not allowed`:
+   - key is wrong (usually anon/publishable);
+   - replace with real `service_role` / `sb_secret_*` key from Supabase API settings.
+7. `AuthSessionMissingError` after failed sign-in means no active session; treat as auth-state fallback, not DB corruption.
+8. Security: if keys/password were exposed in terminal/chat logs, rotate keys and reset admin password immediately.
+
+Quick key-role check for JWT-like keys:
+
+```bash
+node -e "const t=process.env.SUPABASE_SERVICE_ROLE_KEY||'';const p=t.split('.')[1];if(!p){console.log('non-JWT key format');process.exit(0)};console.log(JSON.parse(Buffer.from(p,'base64url').toString()).role)"
+```
+
+Expected for admin scripts: `service_role` (or non-JWT `sb_secret_*` key).
