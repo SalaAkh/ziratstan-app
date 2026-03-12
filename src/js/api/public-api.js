@@ -3,89 +3,6 @@
 
 (function initZiratPublicApi(global) {
   var FALLBACK_API_BASE = 'https://us-central1-ziratstan-app.cloudfunctions.net/api';
-  var VIP_PROFILE_SELECT =
-    'id, first_name, last_name, patronymic, birth_date, death_date, epitaph, biography, main_photo_url, cemetery_id, location';
-
-  function mapVipProfiles(rows) {
-    return (rows || []).map(function (p) {
-      var coordinates = p && p.location && p.location.coordinates ? p.location.coordinates : null;
-      var lng = coordinates ? coordinates[0] : null;
-      var lat = coordinates ? coordinates[1] : null;
-
-      return {
-        id: p.id,
-        name: [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(' '),
-        birth: p.birth_date ? String(p.birth_date).substring(0, 4) : '?',
-        death: p.death_date ? String(p.death_date).substring(0, 4) : '?',
-        cemetery: p.cemetery_id || 'Unknown',
-        city: '',
-        filter: 'historical',
-        lat: lat,
-        lng: lng,
-        photo: p.main_photo_url || '',
-        bio: p.biography || '',
-        epitaph: p.epitaph || '',
-      };
-    }).filter(function (p) {
-      return p.lat && p.lng;
-    });
-  }
-
-  function getSupabaseClient() {
-    if (global.db && typeof global.db.from === 'function') {
-      return global.db;
-    }
-
-    if (global._sb && typeof global._sb.from === 'function') {
-      return global._sb;
-    }
-
-    if (global.__ZIRAT_PUBLIC_API_SB && typeof global.__ZIRAT_PUBLIC_API_SB.from === 'function') {
-      return global.__ZIRAT_PUBLIC_API_SB;
-    }
-
-    if (!global.supabase || typeof global.supabase.createClient !== 'function') {
-      return null;
-    }
-
-    if (!global.ZiratConfig || typeof global.ZiratConfig.getSupabaseConfig !== 'function') {
-      return null;
-    }
-
-    var cfg = global.ZiratConfig.getSupabaseConfig();
-    var url = cfg && typeof cfg.SUPABASE_URL === 'string' ? cfg.SUPABASE_URL.trim() : '';
-    var anon = cfg && typeof cfg.SUPABASE_ANON_KEY === 'string' ? cfg.SUPABASE_ANON_KEY.trim() : '';
-
-    if (!url || !anon) {
-      return null;
-    }
-
-    try {
-      global.__ZIRAT_PUBLIC_API_SB = global.supabase.createClient(url, anon);
-      return global.__ZIRAT_PUBLIC_API_SB;
-    } catch (_error) {
-      return null;
-    }
-  }
-
-  async function fetchVipProfilesViaSupabase() {
-    var db = getSupabaseClient();
-    if (!db) {
-      return null;
-    }
-
-    var result = await db
-      .from('profiles')
-      .select(VIP_PROFILE_SELECT)
-      .eq('visibility_status', 'public')
-      .limit(2000);
-
-    if (result.error) {
-      throw result.error;
-    }
-
-    return mapVipProfiles(result.data);
-  }
 
   function jsonFetch(url, options) {
     var opts = options || {};
@@ -155,13 +72,6 @@
   }
 
   async function fetchVipProfiles() {
-    try {
-      var direct = await fetchVipProfilesViaSupabase();
-      if (Array.isArray(direct)) {
-        return direct;
-      }
-    } catch (_supabaseError) {}
-
     try {
       var res = await apiFetch('/public/vip-profiles', { method: 'GET' });
       return (res && res.items) ? res.items : [];
