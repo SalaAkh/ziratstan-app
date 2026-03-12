@@ -4,8 +4,8 @@
  */
 
 // ─── Config ───────────────────────────────────────────────────
-const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eHN3dnp6b3RpZXlncW5lY2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NDg2NTgsImV4cCI6MjA4ODEyNDY1OH0.ddnHsnHG1Nx9MP9dRZzheJPNAd1KLBopOzKwxQtYVxg';
+const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
 
 // Initialize Supabase client (shared with rest of app)
 let _supabase = null;

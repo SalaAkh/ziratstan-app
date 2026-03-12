@@ -5,8 +5,8 @@
 // ============================================================
 
 // 🔑 ЗАМЕНИ ЭТИ ЗНАЧЕНИЯ НА СВОИ — dashboard.supabase.com
-var SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eHN3dnp6b3RpZXlncW5lY2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NDg2NTgsImV4cCI6MjA4ODEyNDY1OH0.ddnHsnHG1Nx9MP9dRZzheJPNAd1KLBopOzKwxQtYVxg';
+var SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
+var SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
 
 // Инициализация клиента через CDN (supabase-js v2)
 var createClient = supabase.createClient || supabase.createClient;
