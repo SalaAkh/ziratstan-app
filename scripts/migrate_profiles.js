@@ -8,10 +8,26 @@ const fs = require('fs');
 const path = require('path');
 
 // --- НАСТРОЙКИ SUPABASE (service_role key для записи) ---
-const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
+const SUPABASE_URL =
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    '';
 // Используем anon key — он уже есть, для записи нужны Supabase RLS off 
 // или service_role key. Ставим сюда service_role:
-const SUPABASE_KEY = 'sb_secret_N_0MJRrrjcFfZ4AcgmpGWg_TmirxTK5';
+const SUPABASE_KEY =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_KEY ||
+    '';
+
+if (!SUPABASE_URL) {
+    console.error('Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL).');
+    process.exit(1);
+}
+
+if (!SUPABASE_KEY) {
+    console.error('Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_KEY).');
+    process.exit(1);
+}
 
 // --- Загружаем profiles_data.js ---
 const ROOT_DIR = path.resolve(__dirname, '..');

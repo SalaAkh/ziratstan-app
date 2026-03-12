@@ -4,8 +4,13 @@
  */
 
 // ─── Config ───────────────────────────────────────────────────
-const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
+if (!window.ZiratConfig || typeof window.ZiratConfig.getSupabaseConfig !== 'function') {
+  throw new Error('[Auth] Missing ZiratConfig. Ensure src/js/config.js is loaded before supabase-auth.js');
+}
+
+const supabaseConfig = window.ZiratConfig.getSupabaseConfig();
+const SUPABASE_URL = supabaseConfig.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
 
 // Initialize Supabase client (shared with rest of app)
 let _supabase = null;

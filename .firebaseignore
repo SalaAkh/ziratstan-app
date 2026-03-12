@@ -1,0 +1,39 @@
+# Firebase Hosting Ignore
+# Этот файл перекрывает .gitignore для firebase deploy
+# src/js/config.js намеренно НЕ включён сюда, чтобы он деплоился на хостинг
+
+# Sistema
+.git
+.gitignore
+.firebaseignore
+.env*
+
+# Dev tools
+node_modules/
+*.py
+package.json
+package-lock.json
+
+# Firebase internals
+firebase.json
+.runtimeconfig.json
+*firebase*adminsdk*.json
+*service-account*.json
+serviceAccount*.json
+
+# Source & build pipeline (не нужны на хостинге)
+src/app/**
+src/components/**
+src/hooks/**
+src/lib/**
+src/utils/**
+functions/**
+testsprite_tests/**
+ziratstan-app/**
+guids/**
+scripts/**
+resources/**
+
+# Суpabase backend (только client.js нужен)
+supabase/migrations/**
+supabase/seed.sql

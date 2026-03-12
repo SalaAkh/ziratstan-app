@@ -4,9 +4,13 @@
 //  Settings → API → Project URL & anon/public key
 // ============================================================
 
-// 🔑 ЗАМЕНИ ЭТИ ЗНАЧЕНИЯ НА СВОИ — dashboard.supabase.com
-var SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-var SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
+if (!window.ZiratConfig || typeof window.ZiratConfig.getSupabaseConfig !== 'function') {
+  throw new Error('[Ziratstan] Missing ZiratConfig. Ensure src/js/config.js is loaded before supabase/client.js');
+}
+
+var supabaseConfig = window.ZiratConfig.getSupabaseConfig();
+var SUPABASE_URL = supabaseConfig.SUPABASE_URL || '';
+var SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
 
 // Инициализация клиента через CDN (supabase-js v2)
 var createClient = supabase.createClient || supabase.createClient;

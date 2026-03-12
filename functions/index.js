@@ -3,13 +3,14 @@ const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL =
     process.env.SUPABASE_URL ||
-    'https://myxswvzzotieygqnecbi.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let adminDb = null;
 
 function getAdminDb() {
-    if (!SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
         return null;
     }
 
@@ -47,7 +48,7 @@ async function requireAdmin(req) {
     const db = getAdminDb();
 
     if (!db) {
-        const error = new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+        const error = new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
         error.statusCode = 500;
         throw error;
     }

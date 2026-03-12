@@ -39,9 +39,16 @@ python scripts/generate_og.py
 
 ```bash
 SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ADMIN_EMAIL=...
 ADMIN_PASSWORD=...
+```
+
+For static pages (`index.html`, `map.html`, etc.), generate `src/js/config.js` before deploy:
+
+```bash
+node scripts/generate_client_config.js
 ```
 
 Минимально это требуется для `register_admin_email.js`. Скрипты миграции и старые интеграционные утилиты стоит отдельно перепроверять перед запуском: часть из них писалась как одноразовые и не всегда безопасна для повторного применения без ревью.

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:client-config": "node scripts/generate_client_config.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",

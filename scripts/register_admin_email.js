@@ -3,10 +3,15 @@ const { createClient } = require('@supabase/supabase-js');
 const SUPABASE_URL =
     process.env.SUPABASE_URL ||
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    'https://myxswvzzotieygqnecbi.supabase.co';
+    '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+
+if (!SUPABASE_URL) {
+    console.error('Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL).');
+    process.exit(1);
+}
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Missing SUPABASE_SERVICE_ROLE_KEY.');

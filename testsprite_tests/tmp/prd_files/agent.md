@@ -71,7 +71,7 @@ Ziratstan.kz/
 
 ## 🗄 База Данных Supabase и UGC
 
-**Проект:** `https://myxswvzzotieygqnecbi.supabase.co`
+**Проект:** `https://YOUR_SUPABASE_PROJECT.supabase.co`
 
 В проекте настроен функционал **Crowdsourcing (UGC)**. Пользователи могут прямо на карте:
 

@@ -2,8 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const SUPABASE_URL = 'https://myxswvzzotieygqnecbi.supabase.co';
-const SUPABASE_KEY = 'sb_secret_N_0MJRrrjcFfZ4AcgmpGWg_TmirxTK5'; // admin / service role key
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
