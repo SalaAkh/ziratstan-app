@@ -32,9 +32,10 @@ let currentUser = null;
 function syncAuthProviderUI() {
   const googleButtons = document.querySelectorAll('.auth-google-btn');
   googleButtons.forEach((button) => {
-    button.hidden = false;
-    button.disabled = false;
-    button.tabIndex = 0;
+    button.hidden = !GOOGLE_OAUTH_ENABLED;
+    button.disabled = !GOOGLE_OAUTH_ENABLED;
+    button.style.display = GOOGLE_OAUTH_ENABLED ? '' : 'none'; // Ensure CSS doesn't override hidden
+    button.tabIndex = GOOGLE_OAUTH_ENABLED ? 0 : -1;
     button.title = GOOGLE_OAUTH_ENABLED ? '' : 'Google login is currently unavailable';
   });
 
@@ -42,7 +43,8 @@ function syncAuthProviderUI() {
   dividers.forEach((divider) => {
     const previous = divider.previousElementSibling;
     if (previous && previous.classList.contains('auth-google-btn')) {
-      divider.hidden = false;
+      divider.hidden = !GOOGLE_OAUTH_ENABLED;
+      divider.style.display = GOOGLE_OAUTH_ENABLED ? '' : 'none';
     }
   });
 }
@@ -142,7 +144,7 @@ async function signInWithGoogle() {
   const { data, error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://ziratstan-app.web.app/'
+      redirectTo: window.location.origin + window.location.pathname
     }
   });
   
