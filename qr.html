@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QR-Ескерткіш | Зиратстан</title>
-    <meta name="description" id="pageDesc" content="Құлпытастағы QR-кодты сканерлеу — Зиратстан, Қазақстанның цифрлық жады." />
+    <title data-i18n="qr_page_title">QR-Ескерткіш | Зиратстан</title>
+    <meta name="description" id="pageDesc" data-i18n-content="qr_meta_desc" content="Құлпытастағы QR-кодты сканерлеу — Зиратстан, Қазақстанның цифрлық жады." />
     <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -328,19 +328,6 @@
     </script>
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
-    <script>
-        (function () {
-            function applyHead() {
-                if (!window.i18n) return;
-                document.title = i18n.t('qr_page_title');
-                const desc = document.getElementById('pageDesc');
-                if (desc) desc.setAttribute('content', i18n.t('qr_meta_desc'));
-            }
-            document.addEventListener('langchange', applyHead);
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHead);
-            else applyHead();
-        })();
-    </script>
 </body>
 
 </html>

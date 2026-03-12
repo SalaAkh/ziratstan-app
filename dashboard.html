@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Менің кабинетім — Зиратстан</title>
+  <title data-i18n="dash_title">Менің кабинетім — Зиратстан</title>
   <meta name="robots" content="noindex, nofollow" />
 
   <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
@@ -201,8 +201,8 @@
   <nav>
     <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
     <div style="display:flex; gap:0.75rem; align-items:center;">
-      <a href="map.html" class="nav-back">🗺️ Картаға оралу</a>
-      <button class="btn btn-outline" style="padding:0.4rem 0.875rem;" onclick="handleLogout()" id="logout-btn">Шығу</button>
+      <a href="map.html" class="nav-back">🗺️ <span data-i18n="dash_back_map">Картаға оралу</span></a>
+      <button class="btn btn-outline" style="padding:0.4rem 0.875rem;" onclick="handleLogout()" id="logout-btn" data-i18n="dash_logout">Шығу</button>
     </div>
   </nav>
 
@@ -212,10 +212,10 @@
   <!-- NOT LOGGED IN STATE -->
   <div id="not-logged-in" style="display:none;">
     <div class="emoji">🔒</div>
-    <h2>Кабинетке кіру керек</h2>
-    <p>Жеке кабинеттің мүмкіндіктерін пайдалану үшін алдымен жүйеге кіріңіз.</p>
+    <h2 data-i18n="dash_login_req">Кабинетке кіру керек</h2>
+    <p data-i18n="dash_login_req_desc">Жеке кабинеттің мүмкіндіктерін пайдалану үшін алдымен жүйеге кіріңіз.</p>
     <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
-      <a href="index.html" class="btn btn-gold">🏠 Басты бетке</a>
+      <a href="index.html" class="btn btn-gold">🏠 <span data-i18n="dash_home">Басты бетке</span></a>
     </div>
   </div>
 
@@ -225,12 +225,12 @@
     <!-- Header -->
     <div class="dash-header">
       <div class="dash-welcome">
-        <h1>Сәлем, <span id="user-display-name" style="color:var(--gold)">...</span>! 👋</h1>
-        <p id="user-email" style="color:var(--muted);">жүктелуде...</p>
+        <h1><span data-i18n="dash_hello">Сәлем</span>, <span id="user-display-name" style="color:var(--gold)">...</span>! 👋</h1>
+        <p id="user-email" style="color:var(--muted);"><span data-i18n="dash_loading_user">жүктелуде...</span></p>
       </div>
       <div class="dash-actions">
-        <a href="map.html" class="btn btn-outline">🗺️ Карта</a>
-        <button class="btn btn-gold" onclick="openAddDeceasedModal()">+ Жаңа профиль қосу</button>
+        <a href="map.html" class="btn btn-outline">🗺️ <span data-i18n="dash_map">Карта</span></a>
+        <button class="btn btn-gold" onclick="openAddDeceasedModal()"><span data-i18n="dash_add_prof">+ Жаңа профиль қосу</span></button>
       </div>
     </div>
 
@@ -238,46 +238,46 @@
     <div class="dash-stats">
       <div class="dash-stat">
         <div class="dash-stat-val" id="stat-count">—</div>
-        <div class="dash-stat-lbl">Менің профильдерім</div>
+        <div class="dash-stat-lbl"><span data-i18n="dash_my_profs">Менің профильдерім</span></div>
       </div>
       <div class="dash-stat">
         <div class="dash-stat-val" id="stat-public">—</div>
-        <div class="dash-stat-lbl">Барлығына ашық</div>
+        <div class="dash-stat-lbl"><span data-i18n="dash_public">Барлығына ашық</span></div>
       </div>
       <div class="dash-stat">
         <div class="dash-stat-val" id="stat-private">—</div>
-        <div class="dash-stat-lbl">Жабық / Жеке</div>
+        <div class="dash-stat-lbl"><span data-i18n="dash_private">Жабық / Жеке</span></div>
       </div>
       <div class="dash-stat">
         <div class="dash-stat-val" id="stat-views">—</div>
-        <div class="dash-stat-lbl">Жалпы көрулер</div>
+        <div class="dash-stat-lbl"><span data-i18n="dash_views">Жалпы көрулер</span></div>
       </div>
     </div>
 
     <!-- Tabs -->
     <div class="dash-tabs">
-      <button class="dash-tab active" data-tab="profiles" onclick="switchTab('profiles')">📋 Менің жазбаларым</button>
-      <button class="dash-tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Профиль</button>
+      <button class="dash-tab active" data-tab="profiles" onclick="switchTab('profiles')">📋 <span data-i18n="dash_my_records">Менің жазбаларым</span></button>
+      <button class="dash-tab" data-tab="settings" onclick="switchTab('settings')">⚙️ <span data-i18n="dash_profile_settings">Профиль</span></button>
     </div>
 
     <!-- TAB: My Profiles -->
     <div id="tab-profiles" class="dash-section">
       <div class="dash-section-header">
-        <div class="dash-section-title">Менің жазбаларым</div>
-        <button class="btn btn-gold" style="font-size:0.8rem; padding:0.45rem 1rem;" onclick="openAddDeceasedModal()">+ Жаңа қосу</button>
+        <div class="dash-section-title" data-i18n="dash_my_records">Менің жазбаларым</div>
+        <button class="btn btn-gold" style="font-size:0.8rem; padding:0.45rem 1rem;" onclick="openAddDeceasedModal()" data-i18n="dash_add_new">+ Жаңа қосу</button>
       </div>
 
       <!-- Loading -->
       <div class="loading-spinner" id="profiles-loading">
-        <div class="spinner"></div> Жүктелуде...
+        <div class="spinner"></div> <span data-i18n="dash_loading">Жүктелуде...</span>
       </div>
 
       <!-- Empty -->
       <div class="empty-state" id="profiles-empty" style="display:none;">
         <span class="emoji">🤲</span>
-        <h3>Әзірге жазба жоқ</h3>
-        <p>Алғашқы мемориалды жасап, жақындарыңызды цифрлы естелікте сақтаңыз.</p>
-        <button class="btn btn-gold" onclick="openAddDeceasedModal()">+ Алғашқы профильді жасау</button>
+        <h3 data-i18n="dash_empty_title">Әзірге жазба жоқ</h3>
+        <p data-i18n="dash_empty_desc">Алғашқы мемориалды жасап, жақындарыңызды цифрлы естелікте сақтаңыз.</p>
+        <button class="btn btn-gold" onclick="openAddDeceasedModal()"><span data-i18n="dash_create_first">+ Алғашқы профильді жасау</span></button>
       </div>
 
       <!-- Grid -->
@@ -287,15 +287,15 @@
     <!-- TAB: Settings -->
     <div id="tab-settings" class="dash-section" style="display:none;">
       <div class="settings-card">
-        <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:1.5rem;">👤 Профиль параметрлері</h3>
+        <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:1.5rem;">👤 <span data-i18n="dash_prof_settings_title">Профиль параметрлері</span></h3>
         <form id="settings-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="settings-name">Аты-жөні</label>
-              <input type="text" id="settings-name" placeholder="Аты-жөніңіз" />
+              <label for="settings-name" data-i18n="dash_nameLbl">Аты-жөні</label>
+              <input type="text" id="settings-name" placeholder="Аты-жөніңіз" data-i18n-ph="dash_namePh" />
             </div>
             <div class="form-group">
-              <label for="settings-phone">Телефон</label>
+              <label for="settings-phone" data-i18n="dash_phoneLbl">Телефон</label>
               <input type="tel" id="settings-phone" placeholder="+7 777 000 0000" />
             </div>
           </div>
@@ -304,8 +304,8 @@
             <input type="email" id="settings-email" disabled style="opacity:0.5; cursor:not-allowed;" />
           </div>
           <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.5rem;">
-            <button type="submit" class="btn btn-primary">💾 Сақтау</button>
-            <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount()">🗑️ Аккаунтты жою</button>
+            <button type="submit" class="btn btn-primary">💾 <span data-i18n="dash_save">Сақтау</span></button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount()">🗑️ <span data-i18n="dash_del_acc">Аккаунтты жою</span></button>
           </div>
           <div id="settings-msg" style="margin-top:1rem; font-size:0.85rem;"></div>
         </form>
@@ -348,7 +348,10 @@
       await loadMyProfiles();
     }
 
-    // ─── Load Profiles ─────────────────────────────────────────
+    document.addEventListener('langchange', () => applyTranslations());
+      applyTranslations();
+
+      // ─── Load Profiles ─────────────────────────────────────────
     async function loadMyProfiles() {
       document.getElementById('profiles-loading').style.display = 'flex';
       document.getElementById('profiles-grid').innerHTML = '';
@@ -420,6 +423,8 @@
           </button>
         </div>
       `;
+      // Apply translations after rendering new DOM elements if any
+      setTimeout(applyTranslations, 0);
       return div;
     }
 
@@ -508,5 +513,7 @@
     // Start
     init();
   </script>
+  <script src="src/js/core/locales.js"></script>
+  <script src="src/js/core/i18n.js"></script>
 </body>
 </html>

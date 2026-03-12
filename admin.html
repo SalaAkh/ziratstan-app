@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Зиратстан — Панель Модерации</title>
+    <title data-i18n="admin_title">Зиратстан — Панель Модерации</title>
     <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -594,40 +594,40 @@
     <div id="gate">
         <div class="gate-box">
             <div class="gate-logo"><span>З</span>иратстан</div>
-            <div class="gate-sub">Панель модерации UGC контента</div>
+            <div class="gate-sub"><span data-i18n="admin_gate_sub">Панель модерации UGC контента</span></div>
             <form onsubmit="event.preventDefault(); loginUser();">
-                <label for="emailInput" style="display:none;">Электронная почта</label>
+                <label for="emailInput" style="display:none;"><span data-i18n="admin_gate_emailLbl">Электронная почта</span></label>
                 <div id="loginStep">
                     <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
                         autocomplete="email" />
-                    <label for="passwordInput" style="display:none;">Пароль</label>
-                    <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль"
+                    <label for="passwordInput" style="display:none;"><span data-i18n="admin_gate_passLbl">Пароль</span></label>
+                    <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль" data-i18n-ph="admin_gate_passPh"
                         autocomplete="current-password" />
                 </div>
                 <div class="gate-actions">
-                    <button type="submit" class="gate-btn" id="loginBtn">Войти</button>
-                    <button type="button" class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()">Отправить Magic Link</button>
+                    <button type="submit" class="gate-btn" id="loginBtn" data-i18n="admin_gate_login">Войти</button>
+                    <button type="button" class="gate-btn gate-btn-secondary" id="magicLinkBtn" onclick="sendMagicLink()"><span data-i18n="admin_gate_magic">Отправить Magic Link</span></button>
                 </div>
-                <div class="gate-error" id="gateError">Не удалось выполнить вход.</div>
+                <div class="gate-error" id="gateError"><span data-i18n="admin_gate_fail">Не удалось выполнить вход.</span></div>
             </form>
             <div class="gate-success" id="gateSuccess"></div>
             <div class="mfa-step" id="mfaStep">
                 <div class="mfa-card">
-                    <div class="mfa-title" id="mfaTitle">Подтвердите вход</div>
+                    <div class="mfa-title" id="mfaTitle"><span data-i18n="admin_mfa_title">Подтвердите вход</span></div>
                     <div class="mfa-text" id="mfaText"></div>
                     <div class="mfa-qr-wrap" id="mfaQrWrap">
                         <img id="mfaQrImage" src="" alt="" />
                     </div>
                     <div class="mfa-secret-wrap" id="mfaSecretWrap">
-                        <div class="mfa-secret-label">Секрет для ручного добавления</div>
+                        <div class="mfa-secret-label"><span data-i18n="admin_mfa_secretLbl">Секрет для ручного добавления</span></div>
                         <div class="mfa-secret" id="mfaSecret"></div>
                     </div>
-                    <input type="text" class="gate-input" id="mfaCodeInput" placeholder="6-значный код"
+                    <input type="text" class="gate-input" id="mfaCodeInput" placeholder="6-значный код" data-i18n-ph="admin_mfa_codePh"
                         inputmode="numeric" autocomplete="one-time-code"
                         onkeydown="if(event.key==='Enter') verifyMfaCode()" />
                     <div class="gate-actions">
-                        <button type="button" class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()">Подтвердить код</button>
-                        <button type="button" class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()">Выйти</button>
+                        <button type="button" class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()"><span data-i18n="admin_mfa_verify">Подтвердить код</span></button>
+                        <button type="button" class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()" data-i18n="admin_nav_logout" data-i18n="admin_nav_logout">Выйти</button>
                     </div>
                 </div>
             </div>
@@ -641,24 +641,24 @@
                     style="color:var(--muted); font-size:0.75rem; font-weight:400; font-family:Inter;">/
                     Модерация</span></div>
             <div class="nav-right">
-                <span class="badge-pending" id="totalPendingBadge">0 на проверке</span>
+                <span class="badge-pending" id="totalPendingBadge"><span data-i18n="admin_nav_pending">0 на проверке</span></span>
                 <button class="logout-btn" onclick="logout()">Выйти</button>
             </div>
         </nav>
 
         <div class="container">
-            <h1>🛡 Панель модерации</h1>
-            <p class="subtitle">Проверка и одобрение пользовательских данных (UGC) перед публикацией на карте.</p>
+            <h1>🛡 <span data-i18n="admin_panel_title">Панель модерации</span></h1>
+            <p class="subtitle" data-i18n="admin_panel_desc">Проверка и одобрение пользовательских данных (UGC) перед публикацией на карте.</p>
 
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('names', this)">✍️ Названия кладбищ <span
+                <button class="tab active" onclick="switchTab('names', this)">✍️ <span data-i18n="admin_tab_names">Названия кладбищ</span> <span
                         class="tab-count" id="cnt-names">0</span></button>
-                <button class="tab" onclick="switchTab('profiles', this)">👤 Новые личности <span class="tab-count"
+                <button class="tab" onclick="switchTab('profiles', this)">👤 <span data-i18n="admin_tab_profs">Новые личности</span> <span class="tab-count"
                         id="cnt-profiles">0</span></button>
-                <button class="tab" onclick="switchTab('bios', this)">📖 Биографии <span class="tab-count"
+                <button class="tab" onclick="switchTab('bios', this)">📖 <span data-i18n="admin_tab_bios">Биографии</span> <span class="tab-count"
                         id="cnt-bios">0</span></button>
-                <button class="tab" onclick="switchTab('manage', this)">📇 Управление профилями</button>
-                <button class="tab" onclick="switchTab('sessions', this)">Сессии</button>
+                <button class="tab" onclick="switchTab('manage', this)">📇 <span data-i18n="admin_tab_manage">Управление профилями</span></button>
+                <button class="tab" onclick="switchTab('sessions', this)"><span data-i18n="admin_tab_sessions">Сессии</span></button>
             </div>
 
             <div id="content-names" class="cards-list"></div>
@@ -666,25 +666,25 @@
             <div id="content-bios" class="cards-list" style="display:none;"></div>
             <div id="content-manage" class="cards-list" style="display:none;">
                 <div class="card" style="grid-template-columns: 1fr; margin-bottom: 20px;">
-                    <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ Создать новый профиль</div>
+                    <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ <span data-i18n="admin_cp_title">Создать новый профиль</span></div>
                     <form id="createProfileForm" onsubmit="handleCreateProfile(event)"
                         style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="text" id="cp_firstName" placeholder="Имя (обязательно)" required class="gate-input"
+                        <input type="text" id="cp_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                        <input type="text" id="cp_lastName" placeholder="Фамилия" class="gate-input"
+                        <input type="text" id="cp_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                         <div style="display:flex; gap:12px;">
-                            <input type="number" id="cp_birthYear" placeholder="Год рождения (напр. 1850)"
+                            <input type="number" id="cp_birthYear" placeholder="Год рождения (напр. 1850)" data-i18n-ph="admin_cp_by"
                                 class="gate-input"
                                 style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
-                            <input type="number" id="cp_deathYear" placeholder="Год смерти (напр. 1930)"
+                            <input type="number" id="cp_deathYear" placeholder="Год смерти (напр. 1930)" data-i18n-ph="admin_cp_dy"
                                 class="gate-input"
                                 style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
                         </div>
-                        <textarea id="cp_bio" placeholder="Биография" rows="3" class="gate-input"
+                        <textarea id="cp_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="3" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
                         <button type="submit" class="gate-btn" id="cp_submitBtn"
-                            style="width: auto; align-self: flex-start; padding: 10px 24px;">Создать профиль</button>
+                            style="width: auto; align-self: flex-start; padding: 10px 24px;"><span data-i18n="admin_cp_submit">Создать профиль</span></button>
                     </form>
                 </div>
 
@@ -694,14 +694,14 @@
             </div>
             <div id="content-sessions" class="cards-list" style="display:none;">
                 <div class="card" style="grid-template-columns:1fr;">
-                    <div class="card-title" style="font-size:1.1rem;">Активные устройства</div>
+                    <div class="card-title" style="font-size:1.1rem;"><span data-i18n="admin_ses_active">Активные устройства</span></div>
                     <div class="card-actions" style="margin-top:10px; margin-bottom:10px;">
-                        <button type="button" class="btn-reject" onclick="terminateOtherSessions()">Завершить все остальные сессии</button>
+                        <button type="button" class="btn-reject" onclick="terminateOtherSessions()"><span data-i18n="admin_ses_term">Завершить все остальные сессии</span></button>
                     </div>
                     <div id="sessions-active-list" class="cards-list"></div>
                 </div>
                 <div class="card" style="grid-template-columns:1fr;">
-                    <div class="card-title" style="font-size:1.1rem;">История входов/выходов</div>
+                    <div class="card-title" style="font-size:1.1rem;"><span data-i18n="admin_ses_history">История входов/выходов</span></div>
                     <div id="sessions-history-list" class="cards-list"></div>
                 </div>
             </div>
@@ -715,6 +715,9 @@
     <script src="src/js/admin.js"></script>
     
 
+  <script src="src/js/core/locales.js"></script>
+  <script src="src/js/core/i18n.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function() { if(window.applyTranslations) applyTranslations(); }); document.addEventListener("langchange", function() { if(window.applyTranslations) applyTranslations(); });</script>
 </body>
 
 </html>

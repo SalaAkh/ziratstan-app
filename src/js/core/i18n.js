@@ -68,6 +68,14 @@
                 el.setAttribute('title', dict[key]);
             }
         });
+
+        // Content attributes (for meta tags)
+        document.querySelectorAll('[data-i18n-content]').forEach(function (el) {
+            const key = el.getAttribute('data-i18n-content');
+            if (dict[key] !== undefined) {
+                el.setAttribute('content', dict[key]);
+            }
+        });
     }
 
     // ─── Update switcher button UI ────────────────────────────────────────────

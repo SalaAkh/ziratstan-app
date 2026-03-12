@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Жерлеу Орындарының Картасы | Зиратстан</title>
-    <meta name="description" id="pageDesc"
+    <title data-i18n="map_page_title">Жерлеу Орындарының Картасы | Зиратстан</title>
+    <meta name="description" id="pageDesc" data-i18n-content="map_meta_desc"
         content="Қазақстан зираттарының интерактивті картасы. Бейітті аты бойынша табыңыз немесе өзіңіздің GPS орналасуыңызды анықтаңыз." />
     <meta name="keywords"
         content="зираттар картасы, қазақстан жерлеу орындары, картада бейіт іздеу, зираттар геолокациясы, зиратстан картасы" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ziratstan-app.web.app/map.html" />
-    <meta property="og:title" content="Жерлеу Орындарының Картасы | Зиратстан" />
+    <meta property="og:title" data-i18n-content="map_page_title" content="Жерлеу Орындарының Картасы | Зиратстан" />
     <meta property="og:description"
         content="Қазақстан зираттарының интерактивті картасы. Нақты координаттар және іздеу." />
     <meta property="og:locale" content="kk_KZ" />
@@ -1329,7 +1329,7 @@
             <a href="#" id="nav-auth-btn" class="nav-btn" data-i18n="nav_login" onclick="ZiratAuth.openAuthModal(); return false;"></a>
             <div id="nav-user-menu" style="display:none; align-items:center; gap:0.5rem;">
                 <span id="nav-user-name" style="font-size:0.75rem; color:var(--text); font-weight:600;"></span>
-                <button onclick="ZiratAuth.signOut()" style="background:transparent; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;">Шығу</button>
+                <button onclick="ZiratAuth.signOut()" style="background:transparent; border:none; color:var(--muted); font-size:0.75rem; cursor:pointer;" data-i18n="user_logout">Шығу</button>
             </div>
         </div>
     </nav>
@@ -1515,39 +1515,39 @@
 
             <!-- Tabs -->
             <div class="auth-tabs">
-                <button class="auth-tab-btn active" data-tab="login" onclick="ZiratAuth.switchAuthTab('login')">🔑 Кіру</button>
-                <button class="auth-tab-btn" data-tab="register" onclick="ZiratAuth.switchAuthTab('register')">✨ Тіркелу</button>
+                <button class="auth-tab-btn active" data-tab="login" onclick="ZiratAuth.switchAuthTab('login')" data-i18n="auth_login_tab">🔑 Кіру</button>
+                <button class="auth-tab-btn" data-tab="register" onclick="ZiratAuth.switchAuthTab('register')" data-i18n="auth_reg_tab">✨ Тіркелу</button>
             </div>
 
             <!-- Google Auth -->
             <button class="auth-google-btn" onclick="ZiratAuth.signInWithGoogle()">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
-                Google арқылы кіру
+                <span data-i18n="auth_google">Google арқылы кіру</span>
             </button>
 
-            <div class="auth-divider">немесе</div>
+            <div class="auth-divider" data-i18n="auth_or">немесе</div>
 
             <!-- LOGIN FORM -->
             <form class="auth-form" id="auth-login-form">
                 <div class="auth-field">
-                    <label for="login-email">Email</label>
+                    <label for="login-email" data-i18n="auth_email">Email</label>
                     <input type="email" id="login-email" placeholder="example@mail.com" required autocomplete="email" />
                 </div>
                 <div class="auth-field">
-                    <label for="login-password">Пароль</label>
+                    <label for="login-password" data-i18n="auth_password">Пароль</label>
                     <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
                 </div>
                 <div class="auth-error" id="login-error"></div>
-                <button type="submit" class="auth-submit">Кіру →</button>
+                <button type="submit" class="auth-submit" data-i18n="auth_login_submit">Кіру →</button>
                 <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
-                    Аккаунт жоқ па? <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('register'); return false;">Тіркелу</a>
+                    <span data-i18n="auth_no_account">Аккаунт жоқ па?</span> <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('register'); return false;" data-i18n="auth_reg_link">Тіркелу</a>
                 </p>
             </form>
 
             <!-- REGISTER FORM -->
             <form class="auth-form" id="auth-register-form" style="display:none;">
                 <div class="auth-field">
-                    <label for="reg-name">Аты-жөні</label>
+                    <label for="reg-name" data-i18n="auth_name">Аты-жөні</label>
                     <input type="text" id="reg-name" placeholder="Сіздің атыңыз" autocomplete="name" />
                 </div>
                 <div class="auth-field">
@@ -1555,14 +1555,14 @@
                     <input type="email" id="reg-email" placeholder="example@mail.com" required autocomplete="email" />
                 </div>
                 <div class="auth-field">
-                    <label for="reg-password">Пароль (мин. 6 символ)</label>
+                    <label for="reg-password" data-i18n="auth_password_min">Пароль (мин. 6 символ)</label>
                     <input type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
                 </div>
                 <div class="auth-error" id="reg-error"></div>
                 <div class="auth-success" id="reg-success" style="display:none;"></div>
-                <button type="submit" class="auth-submit">✨ Тіркелу →</button>
+                <button type="submit" class="auth-submit" data-i18n="auth_reg_submit">✨ Тіркелу →</button>
                 <p style="text-align:center; font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
-                    Аккаунтыңыз бар ма? <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('login'); return false;">Кіру</a>
+                    <span data-i18n="auth_has_account">Аккаунт бар ма?</span> <a href="#" style="color:var(--gold);" onclick="ZiratAuth.switchAuthTab('login'); return false;" data-i18n="auth_login_link">Кіру</a>
                 </p>
             </form>
         </div>
@@ -1570,19 +1570,7 @@
 
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
-    <script>
-        (function () {
-            function applyHead() {
-                if (!window.i18n) return;
-                document.title = i18n.t('map_title') + ' | Зиратстан';
-                const desc = document.getElementById('pageDesc');
-                if (desc) desc.setAttribute('content', i18n.t('map_meta_desc'));
-            }
-            document.addEventListener('langchange', applyHead);
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHead);
-            else applyHead();
-        })();
-    </script>
+    
 </body>
 
 </html>
