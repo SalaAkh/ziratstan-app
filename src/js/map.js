@@ -27,6 +27,31 @@
         }
 
         // ── MOBILE NAVIGATION ──
+        // Defensive layout fix: if .layout wrapper is missing in HTML,
+        // map appears "empty" because it renders below the viewport.
+        function ensureMapLayoutContainer() {
+            const sidebar = document.getElementById('sidebar');
+            const mapEl = document.getElementById('map');
+            if (!sidebar || !mapEl) return;
+
+            const sidebarParent = sidebar.parentElement;
+            const mapParent = mapEl.parentElement;
+            if (!sidebarParent || sidebarParent !== mapParent) return;
+            if (sidebarParent.classList && sidebarParent.classList.contains('layout')) return;
+
+            const layout = document.createElement('div');
+            layout.className = 'layout';
+            sidebarParent.insertBefore(layout, sidebar);
+            layout.appendChild(sidebar);
+            layout.appendChild(mapEl);
+
+            const regionBackBtn = document.getElementById('regionBackBtn');
+            if (regionBackBtn && regionBackBtn.parentElement === sidebarParent) {
+                layout.appendChild(regionBackBtn);
+            }
+        }
+        ensureMapLayoutContainer();
+
         function showMobileMap() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('mapNavBtn').classList.add('active');

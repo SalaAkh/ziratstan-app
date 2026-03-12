@@ -96,11 +96,26 @@
 
   async function fetchVipProfilesDirect() {
     var db = getDirectClient();
-    var result = await db
+    var userId = null;
+    try {
+      var userResp = await db.auth.getUser();
+      userId = userResp && userResp.data && userResp.data.user ? userResp.data.user.id : null;
+    } catch (_authErr) {
+      userId = null;
+    }
+
+    var query = db
       .from('profiles')
       .select('id, first_name, last_name, patronymic, birth_date, death_date, epitaph, biography, main_photo_url, cemetery_id, location')
-      .eq('visibility_status', 'public')
       .limit(2000);
+
+    if (userId) {
+      query = query.or('visibility_status.eq.public,owner_id.eq.' + userId);
+    } else {
+      query = query.eq('visibility_status', 'public');
+    }
+
+    var result = await query;
 
     if (result.error) throw result.error;
     return (result.data || [])
