@@ -237,6 +237,16 @@ function isAdminRoleRequiredError(error) {
     return error && error.code === 'ADMIN_ROLE_REQUIRED';
 }
 
+function isAuthSessionMissingError(error) {
+    if (!error) {
+        return false;
+    }
+
+    const message = error.message ? String(error.message).toLowerCase() : '';
+    const name = error.name ? String(error.name) : '';
+    return name === 'AuthSessionMissingError' || message.includes('auth session missing');
+}
+
 async function ensureAdminRole(session) {
     if (!session?.user?.id) {
         return;
@@ -249,6 +259,9 @@ async function ensureAdminRole(session) {
     // Session claims can be stale right after role changes; fetch canonical user metadata.
     const userRes = await withAuthRetry(() => db.auth.getUser());
     if (userRes.error) {
+        if (isAuthSessionMissingError(userRes.error)) {
+            return;
+        }
         throw userRes.error;
     }
 
@@ -850,6 +863,12 @@ async function syncAuthUI(session) {
             await startAdminSessionControls();
             return;
         }
+        if (isAuthSessionMissingError(error)) {
+            clearSessionTrackingState();
+            showGate();
+            resetGateMessages();
+            return;
+        }
 
         if (isSessionTerminatedError(error)) {
             await forceSignOutForTerminatedSession();
@@ -884,6 +903,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         queueAuthSync(session).catch((error) => {
             console.error(error);
+            if (isAuthSessionMissingError(error)) {
+                resetGateMessages();
+                return;
+            }
             if (isSupabaseLockAbortError(error)) {
                 showGateMessage('error', 'Retry sign in. Parallel auth requests were detected.');
                 return;
