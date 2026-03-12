@@ -59,6 +59,14 @@ Ziratstan.kz — платформа для поиска захоронений, 
 | `dashboard.html` | Личный кабинет: мои профили, видимость, настройки |
 | `supabase/migrations/20260312_user_auth_rls.sql` | SQL-миграция: таблицы + RLS политики |
 
+### Настройка Google OAuth (Важные нюансы)
+Для корректной работы входа через Google на боевом домене:
+1. В Google Cloud Console добавить точный URI: `https://[PROJECT_REF].supabase.co/auth/v1/callback`
+2. В Supabase Dashboard (`Authentication -> URL Configuration`) обязательно указать:
+   - Site URL: `https://ziratstan-app.web.app/`
+   - Redirect URLs: `https://ziratstan-app.web.app/*`
+3. Учитывать **Google Server Cache**: обновления ключей в Google Cloud Console могут занимать **от 5 до 60 минут**. Если вы уверены в ключах, но получаете ошибку `400: redirect_uri_mismatch` — подождите.
+
 ### Схема безопасности
 
 ```text
@@ -128,7 +136,7 @@ Ziratstan.kz/
 | Слой | Текущее состояние |
 | --- | --- |
 | Прод-фронтенд | Статические HTML/CSS/JS страницы в корне |
-| Авторизация | Supabase Auth (email+пароль) via `supabase-auth.js` |
+| Авторизация | Supabase Auth (email+пароль+Google) via `supabase-auth.js` |
 | Локализация | `src/js/core/i18n.js` + `locales.js` |
 | База данных | Supabase / PostgreSQL + RLS |
 | Серверная логика | Firebase Functions v2 |

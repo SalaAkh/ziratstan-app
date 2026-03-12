@@ -351,8 +351,8 @@
       await loadMyProfiles();
     }
 
-    document.addEventListener('langchange', () => applyTranslations());
-      applyTranslations();
+    document.addEventListener('langchange', () => window.i18n?.setLang(window.i18n.getLang()));
+      if (window.i18n) window.i18n.setLang(window.i18n.getLang());
 
       // ─── Load Profiles ─────────────────────────────────────────
     async function loadMyProfiles() {
@@ -427,7 +427,7 @@
         </div>
       `;
       // Apply translations after rendering new DOM elements if any
-      setTimeout(applyTranslations, 0);
+      setTimeout(() => window.i18n?.setLang(window.i18n.getLang()), 0);
       return div;
     }
 
