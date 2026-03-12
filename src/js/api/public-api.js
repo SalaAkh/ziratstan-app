@@ -6,7 +6,13 @@
 
   function jsonFetch(url, options) {
     var opts = options || {};
-    opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+    var method = String(opts.method || 'GET').toUpperCase();
+    var hasBody = opts.body !== undefined && opts.body !== null;
+    var baseHeaders = {};
+    if (hasBody && method !== 'GET' && method !== 'HEAD') {
+      baseHeaders['Content-Type'] = 'application/json';
+    }
+    opts.headers = Object.assign(baseHeaders, opts.headers || {});
     return fetch(url, opts).then(function (res) {
       return res.text().then(function (text) {
         var payload = null;

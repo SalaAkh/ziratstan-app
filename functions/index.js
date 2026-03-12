@@ -40,6 +40,15 @@ function sendJson(res, status, payload) {
     res.status(status).json(payload);
 }
 
+function setCorsHeaders(req, res) {
+    const origin = req.headers.origin || '*';
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Vary', 'Origin');
+    res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Max-Age', '3600');
+}
+
 function parseJwtPayload(token) {
     try {
         const payload = token.split('.')[1];
@@ -466,10 +475,11 @@ async function handleStatusPost(req, res) {
 
 exports.api = onRequest(
     {
-        cors: true,
         secrets: [SUPABASE_URL_SECRET, SUPABASE_SERVICE_ROLE_KEY_SECRET],
     },
     async (req, res) => {
+    setCorsHeaders(req, res);
+
     if (req.method === 'OPTIONS') {
         return res.status(204).send('');
     }
