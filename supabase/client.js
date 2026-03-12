@@ -295,15 +295,14 @@ window.ZiratApi = {
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (UUID_REGEX.test(slug)) return slug;
 
+    const normalized = String(slug).trim().toUpperCase();
     const { data, error } = await db
-      .from('profiles')
-      .select('id')
-      .eq('epitaph', slug)
-      .limit(1)
+      .from('qr_codes')
+      .select('profile_id, status')
+      .eq('slug', normalized)
       .maybeSingle();
 
-    if (error || !data) return null;
-    return data.id;
+    if (error || !data || data.status !== 'active') return null;
+    return data.profile_id;
   }
 };
-

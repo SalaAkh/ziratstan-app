@@ -199,10 +199,10 @@ async function getProfile() {
   const sb = getSupabase();
   if (!currentUser) return null;
   const { data } = await sb
-    .from('profiles')
+    .from('user_profiles')
     .select('*')
-    .eq('id', currentUser.id)
-    .single();
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
   return data;
 }
 

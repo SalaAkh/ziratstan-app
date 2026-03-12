@@ -4,6 +4,18 @@ import Link from 'next/link'
 import { User, Settings, LogOut, FileText, QrCode } from 'lucide-react'
 import { signOut } from '../login/actions'
 
+type ServiceOrderRow = {
+    id: string
+    service_type: string
+    created_at: string
+    price: number
+    status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+    profiles: {
+        first_name: string | null
+        last_name: string | null
+    } | null
+}
+
 export default async function CabinetPage() {
     const supabase = await createClient()
 
@@ -13,12 +25,22 @@ export default async function CabinetPage() {
         redirect('/login')
     }
 
-    // Fetch orders by user email
-    const { data: orders } = await supabase
-        .from('services_orders')
-        .select('*, profiles(first_name, last_name)')
-        .eq('customer_email', user.email)
-        .order('created_at', { ascending: false })
+    // Orders are linked by customer_email from the services order flow.
+    let orders: ServiceOrderRow[] = []
+    let ordersError: string | null = null
+    if (user.email) {
+        const { data, error } = await supabase
+            .from('services_orders')
+            .select('*, profiles(first_name, last_name)')
+            .eq('customer_email', user.email.toLowerCase())
+            .order('created_at', { ascending: false })
+
+        if (error) {
+            ordersError = error.message
+        } else {
+            orders = (data || []) as ServiceOrderRow[]
+        }
+    }
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 max-w-5xl mx-auto">
@@ -79,7 +101,11 @@ export default async function CabinetPage() {
                             <Settings className="text-[#d4af37]" /> Заказы на услуги
                         </h2>
 
-                        {orders && orders.length > 0 ? (
+                        {ordersError ? (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center text-sm text-red-300">
+                                Не удалось загрузить заказы: {ordersError}
+                            </div>
+                        ) : orders.length > 0 ? (
                             <div className="grid gap-4">
                                 {orders.map((order) => (
                                     <div key={order.id} className="bg-[#111113] border border-white/5 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

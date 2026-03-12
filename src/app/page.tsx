@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { QrCode, Heart, ShieldCheck, Map, Shovel, Paintbrush, BookOpen, Dna, WifiOff, Lock, Mail, MessageCircle } from "lucide-react";
+import { QrCode, Heart, Map, Shovel, Paintbrush, BookOpen, Dna, WifiOff, Lock, Mail, MessageCircle } from "lucide-react";
 
 export default function Home() {
   return (
@@ -37,11 +37,11 @@ export default function Home() {
               Открыть карту
             </Link>
             <Link
-              href="/profile/test-id"
+              href="/search"
               className="flex-1 flex justify-center items-center gap-2 border-2 border-primary/20 text-primary bg-transparent px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary/5 transition-all"
             >
               <QrCode className="w-5 h-5" />
-              Демо QR-профиля
+              Найти профиль
             </Link>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function Home() {
           <Link href="/map" className="text-sm text-foreground/50 hover:text-foreground transition-colors">Карта</Link>
           <Link href="/services" className="text-sm text-foreground/50 hover:text-foreground transition-colors">Услуги</Link>
           <Link href="/admin/qr" className="text-sm text-foreground/50 hover:text-foreground transition-colors">QR-Генератор</Link>
-          <Link href="/profile/test-id" className="text-sm text-foreground/50 hover:text-foreground transition-colors">Демо</Link>
+          <Link href="/search" className="text-sm text-foreground/50 hover:text-foreground transition-colors">Поиск</Link>
         </div>
         <p className="mb-1">
           <strong><span className="text-accent">З</span>иратстан</strong> — Цифровой архив захоронений Казахстана

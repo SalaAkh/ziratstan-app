@@ -7,15 +7,16 @@ import { supabase } from '@/lib/supabase';
  * Это главная точка входа при сканировании QR-таблички на надгробии
  */
 export async function GET(
-    request: Request,
+    _request: Request,
     { params }: { params: Promise<{ slug: string }> }
 ) {
     const { slug } = await params;
+    const normalizedSlug = String(slug || '').trim().toUpperCase();
 
     const { data, error } = await supabase
         .from('qr_codes')
         .select('profile_id, status')
-        .eq('slug', slug)
+        .eq('slug', normalizedSlug)
         .single();
 
     if (error || !data) {

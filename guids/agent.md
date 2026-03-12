@@ -342,7 +342,7 @@ Ziratstan.kz/
 - [map.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/map.js)
 - [public-api.js](/d:/User/Desktop/Programms/Ziratstan.kz/src/js/api/public-api.js)
 
-### Next.js-контур
+### Файлы Next.js-контура
 
 - [page.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/page.tsx)
 - [layout.tsx](/d:/User/Desktop/Programms/Ziratstan.kz/src/app/layout.tsx)

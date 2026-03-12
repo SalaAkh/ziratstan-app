@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Locate, MapPin } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { supabase } from '@/lib/supabase';
 
-// Динамический импорт карты — Leaflet не работает на сервере (нет window)
 const GraveMap = dynamic(() => import('@/components/map/GraveMap'), {
     ssr: false,
     loading: () => (
@@ -15,56 +15,107 @@ const GraveMap = dynamic(() => import('@/components/map/GraveMap'), {
     ),
 });
 
-// Мок-данные захоронений в Алматы для демонстрации
-const MOCK_PROFILES = [
-    {
-        id: 'test-id',
-        first_name: 'Динмухамед',
-        last_name: 'Кунаев',
-        birth_date: '1912',
-        death_date: '1993',
-        lat: 43.2658,
-        lng: 76.9430,
-    },
-    {
-        id: 'mock-2',
-        first_name: 'Алихан',
-        last_name: 'Бокейханов',
-        birth_date: '1866',
-        death_date: '1937',
-        lat: 43.2571,
-        lng: 76.9310,
-    },
-    {
-        id: 'mock-3',
-        first_name: 'Абай',
-        last_name: 'Кунанбаев',
-        birth_date: '1845',
-        death_date: '1904',
-        lat: 43.2540,
-        lng: 76.9380,
-    },
-];
+type MapProfile = {
+    id: string;
+    first_name: string;
+    last_name: string | null;
+    birth_date: string | null;
+    death_date: string | null;
+    lat: number;
+    lng: number;
+};
+
+type DbProfileRow = {
+    id: string;
+    first_name: string;
+    last_name: string | null;
+    birth_date: string | null;
+    death_date: string | null;
+    location: { type?: string; coordinates?: [number, number] } | null;
+};
+
+function toMapProfiles(rows: DbProfileRow[]): MapProfile[] {
+    return rows
+        .map((row) => {
+            const coordinates = row.location?.coordinates;
+            const lng = Array.isArray(coordinates) ? Number(coordinates[0]) : NaN;
+            const lat = Array.isArray(coordinates) ? Number(coordinates[1]) : NaN;
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                return null;
+            }
+
+            return {
+                id: row.id,
+                first_name: row.first_name,
+                last_name: row.last_name,
+                birth_date: row.birth_date,
+                death_date: row.death_date,
+                lat,
+                lng,
+            };
+        })
+        .filter((item): item is MapProfile => item !== null);
+}
 
 export default function MapPage() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [profiles, setProfiles] = useState<MapProfile[]>([]);
+    const [loadingProfiles, setLoadingProfiles] = useState(true);
+    const [profilesError, setProfilesError] = useState<string | null>(null);
     const { lat, lng, loading, error, getLocation } = useGeolocation();
 
-    const filteredProfiles = MOCK_PROFILES.filter((p) => {
-        const q = searchQuery.toLowerCase();
-        return (
-            p.first_name.toLowerCase().includes(q) ||
-            (p.last_name || '').toLowerCase().includes(q)
-        );
-    });
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadProfiles() {
+            setLoadingProfiles(true);
+            setProfilesError(null);
+
+            const { data, error: dbError } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name, birth_date, death_date, location')
+                .eq('visibility_status', 'public')
+                .not('location', 'is', null)
+                .limit(5000);
+
+            if (!isMounted) return;
+
+            if (dbError) {
+                setProfiles([]);
+                setProfilesError(dbError.message);
+                setLoadingProfiles(false);
+                return;
+            }
+
+            setProfiles(toMapProfiles((data || []) as DbProfileRow[]));
+            setLoadingProfiles(false);
+        }
+
+        loadProfiles();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const filteredProfiles = (() => {
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return profiles;
+        return profiles.filter((profile) => {
+            return (
+                profile.first_name.toLowerCase().includes(q) ||
+                (profile.last_name || '').toLowerCase().includes(q)
+            );
+        });
+    })();
 
     return (
         <div className="flex flex-col h-screen bg-background">
-            {/* Шапка поиска */}
             <div className="px-4 py-4 space-y-3 bg-background/90 backdrop-blur-sm z-10 shadow-md">
                 <h1 className="text-xl font-bold flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-accent" />
-                    Карта Захоронений
+                    Карта захоронений
                 </h1>
 
                 <div className="flex gap-2">
@@ -88,18 +139,16 @@ export default function MapPage() {
                     </button>
                 </div>
 
-                {error && (
-                    <p className="text-xs text-red-400 px-2">{error}</p>
-                )}
-
+                {profilesError && <p className="text-xs text-red-400 px-2">Ошибка загрузки данных: {profilesError}</p>}
+                {error && <p className="text-xs text-red-400 px-2">{error}</p>}
                 {lat && lng && (
-                    <p className="text-xs text-green-500 px-2">
-                        ✓ Геолокация определена. Карта перемещается к вам.
-                    </p>
+                    <p className="text-xs text-green-500 px-2">✓ Геолокация определена. Карта перемещается к вам.</p>
+                )}
+                {!loadingProfiles && !profilesError && (
+                    <p className="text-xs text-foreground/50 px-2">Профилей на карте: {profiles.length}</p>
                 )}
             </div>
 
-            {/* Полноэкранная карта */}
             <div className="flex-1 p-2">
                 <GraveMap
                     profiles={filteredProfiles}
@@ -109,28 +158,25 @@ export default function MapPage() {
                 />
             </div>
 
-            {/* Список найденных внизу (если поиск активен) */}
-            {searchQuery && filteredProfiles.length > 0 && (
+            {!loadingProfiles && searchQuery && filteredProfiles.length > 0 && (
                 <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
-                    <p className="text-xs text-foreground/50">
-                        Найдено: {filteredProfiles.length}
-                    </p>
-                    {filteredProfiles.map((p) => (
+                    <p className="text-xs text-foreground/50">Найдено: {filteredProfiles.length}</p>
+                    {filteredProfiles.map((profile) => (
                         <a
-                            key={p.id}
-                            href={`/profile/${p.id}`}
+                            key={profile.id}
+                            href={`/profile/${profile.id}`}
                             className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10 hover:bg-primary/10 transition"
                         >
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-sm">
-                                {p.first_name[0]}
+                                {profile.first_name[0]}
                             </div>
                             <div>
                                 <p className="font-medium text-sm">
-                                    {p.last_name} {p.first_name}
+                                    {profile.last_name} {profile.first_name}
                                 </p>
-                                {p.birth_date && p.death_date && (
+                                {profile.birth_date && profile.death_date && (
                                     <p className="text-xs text-foreground/50">
-                                        {p.birth_date} — {p.death_date}
+                                        {new Date(profile.birth_date).getFullYear()} — {new Date(profile.death_date).getFullYear()}
                                     </p>
                                 )}
                             </div>

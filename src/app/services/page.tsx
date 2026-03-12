@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Shovel, Paintbrush, BookOpen, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 import { createServiceOrder } from '@/app/actions/services.actions';
@@ -9,7 +10,7 @@ const SERVICES = [
         id: 'cleaning',
         icon: Shovel,
         title: 'Уборка могилы',
-        description: 'Профессиональная уборка территории, прополка, подметание, мытьё памятника.',
+        description: 'Уборка территории, прополка и очистка памятника.',
         price: 5000,
         duration: '1–2 часа',
     },
@@ -17,7 +18,7 @@ const SERVICES = [
         id: 'painting',
         icon: Paintbrush,
         title: 'Покраска ограды',
-        description: 'Покраска металлической оградки, обновление цвета памятника, нанесение защитного лака.',
+        description: 'Покраска металлической ограды и обновление памятника.',
         price: 12000,
         duration: '2–4 часа',
     },
@@ -25,7 +26,7 @@ const SERVICES = [
         id: 'quran',
         icon: BookOpen,
         title: 'Чтение Корана',
-        description: 'Приглашение имама для чтения Корана и молитвы у могилы с видео-подтверждением.',
+        description: 'Приглашение имама для молитвы и чтения Корана.',
         price: 8000,
         duration: '30–60 минут',
     },
@@ -34,41 +35,42 @@ const SERVICES = [
 export default function ServicesPage() {
     const [selected, setSelected] = useState<string | null>(null);
     const [step, setStep] = useState<'select' | 'form' | 'success'>('select');
-    const [form, setForm] = useState({ name: '', phone: '', profileId: '', comment: '' });
+    const [form, setForm] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        profileId: '',
+        comment: '',
+    });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const selectedService = SERVICES.find(s => s.id === selected);
+    const selectedService = SERVICES.find((service) => service.id === selected);
 
     const handleSubmit = async () => {
-        if (!selectedService || !form.name || !form.phone) return;
+        if (!selectedService) return;
+
         setSubmitting(true);
         setError(null);
 
-        try {
-            const result = await createServiceOrder({
-                customerName: form.name,
-                customerPhone: form.phone,
-                serviceType: selectedService.id === 'quran' ? 'quran_reading' : selectedService.id,
-                price: selectedService.price,
-                profileId: form.profileId || undefined,
-                comment: form.comment || undefined,
-            });
+        const result = await createServiceOrder({
+            customerName: form.name,
+            customerPhone: form.phone,
+            customerEmail: form.email,
+            serviceType: selectedService.id === 'quran' ? 'quran_reading' : selectedService.id,
+            price: selectedService.price,
+            profileId: form.profileId,
+            comment: form.comment || undefined,
+        });
 
-            if (result.success) {
-                setStep('success');
-            } else {
-                // Если Supabase недоступна — всё равно показываем success (graceful degradation)
-                console.warn('Supabase error (graceful):', result.error);
-                setStep('success');
-            }
-        } catch (err) {
-            console.warn('Ошибка отправки (graceful):', err);
-            // Graceful: даже при ошибке показываем success — заказ можно обработать позже
-            setStep('success');
-        } finally {
+        if (!result.success) {
             setSubmitting(false);
+            setError(result.error || 'Не удалось оформить заказ. Попробуйте снова.');
+            return;
         }
+
+        setSubmitting(false);
+        setStep('success');
     };
 
     if (step === 'success') {
@@ -78,17 +80,16 @@ export default function ServicesPage() {
                     <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10 text-green-500" />
                     </div>
-                    <h1 className="text-3xl font-bold mb-4">Заказ принят!</h1>
+                    <h1 className="text-3xl font-bold mb-4">Заказ принят</h1>
                     <p className="text-foreground/70 text-lg mb-8">
-                        Ваш заказ принят. Исполнитель свяжется с вами в течение 24 часов. После выполнения вы
-                        получите фотоотчёт «До/После».
+                        Мы сохранили заявку и привязали её к вашему email. Статус заказа будет доступен в кабинете.
                     </p>
-                    <a
+                    <Link
                         href="/"
                         className="inline-flex items-center gap-2 bg-primary text-background px-8 py-4 rounded-xl font-bold hover:opacity-90 transition-all"
                     >
                         На главную
-                    </a>
+                    </Link>
                 </div>
             </div>
         );
@@ -96,12 +97,11 @@ export default function ServicesPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Header */}
             <div className="bg-primary/5 border-b border-primary/10 px-6 py-8">
                 <div className="max-w-4xl mx-auto">
                     <h1 className="text-3xl font-bold mb-2">Услуги по уходу за могилой</h1>
                     <p className="text-foreground/70">
-                        Заказывайте из любой точки мира. Исполнитель пришлёт фотоотчёт.
+                        Закажите услугу и отслеживайте её статус в личном кабинете.
                     </p>
                 </div>
             </div>
@@ -110,28 +110,34 @@ export default function ServicesPage() {
                 {step === 'select' && (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                            {SERVICES.map(s => {
-                                const Icon = s.icon;
-                                const isSelected = selected === s.id;
+                            {SERVICES.map((service) => {
+                                const Icon = service.icon;
+                                const isSelected = selected === service.id;
+
                                 return (
                                     <button
-                                        key={s.id}
-                                        onClick={() => setSelected(s.id)}
-                                        className={`text-left p-6 rounded-2xl border-2 transition-all ${isSelected
-                                            ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
-                                            : 'border-primary/10 bg-primary/5 hover:border-primary/30'
-                                            }`}
+                                        key={service.id}
+                                        onClick={() => setSelected(service.id)}
+                                        className={`text-left p-6 rounded-2xl border-2 transition-all ${
+                                            isSelected
+                                                ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
+                                                : 'border-primary/10 bg-primary/5 hover:border-primary/30'
+                                        }`}
                                     >
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isSelected ? 'bg-accent text-background' : 'bg-primary/10 text-foreground'}`}>
+                                        <div
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
+                                                isSelected ? 'bg-accent text-background' : 'bg-primary/10 text-foreground'
+                                            }`}
+                                        >
                                             <Icon className="w-6 h-6" />
                                         </div>
-                                        <h3 className="font-bold text-lg mb-2">{s.title}</h3>
-                                        <p className="text-sm text-foreground/60 mb-4">{s.description}</p>
+                                        <h3 className="font-bold text-lg mb-2">{service.title}</h3>
+                                        <p className="text-sm text-foreground/60 mb-4">{service.description}</p>
                                         <div className="flex justify-between items-center">
                                             <span className="text-accent font-bold text-lg">
-                                                {s.price.toLocaleString()} ₸
+                                                {service.price.toLocaleString()} ₸
                                             </span>
-                                            <span className="text-xs text-foreground/40">{s.duration}</span>
+                                            <span className="text-xs text-foreground/40">{service.duration}</span>
                                         </div>
                                     </button>
                                 );
@@ -168,49 +174,55 @@ export default function ServicesPage() {
                                 <label className="block text-sm font-medium mb-2">Ваше имя</label>
                                 <input
                                     type="text"
-                                    placeholder="Ахмед Сейткали"
+                                    placeholder="Алихан Серикулы"
                                     value={form.name}
-                                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                                     className="w-full bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 outline-none focus:border-accent transition-colors"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">Номер телефона</label>
+                                <label className="block text-sm font-medium mb-2">Телефон</label>
                                 <input
                                     type="tel"
                                     placeholder="+7 707 000 00 00"
                                     value={form.phone}
-                                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                                     className="w-full bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 outline-none focus:border-accent transition-colors"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">
-                                    ID профиля усопшего <span className="text-foreground/40 font-normal">(необязательно)</span>
-                                </label>
+                                <label className="block text-sm font-medium mb-2">Email для кабинета</label>
+                                <input
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={form.email}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                                    className="w-full bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 outline-none focus:border-accent transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">UUID профиля или QR slug</label>
                                 <input
                                     type="text"
-                                    placeholder="ZRT-1234 или ссылка на профиль"
+                                    placeholder="UUID или ZRT-XXXXXX"
                                     value={form.profileId}
-                                    onChange={e => setForm(f => ({ ...f, profileId: e.target.value }))}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, profileId: e.target.value }))}
                                     className="w-full bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 outline-none focus:border-accent transition-colors"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Комментарий</label>
                                 <textarea
-                                    placeholder="Дополнительные пожелания к исполнителю..."
+                                    placeholder="Дополнительные пожелания исполнителю..."
                                     rows={3}
                                     value={form.comment}
-                                    onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, comment: e.target.value }))}
                                     className="w-full bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 outline-none focus:border-accent transition-colors resize-none"
                                 />
                             </div>
                         </div>
 
-                        {error && (
-                            <p className="text-red-400 text-sm mt-4">{error}</p>
-                        )}
+                        {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
 
                         <div className="flex gap-3 mt-8">
                             <button
@@ -220,7 +232,7 @@ export default function ServicesPage() {
                                 Назад
                             </button>
                             <button
-                                disabled={!form.name || !form.phone || submitting}
+                                disabled={!form.name || !form.phone || !form.email || !form.profileId || submitting}
                                 onClick={handleSubmit}
                                 className="flex-1 flex items-center justify-center gap-2 bg-primary text-background rounded-xl py-4 font-bold disabled:opacity-40 hover:opacity-90 transition-all"
                             >

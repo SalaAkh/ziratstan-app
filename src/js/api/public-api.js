@@ -92,7 +92,9 @@
 
   async function fetchProfileIdBySlug(slug) {
     try {
-      var res = await jsonFetch(apiBase() + '/public/profile-id-by-slug?slug=' + encodeURIComponent(slug || ''), { method: 'GET' });
+      var normalized = String(slug || '').trim();
+      if (!normalized) return null;
+      var res = await jsonFetch(apiBase() + '/public/profile-id-by-slug?slug=' + encodeURIComponent(normalized), { method: 'GET' });
       return res ? res.item : null;
     } catch (_error) {
       return null;
@@ -111,4 +113,3 @@
   global.generateQrSlug = generateQrSlug;
   global.fetchProfileIdBySlug = fetchProfileIdBySlug;
 })(window);
-

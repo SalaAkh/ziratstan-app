@@ -42,6 +42,7 @@ export async function globalSearch(query: string, page: number = 1, limit: numbe
       main_photo_url,
       cemeteries ( name, city )
     `, { count: 'exact' })
+        .eq('visibility_status', 'public')
         .or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},patronymic.ilike.${searchTerm}`)
         .order('last_name', { ascending: true })
         .range(from, to)

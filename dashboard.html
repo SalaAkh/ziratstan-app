@@ -350,6 +350,7 @@
       // Load settings
       document.getElementById('settings-email').value = currentUser.email;
       document.getElementById('settings-name').value = currentUser.user_metadata?.full_name || '';
+      await loadUserProfileSettings();
 
       // Load data
       await loadMyProfiles();
@@ -357,6 +358,24 @@
 
     document.addEventListener('langchange', () => window.i18n?.setLang(window.i18n.getLang()));
       if (window.i18n) window.i18n.setLang(window.i18n.getLang());
+
+    async function loadUserProfileSettings() {
+      const { data, error } = await sb
+        .from('user_profiles')
+        .select('full_name, phone')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('[Dashboard] Error loading user profile settings:', error.message);
+        return;
+      }
+
+      if (data?.full_name) {
+        document.getElementById('settings-name').value = data.full_name;
+      }
+      document.getElementById('settings-phone').value = data?.phone || '';
+    }
 
       // ─── Load Profiles ─────────────────────────────────────────
     async function loadMyProfiles() {
@@ -366,7 +385,7 @@
 
       const { data, error } = await sb
         .from('profiles')
-        .select('*')
+        .select('id, first_name, last_name, patronymic, birth_date, death_date, main_photo_url, visibility_status, cemeteries(name, city)')
         .eq('owner_id', currentUser.id)
         .order('created_at', { ascending: false });
 
@@ -397,16 +416,19 @@
       const div = document.createElement('div');
       div.className = 'profile-card';
 
-      const badgeClass = profile.visibility === 'public' ? 'badge-public'
-        : profile.visibility === 'private' ? 'badge-private' : 'badge-family';
+      const visibility = profile.visibility_status || 'public';
+      profile.visibility = visibility;
+      const badgeClass = visibility === 'public' ? 'badge-public'
+        : visibility === 'private' ? 'badge-private' : 'badge-family';
       const badgeText = profile.visibility === 'public' ? '🌐 Ашық'
         : profile.visibility === 'private' ? '🔒 Жабық' : '👨‍👩‍👧 Отбасы';
 
-      const birthYear = profile.born ? new Date(profile.born).getFullYear() : '?';
-      const deathYear = profile.died ? new Date(profile.died).getFullYear() : '?';
+      const birthYear = profile.birth_date ? new Date(profile.birth_date).getFullYear() : '?';
+      const deathYear = profile.death_date ? new Date(profile.death_date).getFullYear() : '?';
+      const displayName = [profile.last_name, profile.first_name, profile.patronymic].filter(Boolean).join(' ') || profile.full_name || 'Unknown';
       const name = profile.name_kk || profile.name || profile.full_name || 'Аты белгісіз';
-      const cemetery = profile.cemetery_name || profile.location_name || '';
-      const photoUrl = profile.photo_url || profile.avatar_url || '';
+      const cemetery = profile.cemeteries ? `${profile.cemeteries.name || ''}${profile.cemeteries.city ? ', ' + profile.cemeteries.city : ''}` : '';
+      const photoUrl = profile.main_photo_url || '';
 
       div.innerHTML = `
         <span class="profile-badge ${badgeClass}">${badgeText}</span>
@@ -417,7 +439,7 @@
               : '🕌'}
           </div>
           <div class="profile-info">
-            <h3>${name}</h3>
+            <h3>${displayName}</h3>
             <div class="dates">${birthYear} — ${deathYear}</div>
             <div class="location">${cemetery ? '📍 ' + cemetery : ''}</div>
           </div>
@@ -425,7 +447,7 @@
         <div class="profile-actions">
           <a href="profile.html?id=${profile.id}" class="btn btn-outline">👁️ Көру</a>
           <a href="map.html#${profile.id}" class="btn btn-outline">🗺️ Карта</a>
-          <button class="btn btn-outline" onclick="toggleVisibility('${profile.id}', '${profile.visibility}')">
+          <button class="btn btn-outline" onclick="toggleVisibility('${profile.id}', '${visibility}')">
             ${profile.visibility === 'public' ? '🔒 Жабу' : '🌐 Ашу'}
           </button>
         </div>
@@ -437,8 +459,8 @@
 
     // ─── Stats ─────────────────────────────────────────────────
     function updateStats() {
-      const publicCount = myProfiles.filter(p => p.visibility === 'public').length;
-      const privateCount = myProfiles.filter(p => p.visibility !== 'public').length;
+      const publicCount = myProfiles.filter(p => (p.visibility_status || 'public') === 'public').length;
+      const privateCount = myProfiles.filter(p => (p.visibility_status || 'public') !== 'public').length;
       document.getElementById('stat-count').textContent = myProfiles.length;
       document.getElementById('stat-public').textContent = publicCount;
       document.getElementById('stat-private').textContent = privateCount;
@@ -450,7 +472,7 @@
       const newVis = currentVis === 'public' ? 'private' : 'public';
       const { error } = await sb
         .from('profiles')
-        .update({ visibility: newVis })
+        .update({ visibility_status: newVis })
         .eq('id', id)
         .eq('owner_id', currentUser.id);
       
@@ -476,7 +498,12 @@
       const msgEl = document.getElementById('settings-msg');
 
       const { error: authErr } = await sb.auth.updateUser({ data: { full_name: fullName } });
-      const { error: dbErr } = await sb.from('profiles').upsert({ id: currentUser.id, full_name: fullName, phone });
+      const { error: dbErr } = await sb.from('user_profiles').upsert({
+        user_id: currentUser.id,
+        full_name: fullName || null,
+        phone: phone || null,
+        updated_at: new Date().toISOString()
+      });
 
       if (authErr || dbErr) {
         msgEl.style.color = 'var(--danger)';

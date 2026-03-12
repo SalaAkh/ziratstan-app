@@ -777,7 +777,7 @@
         });
 
         // ── UGC MODALS ──
-        function openUgcModal(cemeteryId, currentName) {
+        function openUgcModal(cemeteryId, currentName, lat, lng) {
             // AUTH GUARD
             if (typeof ZiratAuth === 'undefined' || !ZiratAuth.isLoggedIn()) {
                 if (typeof ZiratAuth !== 'undefined') {
@@ -785,7 +785,12 @@
                     return;
                 }
             }
-            window.currentUgcCemeteryId = cemeteryId;
+            window.currentUgcContext = {
+                cemeteryId: cemeteryId || null,
+                currentName: currentName || null,
+                lat: Number.isFinite(Number(lat)) ? Number(lat) : null,
+                lng: Number.isFinite(Number(lng)) ? Number(lng) : null
+            };
             document.getElementById('ugcNameInput').value = currentName || '';
             document.getElementById('ugcModal').style.display = 'flex';
         }
@@ -806,9 +811,13 @@
 
             try {
                 if (typeof submitUgcSuggestion === 'function') {
+                    const ctx = window.currentUgcContext || {};
                     await submitUgcSuggestion({
-                        cemeteryId: window.currentUgcCemeteryId,
-                        suggestedName: newName
+                        cemetery_id: ctx.cemeteryId || null,
+                        current_name: ctx.currentName || null,
+                        suggested_name: newName,
+                        lat: ctx.lat,
+                        lng: ctx.lng
                     });
                 }
             } catch (err) {

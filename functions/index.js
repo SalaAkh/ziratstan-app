@@ -118,8 +118,9 @@ async function handlePublicUgcName(req, res) {
 
     const body = req.body || {};
     const payload = {
-        current_name: toSafeString(body.current_name, 200),
-        suggested_name: toSafeString(body.suggested_name, 200),
+        cemetery_id: toSafeString(body.cemetery_id ?? body.cemeteryId, 120),
+        current_name: toSafeString(body.current_name ?? body.currentName, 200),
+        suggested_name: toSafeString(body.suggested_name ?? body.suggestedName, 200),
         lat: toSafeNumber(body.lat),
         lng: toSafeNumber(body.lng),
         comment: toSafeString(body.comment, 500),
@@ -127,7 +128,7 @@ async function handlePublicUgcName(req, res) {
         submitted_at: new Date().toISOString(),
     };
 
-    if (!payload.current_name || !payload.suggested_name || payload.lat === null || payload.lng === null) {
+    if (!payload.suggested_name) {
         return sendJson(res, 400, { error: 'Invalid payload' });
     }
 
@@ -351,22 +352,25 @@ async function handlePublicProfileIdBySlug(req, res) {
     if (!db) return sendJson(res, 500, { error: 'Server is not configured' });
 
     const slug = String(req.query?.slug || '').trim();
-    if (!slug || slug.length > 200) return sendJson(res, 400, { error: 'Invalid slug' });
+    if (!slug || slug.length > 64) return sendJson(res, 400, { error: 'Invalid slug' });
 
     if (isUuid(slug)) {
         return sendJson(res, 200, { item: slug });
     }
 
+    const normalizedSlug = slug.toUpperCase();
     const { data, error } = await db
-        .from('profiles')
-        .select('id')
-        .eq('epitaph', slug)
-        .eq('visibility_status', 'public')
-        .limit(1)
+        .from('qr_codes')
+        .select('profile_id, status')
+        .eq('slug', normalizedSlug)
         .maybeSingle();
 
     if (error) throw error;
-    return sendJson(res, 200, { item: data ? data.id : null });
+    if (!data || data.status !== 'active') {
+        return sendJson(res, 200, { item: null });
+    }
+
+    return sendJson(res, 200, { item: data.profile_id });
 }
 
 async function handleBootstrap(req, res) {

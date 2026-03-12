@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "ziratstan-app/**",
+    "functions/**",
+    "supabase/**",
+    "src/js/**",
+    "*.html",
+    ".firebase/**",
+    ".firebase-config/**",
   ]),
 ]);
 
