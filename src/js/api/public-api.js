@@ -5,6 +5,7 @@
   // Initialize Supabase Client dynamically
   function getSb() {
     if (global._public_sb) return global._public_sb;
+    if (global.window && global.window.supabaseClient) return global.window.supabaseClient;
     
     var cfg = global.ZiratConfig?.getSupabaseConfig?.() || {};
     var SB_URL = cfg.SUPABASE_URL || '';
