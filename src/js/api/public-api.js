@@ -117,6 +117,9 @@
   async function fetchProfileById(id) {
     var sb = getSb();
     if (!sb || !id) return null;
+    // profiles.id is UUID type — skip Supabase for static slugs like "kerey_khan"
+    var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(id)) return null;
     try {
       var { data, error } = await sb
         .from('profiles')
@@ -146,6 +149,7 @@
       return null;
     }
   }
+
 
   async function fetchFamilyRelations(profileId) {
     var sb = getSb();
