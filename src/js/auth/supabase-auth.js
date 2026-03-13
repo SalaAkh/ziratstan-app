@@ -198,6 +198,7 @@ function ensureAuthStateListener(sb) {
   if (authStateSubscription) return;
 
   const { data } = sb.auth.onAuthStateChange((event, session) => {
+    console.log('[Auth] onAuthStateChange →', event, session?.user?.email || '(no user)');
     applyAuthSession(session, event);
   });
 
