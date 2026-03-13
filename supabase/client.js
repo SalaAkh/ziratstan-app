@@ -14,7 +14,14 @@ var SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
 
 // Инициализация клиента через CDN (supabase-js v2)
 var createClient = supabase.createClient || supabase.createClient;
-var db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    // supabase-auth.js handles OAuth redirect processing manually.
+    // Disabling auto-detection prevents the SDK from calling history.replaceState
+    // without user interaction, which triggers Chrome's History Manipulation warning.
+    detectSessionInUrl: false,
+  }
+});
 
 // Helper для получения текущей сессии
 async function getSession() {
