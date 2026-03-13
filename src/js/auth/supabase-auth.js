@@ -138,57 +138,27 @@ function cleanupOAuthRedirectUrl() {
   window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
-async function processOAuthRedirect(sb) {
+// Supabase JS SDK v2 with detectSessionInUrl:true (default) automatically
+// processes both ?code= (PKCE) and #access_token= (implicit) at createClient() time.
+// Calling setSession/exchangeCodeForSession MANUALLY fires a SECOND auth event which
+// rotates the refresh_token → invalidates the first session → SIGNED_OUT fires.
+// This function ONLY detects the redirect context. The SDK fires SIGNED_IN itself.
+async function processOAuthRedirect() {
   const ctx = getOAuthRedirectContext();
   if (!ctx.hadOAuthRedirect) {
     return { hadOAuthRedirect: false, callbackError: null };
   }
 
-  // Only report provider-level errors (user denied, misconfigured scopes, etc.)
-  if (ctx.hadAuthError && !ctx.access_token) {
+  console.log('[Auth] OAuth redirect detected — waiting for SDK to process session.');
+
+  // Only report errors from the OAuth provider itself (user denied access, etc.)
+  if (ctx.hadAuthError && !ctx.code && !ctx.access_token) {
     const callbackError = new Error(ctx.authErrorMessage || 'OAuth provider returned an error.');
     console.error('[Auth] OAuth provider error:', callbackError.message);
-    // Clean up the error params from URL even on failure
     cleanupOAuthRedirectUrl();
     return { hadOAuthRedirect: true, callbackError };
   }
 
-  // detectSessionInUrl is disabled — we must manually set the session from the URL tokens.
-  // This is intentional: we control when history.replaceState is called (right here),
-  // instead of the SDK doing it silently on page load without user interaction.
-  if (ctx.access_token && ctx.refresh_token) {
-    console.log('[Auth] OAuth redirect detected — manually setting session from URL tokens.');
-    const { error } = await sb.auth.setSession({
-      access_token: ctx.access_token,
-      refresh_token: ctx.refresh_token,
-    });
-
-    // Clean the token from the URL right after we've consumed it
-    cleanupOAuthRedirectUrl();
-
-    if (error) {
-      console.error('[Auth] setSession error:', error.message);
-      return { hadOAuthRedirect: true, callbackError: error };
-    }
-
-    console.log('[Auth] Session set successfully from OAuth tokens.');
-    return { hadOAuthRedirect: true, callbackError: null };
-  }
-
-  // PKCE flow: ?code= in query string — exchangeCodeForSession handles it
-  if (ctx.code) {
-    console.log('[Auth] PKCE code detected — exchanging for session.');
-    const { error } = await sb.auth.exchangeCodeForSession(ctx.code);
-    cleanupOAuthRedirectUrl();
-    if (error) {
-      console.error('[Auth] exchangeCodeForSession error:', error.message);
-      return { hadOAuthRedirect: true, callbackError: error };
-    }
-    return { hadOAuthRedirect: true, callbackError: null };
-  }
-
-  // Unexpected: had auth params but nothing useful
-  cleanupOAuthRedirectUrl();
   return { hadOAuthRedirect: true, callbackError: null };
 }
 
@@ -242,27 +212,28 @@ async function initAuth() {
     const sb = getSupabase();
     if (!sb) return;
 
-    // Register listener FIRST — receives INITIAL_SESSION + SIGNED_IN events
+    // Register listener FIRST — receives INITIAL_SESSION + SIGNED_IN from SDK auto-detection
     ensureAuthStateListener(sb);
 
-    const { hadOAuthRedirect, callbackError } = await processOAuthRedirect(sb);
+    const { hadOAuthRedirect, callbackError } = await processOAuthRedirect();
 
     if (hadOAuthRedirect) {
       if (callbackError) {
-        // Provider returned an error (user denied, scope issue, etc.) OR setSession failed
         showAuthInlineError(callbackError.message || 'Google login failed. Try again.');
         openAuthModal('login');
       } else {
-        // setSession() was called in processOAuthRedirect — onAuthStateChange already fired SIGNED_IN.
-        // Verify the session is there just to be safe and sync the UI.
+        // SDK (detectSessionInUrl:true) is auto-processing the hash/code token.
+        // Wait 1s for it to complete and fire SIGNED_IN via onAuthStateChange.
+        await sleep(1000);
         const { data: { session } } = await sb.auth.getSession();
         if (session) {
+          cleanupOAuthRedirectUrl();
           applyAuthSession(session, 'SIGNED_IN');
           console.log('[Auth] OAuth session confirmed and applied.');
         } else {
-          showAuthInlineError('Session could not be established after login. Please try again.');
+          showAuthInlineError('Session could not be established. Please try again.');
           openAuthModal('login');
-          console.warn('[Auth] OAuth redirect processed but session is still null.');
+          console.warn('[Auth] OAuth redirect present but session null after 1000ms.');
         }
       }
     } else {
