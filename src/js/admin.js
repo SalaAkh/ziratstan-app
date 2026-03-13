@@ -1445,6 +1445,7 @@ function createCard(type, item) {
     if (type === 'names') {
         badgeClass = 'badge-names';
         title = item.suggested_name;
+        const cardUid = `cem-${item.id}`;
         content = `
         <div class="card-meta-row">
             <div class="card-meta-item">Текущее название: <span>${item.current_name || '-'}</span></div>
@@ -1452,11 +1453,29 @@ function createCard(type, item) {
         </div>
         <div class="card-meta-row">
             <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
+            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
         </div>
         ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
+        // Async district fetch
+        if (item.lat && item.lng) {
+            setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${item.lat}&lon=${item.lng}&format=json&accept-language=ru`, { headers: { 'User-Agent': 'Ziratstan.kz/1.0' } });
+                    const geo = await res.json();
+                    const addr = geo.address || {};
+                    const district = addr.county || addr.state_district || addr.city_district || addr.suburb || addr.village || addr.town || '';
+                    const el = document.getElementById(`${cardUid}-district`);
+                    if (el && district) {
+                        el.querySelector('span').textContent = district;
+                        el.style.display = 'block';
+                    }
+                } catch(e) {}
+            }, 200);
+        }
     } else if (type === 'profiles') {
         badgeClass = 'badge-profiles';
         title = item.full_name;
+        const cardUid = `prof-${item.id}`;
         content = `
         <div class="card-meta-row">
             <div class="card-meta-item">Годы: <span>${item.birth_year || '?'} - ${item.death_year || '?'}</span></div>
@@ -1466,7 +1485,26 @@ function createCard(type, item) {
             <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
             <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
         </div>
+        <div class="card-meta-row">
+            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
+        </div>
         ${item.description ? `<div class="card-detail" style="margin-top:8px;">${item.description}</div>` : ''}`;
+        // Async district fetch
+        if (item.lat && item.lng) {
+            setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${item.lat}&lon=${item.lng}&format=json&accept-language=ru`, { headers: { 'User-Agent': 'Ziratstan.kz/1.0' } });
+                    const geo = await res.json();
+                    const addr = geo.address || {};
+                    const district = addr.county || addr.state_district || addr.city_district || addr.suburb || addr.village || addr.town || '';
+                    const el = document.getElementById(`${cardUid}-district`);
+                    if (el && district) {
+                        el.querySelector('span').textContent = district;
+                        el.style.display = 'block';
+                    }
+                } catch(e) {}
+            }, 200);
+        }
     } else if (type === 'bios') {
         badgeClass = 'badge-bios';
         title = `Дополнение к профилю #${item.profile_id?.substring(0, 8) || '?'}`;

@@ -265,7 +265,16 @@
 
                 allFeatures.push({
                     type: "Feature",
-                    properties: { id: c.id, n: c.n, region_id: bestR ? bestR.id : 'unknown', region_name_ru: bestR ? (bestR.n_ru || bestR.n || '') : '', region_name_kk: bestR ? (bestR.n_kk || bestR.n || '') : '', isPending: false },
+                    properties: {
+                        id: c.id,
+                        n: c.n,
+                        n_ru: c.n_ru || c.n,
+                        n_kk: c.n_kk || c.n,
+                        region_id: bestR ? bestR.id : 'unknown',
+                        region_name_ru: bestR ? (bestR.n_ru || bestR.n || '') : '',
+                        region_name_kk: bestR ? (bestR.n_kk || bestR.n || '') : '',
+                        isPending: false
+                    },
                     geometry: { type: "Point", coordinates: [c.ln, c.lt] }
                 });
             });
@@ -383,6 +392,10 @@
                         const c = f.properties;
                         const regionLabel = getRegionNameById(c.region_id);
                         
+                        // Bilingual cemetery name based on current UI language
+                        const lang = window.i18n ? window.i18n.getLang() : 'kk';
+                        const localizedName = lang === 'kk' ? (c.n_kk || c.n) : (c.n_ru || c.n);
+
                         // Custom style for pending UGC
                         let markerOpts = cemIconOpts;
                         const isPending = c.isPending;
@@ -391,17 +404,33 @@
                         }
 
                         const m = L.circleMarker([lat, lng], markerOpts);
-                        m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
+                        m.on('popupopen', async (e) => {
+                            const districtEl = e.popup.getElement().querySelector('.cem-district');
+                            if (!districtEl) return;
+                            try {
+                                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=${lang}`, { headers: { 'User-Agent': 'Ziratstan.kz/1.0' } });
+                                const geo = await res.json();
+                                const addr = geo.address || {};
+                                // District = county, suburb, quarter, village, town, city_district — first available
+                                const district = addr.county || addr.state_district || addr.suburb || addr.quarter || addr.city_district || addr.village || addr.town || '';
+                                if (district) {
+                                    districtEl.textContent = `🏘️ ${district}`;
+                                    districtEl.style.display = 'block';
+                                }
+                            } catch (err) { /* silently ignore if offline */ }
+                        });
+                        m.bindPopup(`<div style="padding:10px;font-family:Inter;background:var(--surface);">
                             <div style="font-weight:700; color:${isPending ? 'var(--muted)' : 'var(--text)'}; margin-bottom:3px;">
                                 ${isPending ? '<span style="color:var(--yellow); font-size:0.75rem; vertical-align:middle; margin-right:4px;">⏱️ На модерации</span><br/>' : ''}
-                                ${c.n}
+                                ${localizedName}
                             </div>
-                            ${regionLabel ? `<div style="font-size:0.75rem; color:var(--gold); margin-bottom:4px; font-weight:600;">📍 ${regionLabel}</div>` : ''}
+                            ${regionLabel ? `<div style="font-size:0.75rem; color:var(--gold); margin-bottom:2px; font-weight:600;">🗺️ ${regionLabel}</div>` : ''}
+                            <div class="cem-district" style="font-size:0.75rem; color:var(--muted); margin-bottom:4px; display:none;"></div>
                             <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">${t('map_coords_label')}: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
                             ${!isPending ? `
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                              <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
-                              <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
+                              <a href="#" onclick="openUgcModal('${c.id}', ${JSON.stringify(localizedName)}, ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
+                              <a href="#" onclick="openAddProfileModal('${c.id}', ${JSON.stringify(localizedName)}, ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
                             </div>` : ''}
                         </div>`);
                         cemeteriesLayer.addLayer(m);
@@ -536,14 +565,20 @@
                 const feat = allFeatures.find(f => f.properties.id === c.id);
                 const regionLabel = feat ? getRegionNameById(feat.properties.region_id) : '';
                 const isPending = c.isPending || (feat && feat.properties.isPending);
+                
+                // Bilingual cemetery name for sidebar
+                const lang = window.i18n ? window.i18n.getLang() : 'kk';
+                const localizedName = lang === 'kk'
+                    ? (feat ? feat.properties.n_kk : (c.n_kk || c.n))
+                    : (feat ? feat.properties.n_ru : (c.n_ru || c.n));
 
                 displayList += `
       <a class="profile-card" onclick="map.flyTo([${c.lt}, ${c.ln}], 16); return false;" href="#" style="opacity: ${isPending ? '0.6' : '1'};">
         <div class="card-avatar" style="color:var(--muted); border-color:var(--border);">🪦</div>
         <div class="card-info">
-          <div class="card-name" style="color:${isPending ? 'var(--muted)' : 'var(--text)'};">
+          <div class="card-name" style="color:${isPending ? 'var(--muted)' : 'var(--text)'}">
             ${isPending ? '<span style="color:var(--yellow); font-size:0.7rem; font-weight:700;">⏱️ На модерации</span><br/>' : ''}
-            ${c.n}
+            ${localizedName}
           </div>
           ${regionLabel ? `<div class="card-cemetery" style="color:var(--gold); font-size:0.78rem; font-weight:600;">🗺️ ${regionLabel}</div>` : ''}
           <div class="card-meta">${t('map_general_cemetery')}</div>
