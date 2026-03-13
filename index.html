@@ -1208,6 +1208,406 @@
         flex-direction: column;
         align-items: center;
       }
+
+      .support-section {
+        padding: 3rem 1.5rem;
+      }
+
+      .support-card {
+        max-width: 100%;
+      }
+
+      .support-why {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    /* ─── SUPPORT / DONATE SECTION ─── */
+    .support-section {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2rem 6rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .support-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .support-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 1rem;
+      border-radius: 99px;
+      background: rgba(255, 215, 0, 0.08);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      color: #ffd700;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .support-title {
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .support-desc {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .support-card {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(17, 17, 19, 0.95) 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 24px;
+      padding: 2rem;
+      max-width: 480px;
+      margin: 0 auto 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .support-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .support-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .kaspi-logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+    }
+
+    .kaspi-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .kaspi-sublabel {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .kaspi-card-num {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 1.1rem 1.5rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      cursor: pointer;
+      user-select: all;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .kaspi-card-num:hover, .kaspi-card-num:active {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: rgba(212, 175, 55, 0.4);
+      transform: scale(1.01);
+    }
+
+    .kaspi-card-num.copied {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .kaspi-copy-hint {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+
+    .kaspi-copied-msg {
+      font-size: 0.85rem;
+      color: #22c55e;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+
+    .kaspi-copied-msg.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .support-card-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .btn-support-kaspi {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-support-kaspi:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .support-why {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      text-align: left;
+    }
+
+    .support-why-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      transition: border-color 0.25s, transform 0.2s;
+    }
+
+    .support-why-item:hover {
+      border-color: rgba(212, 175, 55, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .support-why-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .support-why-item strong {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+
+    .support-why-item p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─── DONATION POPUP ─── */
+    .donate-popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9998;
+    }
+
+    .donate-popup-overlay.visible {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .donate-popup {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 340px;
+      max-width: calc(100vw - 2rem);
+      background: linear-gradient(135deg, #1a1a1d 0%, #111113 100%);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 24px;
+      padding: 2rem 1.75rem 1.75rem;
+      z-index: 9999;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(212, 175, 55, 0.1);
+      text-align: center;
+    }
+
+    .donate-popup.visible {
+      display: block;
+      animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .donate-popup-close {
+      position: absolute;
+      top: 0.875rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s;
+      padding: 0.25rem;
+    }
+
+    .donate-popup-close:hover { color: var(--text); }
+
+    .donate-popup-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    .donate-popup-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .donate-popup-text {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .donate-popup-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s, border-color 0.2s;
+      user-select: all;
+    }
+
+    .donate-popup-card:hover {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: rgba(212, 175, 55, 0.5);
+    }
+
+    .donate-popup-copied {
+      font-size: 0.8rem;
+      color: #22c55e;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.3s, transform 0.3s;
+      margin-bottom: 0.5rem;
+      pointer-events: none;
+    }
+
+    .donate-popup-copied.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .donate-popup-btns {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .donate-popup-btn-main {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .donate-popup-btn-main:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .donate-popup-btn-later {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .donate-popup-btn-later:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.15);
     }
   </style>
 </head>
@@ -1677,6 +2077,84 @@
     </div>
   </section>
 
+  <!-- SUPPORT / DONATE SECTION -->
+  <section class="support-section" id="support">
+    <div class="support-inner">
+      <div class="support-badge">💛 Қолдау</div>
+      <h2 class="support-title">Жобаны қолдаңыз</h2>
+      <p class="support-desc">
+        Зиратстан — коммерциялық емес, халыққа қызмет ететін жоба. Сіздің қолдауыңыз жобаның дамуына,
+        серверлерді ұстауға және жаңа мүмкіндіктер қосуға жұмсалады.
+      </p>
+
+      <div class="support-card">
+        <div class="support-card-header">
+          <div class="kaspi-logo">К</div>
+          <div>
+            <div class="kaspi-label">Kaspi.kz арқылы аудару</div>
+            <div class="kaspi-sublabel">Картаға аударым · Казп Банк</div>
+          </div>
+        </div>
+        <div class="kaspi-card-num" id="kaspiCardNum" onclick="copyKaspiCard()"
+          title="Басып, көшіріп алыңыз">
+          4400 4303 2098 5507
+          <span class="kaspi-copy-hint">📋 Көшіру</span>
+        </div>
+        <div class="kaspi-copied-msg" id="kaspiCopied">✅ Карта нөмірі көшірілді!</div>
+        <p class="support-card-note">
+          Кез-келген сомада аударым жасай аласыз — тіпті 500 ₸ да баға жетпес қолдау!
+        </p>
+        <button class="btn-support-kaspi" onclick="copyKaspiCard()">
+          <span>💳</span> Картаны Kaspi-ге ашу
+        </button>
+      </div>
+
+      <div class="support-why">
+        <div class="support-why-item">
+          <div class="support-why-icon">🖥️</div>
+          <div>
+            <strong>Сервер шығындары</strong>
+            <p>Firebase, Supabase — ай сайын</p>
+          </div>
+        </div>
+        <div class="support-why-item">
+          <div class="support-why-icon">🗃️</div>
+          <div>
+            <strong>Деректерді толтыру</strong>
+            <p>Жаңа тарихи тұлғаларды қосу</p>
+          </div>
+        </div>
+        <div class="support-why-item">
+          <div class="support-why-icon">📱</div>
+          <div>
+            <strong>Жаңа мүмкіндіктер</strong>
+            <p>Мобильді қосымша және API</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DONATION NOTIFICATION POPUP -->
+  <div class="donate-popup" id="donatePopup" role="dialog" aria-modal="true" aria-label="Жобаны қолдаңыз">
+    <button class="donate-popup-close" onclick="closeDonatePopup()" aria-label="Жабу">×</button>
+    <div class="donate-popup-icon">💛</div>
+    <h3 class="donate-popup-title">Зиратстанды қолдаңыз!</h3>
+    <p class="donate-popup-text">
+      Бұл жоба сіз үшін тегін. Бізді қолдасаңыз — жоба өмір сүреді.
+      Kaspi арқылы кез-келген сомада аударым жасаңыз.
+    </p>
+    <div class="donate-popup-card" onclick="copyKaspiCardPopup()" title="Басып, көшіріп алыңыз">
+      💳 4400 4303 2098 5507
+    </div>
+    <div class="donate-popup-copied" id="donatePopupCopied">✅ Көшірілді!</div>
+    <div class="donate-popup-btns">
+      <button class="donate-popup-btn-main" onclick="copyKaspiCardPopup()">Картаны көшіру</button>
+      <button class="donate-popup-btn-later" onclick="closeDonatePopup()">Кейінірек</button>
+    </div>
+  </div>
+  <div class="donate-popup-overlay" id="donateOverlay" onclick="closeDonatePopup()"></div>
+
   <!-- FOOTER -->
   <footer>
     <div class="footer-links">
@@ -1684,6 +2162,7 @@
       <a href="#services" data-i18n="footer_services">Қызметтер</a>
       <a href="#qr" data-i18n="footer_qr">QR-Мемориал</a>
       <a href="map.html" data-i18n="footer_app">Қосымша</a>
+      <a href="#support">💛 Қолдау</a>
     </div>
     <p style="margin-bottom:0.5rem;">
       <strong style="color:var(--text)"><span style="color:var(--gold)">З</span>иратстан</strong> —
@@ -1732,6 +2211,65 @@
         errorCorrectionLevel: 'H'
       });
     }
+  </script>
+
+  <script>
+    /* ─── KASPI DONATION LOGIC ─── */
+    const KASPI_CARD = '4400430320985507';
+    const KASPI_CARD_DISPLAY = '4400 4303 2098 5507';
+
+    function copyKaspiCard() {
+      navigator.clipboard.writeText(KASPI_CARD).then(() => {
+        const msg = document.getElementById('kaspiCopied');
+        const num = document.getElementById('kaspiCardNum');
+        msg.classList.add('visible');
+        num.classList.add('copied');
+        setTimeout(() => {
+          msg.classList.remove('visible');
+          num.classList.remove('copied');
+        }, 2500);
+      }).catch(() => {
+        // fallback for older browsers
+        const el = document.createElement('textarea');
+        el.value = KASPI_CARD;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      });
+    }
+
+    function copyKaspiCardPopup() {
+      navigator.clipboard.writeText(KASPI_CARD).then(() => {
+        const msg = document.getElementById('donatePopupCopied');
+        msg.classList.add('visible');
+        setTimeout(() => msg.classList.remove('visible'), 2500);
+      });
+    }
+
+    /* ─── DONATION POPUP LOGIC ─── */
+    const POPUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+    const POPUP_FIRST_DELAY_MS = 60 * 1000;   // first show after 1 min
+
+    function showDonatePopup() {
+      const popup = document.getElementById('donatePopup');
+      const overlay = document.getElementById('donateOverlay');
+      popup.classList.add('visible');
+      overlay.classList.add('visible');
+    }
+
+    function closeDonatePopup() {
+      const popup = document.getElementById('donatePopup');
+      const overlay = document.getElementById('donateOverlay');
+      popup.classList.remove('visible');
+      overlay.classList.remove('visible');
+    }
+
+    // First popup after 1 minute, then every 5 minutes
+    setTimeout(() => {
+      showDonatePopup();
+      setInterval(showDonatePopup, POPUP_INTERVAL_MS);
+    }, POPUP_FIRST_DELAY_MS);
   </script>
 
 </body>
