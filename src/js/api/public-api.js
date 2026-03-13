@@ -227,24 +227,37 @@
     var sb = getSb();
     if (!sb || !slug) return null;
     try {
-      var normalized = String(slug).trim().toUpperCase();
+      var normalized = String(slug).trim();
       // Check if slug is UUID
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normalized)) {
-        return normalized;
+        return normalized.toLowerCase();
       }
+
+      // Try exact match first
       var { data, error } = await sb
         .from('qr_codes')
         .select('profile_id, status')
         .eq('slug', normalized)
         .maybeSingle();
 
-      if (error || !data || data.status !== 'active') return null;
-      return data.profile_id;
+      if (!error && data && data.status === 'active') return data.profile_id;
+
+      // Try lowercase match
+      var { data: dataLower, error: errorLower } = await sb
+        .from('qr_codes')
+        .select('profile_id, status')
+        .eq('slug', normalized.toLowerCase())
+        .maybeSingle();
+
+      if (!errorLower && dataLower && dataLower.status === 'active') return dataLower.profile_id;
+
+      return null;
     } catch (e) {
       console.error("[public-api] Error fetching Profile ID by Slug:", e);
       return null;
     }
   }
+
 
   global.submitUgcSuggestion = submitUgcSuggestion;
   global.createServicesLead = createServicesLead;
