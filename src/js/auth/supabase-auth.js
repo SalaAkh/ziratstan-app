@@ -33,6 +33,8 @@ function getSupabase() {
 
 // ─── State ────────────────────────────────────────────────────
 let currentUser = null;
+let authStateSubscription = null;
+let authInitPromise = null;
 
 function syncAuthProviderUI() {
   const googleButtons = document.querySelectorAll('.auth-google-btn');
@@ -67,51 +69,198 @@ function showAuthInlineError(message) {
 }
 
 // ─── Session Management ───────────────────────────────────────
-async function initAuth() {
-  syncAuthProviderUI();
-  const sb = getSupabase();
-  if (!sb) return;
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  // 1. Parse OAuth redirect hash from URL (Google sign-in returns here)
-  //    Supabase v2 does this automatically, but explicitly calling it ensures
-  //    the session is set before we check getSession() below.
-  if (window.location.hash && window.location.hash.includes('access_token')) {
-    console.log('[Auth] Detected OAuth redirect hash, setting session...');
-    try {
-      // extractTokensFromUrl detects access_token in the hash and sets the session
-      const hashStr = window.location.hash.substring(1);
-      const params = new URLSearchParams(hashStr);
-      const access_token = params.get('access_token');
-      const refresh_token = params.get('refresh_token');
+function getOAuthRedirectContext() {
+  const url = new URL(window.location.href);
+  const hashStr = url.hash.startsWith('#') ? url.hash.substring(1) : '';
+  const hashParams = new URLSearchParams(hashStr);
+  const queryParams = url.searchParams;
 
-      if (access_token) {
-        const { error } = await sb.auth.setSession({ access_token, refresh_token });
-        if (error) {
-          console.error('[Auth] setSession from hash failed:', error.message);
-        } else {
-          console.log('[Auth] Session established from OAuth redirect!');
-          // Clean the URL so the token is not visible in the address bar
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-        }
-      }
-    } catch (e) {
-      console.warn('[Auth] Hash parsing failed:', e);
-    }
+  const code = queryParams.get('code');
+  const access_token = hashParams.get('access_token');
+  const refresh_token = hashParams.get('refresh_token');
+  const queryError = queryParams.get('error') || queryParams.get('error_description');
+  const hashError = hashParams.get('error') || hashParams.get('error_description');
+
+  const authQueryKeys = ['code', 'type', 'error', 'error_code', 'error_description', 'state'];
+  const authHashKeys = [
+    'access_token',
+    'refresh_token',
+    'expires_in',
+    'expires_at',
+    'token_type',
+    'provider_token',
+    'provider_refresh_token',
+    'type',
+    'error',
+    'error_description',
+  ];
+
+  const hasAuthQuery = authQueryKeys.some((key) => queryParams.has(key));
+  const hasAuthHash = authHashKeys.some((key) => hashParams.has(key));
+
+  return {
+    code,
+    access_token,
+    refresh_token,
+    hadOAuthRedirect: hasAuthQuery || hasAuthHash,
+    hadAuthError: Boolean(queryError || hashError),
+    authErrorMessage: queryError || hashError || '',
+  };
+}
+
+function cleanupOAuthRedirectUrl() {
+  const url = new URL(window.location.href);
+  const hashStr = url.hash.startsWith('#') ? url.hash.substring(1) : '';
+  const hashParams = new URLSearchParams(hashStr);
+  const authQueryKeys = ['code', 'type', 'error', 'error_code', 'error_description', 'state'];
+  const authHashKeys = [
+    'access_token',
+    'refresh_token',
+    'expires_in',
+    'expires_at',
+    'token_type',
+    'provider_token',
+    'provider_refresh_token',
+    'type',
+    'error',
+    'error_description',
+  ];
+
+  authQueryKeys.forEach((key) => url.searchParams.delete(key));
+  if (authHashKeys.some((key) => hashParams.has(key))) {
+    url.hash = '';
   }
 
-  // 2. Get current session (now set if we just came from OAuth)
-  const { data: { session } } = await sb.auth.getSession();
+  window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+async function processOAuthRedirect(sb) {
+  const ctx = getOAuthRedirectContext();
+  if (!ctx.hadOAuthRedirect) {
+    return { hadOAuthRedirect: false, callbackError: null };
+  }
+
+  console.log('[Auth] Detected OAuth redirect callback, processing session...');
+  let callbackError = null;
+
+  try {
+    if (ctx.code) {
+      const { error } = await sb.auth.exchangeCodeForSession(ctx.code);
+      if (error) {
+        callbackError = error;
+      } else {
+        console.log('[Auth] Session established from OAuth code callback!');
+      }
+    } else if (ctx.access_token || ctx.refresh_token) {
+      if (!ctx.access_token || !ctx.refresh_token) {
+        callbackError = new Error('OAuth redirect is missing required tokens.');
+      } else {
+        const { error } = await sb.auth.setSession({
+          access_token: ctx.access_token,
+          refresh_token: ctx.refresh_token,
+        });
+        if (error) {
+          callbackError = error;
+        } else {
+          console.log('[Auth] Session established from OAuth token callback!');
+        }
+      }
+    }
+
+    if (!callbackError && ctx.hadAuthError && !ctx.code && !ctx.access_token) {
+      callbackError = new Error(ctx.authErrorMessage || 'OAuth provider returned an authentication error.');
+    }
+  } catch (err) {
+    callbackError = err instanceof Error ? err : new Error(String(err));
+  }
+
+  if (callbackError) {
+    console.error('[Auth] OAuth callback processing failed:', callbackError.message || callbackError);
+  }
+
+  return { hadOAuthRedirect: true, callbackError };
+}
+
+async function getVerifiedSession(sb, withRetry) {
+  const attempts = withRetry ? 2 : 1;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error) lastError = error;
+    if (session) return { session, error: null };
+    if (attempt < attempts) await sleep(180);
+  }
+
+  return { session: null, error: lastError };
+}
+
+function applyAuthSession(session, event) {
+  const previousUserId = currentUser?.id || null;
   currentUser = session?.user ?? null;
   updateAuthUI();
 
-  // 3. Listen for future auth state changes (login/logout)
-  sb.auth.onAuthStateChange((_event, session) => {
-    currentUser = session?.user ?? null;
-    updateAuthUI();
-    if (currentUser) {
-      if (typeof window.onUserLogin === 'function') window.onUserLogin(currentUser);
-    }
+  if (!currentUser) return;
+
+  const currentUserId = currentUser.id;
+  const shouldNotifyLogin =
+    event === 'SIGNED_IN'
+    || event === 'INITIAL_SESSION'
+    || previousUserId !== currentUserId;
+
+  if (shouldNotifyLogin && typeof window.onUserLogin === 'function') {
+    window.onUserLogin(currentUser);
+  }
+}
+
+function ensureAuthStateListener(sb) {
+  if (authStateSubscription) return;
+
+  const { data } = sb.auth.onAuthStateChange((event, session) => {
+    applyAuthSession(session, event);
   });
+
+  authStateSubscription = data?.subscription || null;
+}
+
+async function initAuth() {
+  if (authInitPromise) return authInitPromise;
+
+  authInitPromise = (async () => {
+    syncAuthProviderUI();
+    const sb = getSupabase();
+    if (!sb) return;
+
+    ensureAuthStateListener(sb);
+
+    const { hadOAuthRedirect, callbackError } = await processOAuthRedirect(sb);
+    const { session, error: sessionError } = await getVerifiedSession(sb, hadOAuthRedirect);
+    applyAuthSession(session, 'INITIAL_SESSION');
+
+    if (hadOAuthRedirect) {
+      if (session) {
+        cleanupOAuthRedirectUrl();
+      } else {
+        const message =
+          callbackError?.message
+          || sessionError?.message
+          || 'Google login finished, but local session was not created. Please try again.';
+        showAuthInlineError(message);
+        openAuthModal('login');
+        console.warn('[Auth] OAuth callback detected but session is still missing after verification.');
+      }
+    }
+  })();
+
+  try {
+    await authInitPromise;
+  } finally {
+    authInitPromise = null;
+  }
 }
 
 // ─── Auth Actions ─────────────────────────────────────────────
