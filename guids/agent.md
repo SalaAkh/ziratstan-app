@@ -209,7 +209,7 @@ Supabase Auth -> auth.users
 
 - frontend и backend ожидают разные payload-структуры.
 
-### 6. Неверный slug resolution
+### 6. Неверный slug resolution (Частично решено 2026-03-13)
 
 Файлы:
 
@@ -219,6 +219,7 @@ Supabase Auth -> auth.users
 Проблема:
 
 - slug резолвится через `epitaph`, что логически неверно.
+- **Обновление (2026-03-13):** В `public-api.js` добавлена строгая проверка UUID и case-insensitive поиск slug (вроде `kerey_khan`) напрямую через таблицу `qr_codes`. Это устраняет ошибки 400 при загрузке статических ханов.
 
 ### 7. Скрытые build/typecheck-проблемы
 

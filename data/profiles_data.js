@@ -869,5 +869,86 @@ const PROFILES_STATIC = [
         id: 'dombaul_new_99', name: 'Домбауыл', fullName: 'Домбауыл', era: 'ancient',
         birth: 'XIII', death: 'XIII', cemetery: 'Ұлытау', city: 'Ұлытау обл',
         filter: 'historical', lat: 48.158, lng: 67.82, photo: null
-    }
+    },
+
+    {
+        id: 'kerey_khan_200', name: 'Керей хан', fullName: 'Керей хан', era: 'khanate',
+        birth: '1425', death: '1482', cemetery: 'Хантау тауы', city: 'Жамбыл обл.',
+        filter: 'historical', lat: 44.2, lng: 74.3, photo: null
+    },
+    {
+        id: 'burunduk_khan_201', name: 'Бұрындық хан', fullName: 'Бұрындық хан', era: 'khanate',
+        birth: '1474', death: '1513', cemetery: 'Сарайшық', city: 'Атырау обл.',
+        filter: 'historical', lat: 47.11, lng: 51.88, photo: null
+    },
+    {
+        id: 'mamash_khan_202', name: 'Мамаш хан', fullName: 'Мамаш хан', era: 'khanate',
+        birth: '~1495', death: '1522', cemetery: 'Сарайшық', city: 'Атырау обл.',
+        filter: 'historical', lat: 47.11, lng: 51.88, photo: null
+    },
+    {
+        id: 'tahir_khan_203', name: 'Тахир хан', fullName: 'Тахир хан', era: 'khanate',
+        birth: '~1490', death: '1535', cemetery: 'Белгісіз (Моғолстан)', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'buydash_khan_204', name: 'Бұйдаш хан', fullName: 'Бұйдаш хан', era: 'khanate',
+        birth: '~1500', death: '1560', cemetery: 'Түркістан обл.', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'tugum_khan_205', name: 'Тұғым хан', fullName: 'Тұғым хан', era: 'khanate',
+        birth: '~1495', death: '1537', cemetery: 'Түркістан обл.', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'haknazar_khan_206', name: 'Хақназар хан', fullName: 'Хақназар хан', era: 'khanate',
+        birth: '1509', death: '1580', cemetery: 'Түркістан маңы', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'shygai_khan_207', name: 'Шығай хан', fullName: 'Шығай хан', era: 'khanate',
+        birth: '~1500', death: '1582', cemetery: 'Мавзолей Яссауи', city: 'Түркістан',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'taukel_khan_208', name: 'Тәуекел хан', fullName: 'Тәуекел хан', era: 'khanate',
+        birth: '1545', death: '1598', cemetery: 'Түркістан', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'esim_khan_209', name: 'Есім хан', fullName: 'Есім хан', era: 'khanate',
+        birth: '1565', death: '1628', cemetery: 'Мавзолей Есім хан', city: 'Түркістан',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'kaiyp_khan_210', name: 'Қайып хан', fullName: 'Қайып хан', era: 'khanate',
+        birth: '~1660', death: '1718', cemetery: 'Түркістан обл.', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'bolat_khan_211', name: 'Болат хан', fullName: 'Болат хан', era: 'khanate',
+        birth: '~1670', death: '1724', cemetery: 'Түркістан', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'sameke_khan_212', name: 'Сәмеке хан', fullName: 'Сәмеке хан', era: 'khanate',
+        birth: '~1685', death: '1737', cemetery: 'Сарайшық маңы', city: 'Атырау обл.',
+        filter: 'historical', lat: 47.11, lng: 51.88, photo: null
+    },
+    {
+        id: 'abulkhair_khan_213', name: 'Әбілқайыр хан', fullName: 'Әбілқайыр хан', era: 'khanate',
+        birth: '1693', death: '1748', cemetery: 'Хан моласы', city: 'Ақтөбе обл.',
+        filter: 'historical', lat: 49.6, lng: 59.8, photo: null
+    },
+    {
+        id: 'uali_khan_214', name: 'Уәли хан', fullName: 'Уәли хан', era: 'khanate',
+        birth: '1741', death: '1819', cemetery: 'Бұхара маңы (Өзб)', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
+    {
+        id: 'kenesary_khan_215', name: 'Кенесары хан', fullName: 'Кенесары хан', era: 'khanate',
+        birth: '1802', death: '1847', cemetery: 'Белгісіз (Қырғызстан)', city: '',
+        filter: 'historical', lat: 43.3, lng: 68.3, photo: null
+    },
 ];

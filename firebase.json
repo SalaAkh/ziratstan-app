@@ -12,6 +12,10 @@
     ],
     "ignore": [
       "firebase.json",
+      ".git/**",
+      ".next/**",
+      ".firebase/**",
+      ".vscode/**",
       "**/.*",
       "**/.env*",
       "**/.runtimeconfig.json",

@@ -10,7 +10,7 @@
 - `index.html`, `map.html`, `profile.html`, `services.html`, `admin.html`, `dashboard.html`, `qr.html` — основные страницы текущего сайта.
 - `src/js/` — клиентская логика для карты, профиля, админки и авторизации через Supabase.
   - `src/js/auth/supabase-auth.js` — **модуль авторизации**: login, register, logout, управление сессией, обновление UI.
-- `data/` — исходные JS-датасеты, используемые legacy-страницами.
+- `data/` — исходные JS-датасеты (включают расширенный список профилей исторических ханов). В `public-api.js` реализована регистронезависимая обработка UUID/slug для совместимости легаси-роутов.
 - `public/data/profiles/` — JSON-профили, которые используются новыми маршрутами и тестами.
 - `functions/` — Firebase Functions для admin API.
 - `supabase/` — SQL-схемы, миграции и утилиты для базы.
