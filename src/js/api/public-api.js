@@ -259,6 +259,40 @@
   }
 
 
+  async function fetchMyPendingUgc() {
+    var sb = getSb();
+    if (!sb) return { names: [], profiles: [] };
+    
+    // Attempt to get user session to ensure we only fetch if logged in
+    var { data: sessionData } = await sb.auth.getSession();
+    if (!sessionData || !sessionData.session || !sessionData.session.user) {
+      return { names: [], profiles: [] };
+    }
+
+    try {
+      // Fetch names
+      var namesPromise = sb.from('ugc_submissions')
+                           .select('id, suggested_name, lat, lng, status')
+                           .eq('status', 'pending');
+                           
+      // Fetch profiles
+      var profilesPromise = sb.from('ugc_profile_submissions')
+                              .select('id, full_name, birth_year, death_year, cemetery_name, lat, lng, status')
+                              .eq('status', 'pending');
+
+      var [namesRes, profilesRes] = await Promise.all([namesPromise, profilesPromise]);
+      
+      return {
+        names: namesRes.data || [],
+        profiles: profilesRes.data || []
+      };
+    } catch (e) {
+      console.error("[public-api] Error fetching pending UGC:", e);
+      return { names: [], profiles: [] };
+    }
+  }
+
+
   global.submitUgcSuggestion = submitUgcSuggestion;
   global.createServicesLead = createServicesLead;
   global.submitUgcProfile = submitUgcProfile;
@@ -270,6 +304,7 @@
   global.fetchQrByProfile = fetchQrByProfile;
   global.generateQrSlug = generateQrSlug;
   global.fetchProfileIdBySlug = fetchProfileIdBySlug;
+  global.fetchMyPendingUgc = fetchMyPendingUgc;
 
   // Eagerly initialize client so window._sb is set BEFORE supabase-auth.js runs.
   // This prevents the "Multiple GoTrueClient instances detected" warning.

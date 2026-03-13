@@ -35,6 +35,13 @@
             return (lang === 'ru') ? (ru || kk) : (kk || ru);
         }
 
+        /* Get region label by id — used to show oblast under cemetery cards */
+        function getRegionNameById(regionId) {
+            if (!regionId || regionId === 'unknown') return '';
+            const r = KZ_REGIONS.find(x => x.id === regionId);
+            return r ? regionName(r) : '';
+        }
+
         // ── MOBILE NAVIGATION ──
         // Defensive layout fix: if .layout wrapper is missing in HTML,
         // map appears "empty" because it renders below the viewport.
@@ -225,24 +232,40 @@
 
         if (typeof CEMETERIES_DATA !== 'undefined' && typeof Supercluster !== 'undefined') {
             CEMETERIES_DATA.forEach(c => {
-                let bestR = null;
-                if (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88) {
-                    bestR = KZ_REGIONS.find(x => x.id === 'zarubezh');
-                } else {
-                    let minD = Infinity;
-                    KZ_REGIONS.forEach(r => {
-                        if (r.id === 'zarubezh') return;
-                        const dx = (r.geo_ln - c.ln) * Math.cos((r.geo_lt + c.lt) * Math.PI / 360);
-                        const dy = (r.geo_lt - c.lt);
-                        const d = dx * dx + dy * dy;
-                        if (d < minD) { minD = d; bestR = r; }
-                    });
-                }
-                if (bestR) bestR.count++;
+                    let bestR = null;
+
+                    // 1. Strict bounds check
+                    for (const r of KZ_REGIONS) {
+                        if (r.b_min_lt && c.lt >= r.b_min_lt && c.lt <= r.b_max_lt && c.ln >= r.b_min_ln && c.ln <= r.b_max_ln) {
+                            if (bestR === null) bestR = r; // If multiple match, we might take the first (e.g. city bounds before oblast)
+                        }
+                    }
+
+                    // 2. Fallback distance calculation
+                    if (!bestR) {
+                        if (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88) {
+                            bestR = KZ_REGIONS.find(x => x.id === 'zarubezh');
+                        } else {
+                            let minD = Infinity;
+                            KZ_REGIONS.forEach(r => {
+                                if (r.id === 'zarubezh') return;
+                                const dx = (r.geo_ln - c.ln) * Math.cos((r.geo_lt + c.lt) * Math.PI / 360);
+                                const dy = (r.geo_lt - c.lt);
+                                let d = dx * dx + dy * dy;
+
+                                if (r.radius && d > (r.radius * r.radius)) {
+                                    d += 50.0; // Large penalty for cities if outside radius
+                                }
+
+                                if (d < minD) { minD = d; bestR = r; }
+                            });
+                        }
+                    }
+                    if (bestR) bestR.count++;
 
                 allFeatures.push({
                     type: "Feature",
-                    properties: { id: c.id, n: c.n, region_id: bestR ? bestR.id : 'unknown' },
+                    properties: { id: c.id, n: c.n, region_id: bestR ? bestR.id : 'unknown', region_name_ru: bestR ? (bestR.n_ru || bestR.n || '') : '', region_name_kk: bestR ? (bestR.n_kk || bestR.n || '') : '', isPending: false },
                     geometry: { type: "Point", coordinates: [c.ln, c.lt] }
                 });
             });
@@ -358,14 +381,28 @@
                         cemeteriesLayer.addLayer(m);
                     } else {
                         const c = f.properties;
-                        const m = L.circleMarker([lat, lng], cemIconOpts);
+                        const regionLabel = getRegionNameById(c.region_id);
+                        
+                        // Custom style for pending UGC
+                        let markerOpts = cemIconOpts;
+                        const isPending = c.isPending;
+                        if (isPending) {
+                            markerOpts = { radius: 6, fillColor: "#71717a", color: "#27272a", weight: 2, opacity: 0.8, fillOpacity: 0.6 };
+                        }
+
+                        const m = L.circleMarker([lat, lng], markerOpts);
                         m.bindPopup(() => `<div style="padding:10px;font-family:Inter;background:var(--surface);">
-                            <div style="font-weight:700; color:var(--text); margin-bottom:5px;">${c.n}</div>
+                            <div style="font-weight:700; color:${isPending ? 'var(--muted)' : 'var(--text)'}; margin-bottom:3px;">
+                                ${isPending ? '<span style="color:var(--yellow); font-size:0.75rem; vertical-align:middle; margin-right:4px;">⏱️ На модерации</span><br/>' : ''}
+                                ${c.n}
+                            </div>
+                            ${regionLabel ? `<div style="font-size:0.75rem; color:var(--gold); margin-bottom:4px; font-weight:600;">📍 ${regionLabel}</div>` : ''}
                             <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">${t('map_coords_label')}: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                            ${!isPending ? `
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
                               <a href="#" onclick="openUgcModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
                               <a href="#" onclick="openAddProfileModal('${c.id}', '${c.n}', ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
-                            </div>
+                            </div>` : ''}
                         </div>`);
                         cemeteriesLayer.addLayer(m);
                     }
@@ -446,8 +483,16 @@
                             matchRegion = (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88);
                         }
                     }
-                    if (matchRegion && (!qCode || c.n.toLowerCase().includes(qCode))) {
-                        filteredGen.push(c);
+                    /* Also search by oblast name so user can type "Алматы" etc. */
+                    const feat = allFeatures.find(f => f.properties.id === c.id);
+                    const oblastName = feat ? getRegionNameById(feat.properties.region_id).toLowerCase() : '';
+                    if (matchRegion && (!qCode || c.n.toLowerCase().includes(qCode) || oblastName.includes(qCode))) {
+                        // Pass along isPending flag if it exists on the feature
+                        if (feat && feat.properties.isPending) {
+                            filteredGen.push({ ...c, isPending: true });
+                        } else {
+                            filteredGen.push(c);
+                        }
                     }
                 });
             }
@@ -487,12 +532,21 @@
             const genLimit = Math.min(filteredGen.length, 50);
             for (let i = 0; i < genLimit; i++) {
                 const c = filteredGen[i];
+                /* Find the feature to get cached region_id */
+                const feat = allFeatures.find(f => f.properties.id === c.id);
+                const regionLabel = feat ? getRegionNameById(feat.properties.region_id) : '';
+                const isPending = c.isPending || (feat && feat.properties.isPending);
+
                 displayList += `
-      <a class="profile-card" onclick="map.flyTo([${c.lt}, ${c.ln}], 16); return false;" href="#">
+      <a class="profile-card" onclick="map.flyTo([${c.lt}, ${c.ln}], 16); return false;" href="#" style="opacity: ${isPending ? '0.6' : '1'};">
         <div class="card-avatar" style="color:var(--muted); border-color:var(--border);">🪦</div>
         <div class="card-info">
-          <div class="card-name" style="color:var(--text);">${c.n}</div>
-          <div class="card-meta">${t('map_general_cemetery')} (${t('map_coords_label')}: ${c.lt}, ${c.ln})</div>
+          <div class="card-name" style="color:${isPending ? 'var(--muted)' : 'var(--text)'};">
+            ${isPending ? '<span style="color:var(--yellow); font-size:0.7rem; font-weight:700;">⏱️ На модерации</span><br/>' : ''}
+            ${c.n}
+          </div>
+          ${regionLabel ? `<div class="card-cemetery" style="color:var(--gold); font-size:0.78rem; font-weight:600;">🗺️ ${regionLabel}</div>` : ''}
+          <div class="card-meta">${t('map_general_cemetery')}</div>
         </div>
         <span class="card-arrow">›</span>
       </a>`;
@@ -539,6 +593,95 @@
                 PROFILES = typeof PROFILES_STATIC !== 'undefined' ? PROFILES_STATIC : [];
             }
 
+            // Bring user's pending UGC onto map
+            try {
+                if (typeof fetchMyPendingUgc === 'function') {
+                    const pendingUgc = await fetchMyPendingUgc();
+                    
+                    // Inject pending cemeteries as features
+                    if (pendingUgc.names && pendingUgc.names.length > 0) {
+                        pendingUgc.names.forEach(p => {
+                            if (!p.lat || !p.lng) return;
+                            
+                            let bestR = null;
+
+                            // 1. Strict bounds check for pending UGC
+                            for (const r of KZ_REGIONS) {
+                                if (r.b_min_lt && p.lat >= r.b_min_lt && p.lat <= r.b_max_lt && p.lng >= r.b_min_ln && p.lng <= r.b_max_ln) {
+                                    if (bestR === null) bestR = r;
+                                }
+                            }
+
+                            // 2. Fallback check for pending UGC
+                            if (!bestR) {
+                                if (p.lat > 56 || p.lat < 39 || p.lng < 45 || p.lng > 88) {
+                                    bestR = KZ_REGIONS.find(x => x.id === 'zarubezh');
+                                } else {
+                                    let minD = Infinity;
+                                    KZ_REGIONS.forEach(r => {
+                                        if (r.id === 'zarubezh') return;
+                                        const dx = (r.geo_ln - p.lng) * Math.cos((r.geo_lt + p.lat) * Math.PI / 360);
+                                        const dy = (r.geo_lt - p.lat);
+                                        let d = dx * dx + dy * dy;
+                                        if (r.radius && d > (r.radius * r.radius)) {
+                                            d += 50.0; // Penalty
+                                        }
+                                        if (d < minD) { minD = d; bestR = r; }
+                                    });
+                                }
+                            }
+                            if (bestR) bestR.count++;
+                            
+                            // Create temporary ID
+                            const tempId = `ugc_${p.id}`;
+                            CEMETERIES_DATA.push({ id: tempId, n: p.suggested_name, lt: p.lat, ln: p.lng });
+                            
+                            allFeatures.push({
+                                type: "Feature",
+                                properties: { 
+                                    id: tempId, 
+                                    n: p.suggested_name, 
+                                    region_id: bestR ? bestR.id : 'unknown', 
+                                    region_name_ru: bestR ? (bestR.n_ru || bestR.n || '') : '', 
+                                    region_name_kk: bestR ? (bestR.n_kk || bestR.n || '') : '', 
+                                    isPending: true 
+                                },
+                                geometry: { type: "Point", coordinates: [p.lng, p.lat] }
+                            });
+                        });
+                        
+                        // Re-init supercluster with these new features
+                        if (superclusterIndex) {
+                            superclusterIndex.load(allFeatures);
+                        }
+                    }
+                    
+                    // Inject pending VIP profiles
+                    if (pendingUgc.profiles && pendingUgc.profiles.length > 0) {
+                        pendingUgc.profiles.forEach(p => {
+                            if (!p.lat || !p.lng) return;
+                            PROFILES.push({
+                                id: `ugc_vip_${p.id}`,
+                                name: p.full_name,
+                                birth: p.birth_year ? String(p.birth_year).substring(0, 4) : '?',
+                                death: p.death_year ? String(p.death_year).substring(0, 4) : '?',
+                                cemetery: p.cemetery_name || 'Неизвестно',
+                                city: '',
+                                filter: 'historical',
+                                lat: p.lat,
+                                lng: p.lng,
+                                photo: '',
+                                bio: '',
+                                epitaph: '',
+                                isPending: true
+                            });
+                        });
+                    }
+                }
+            } catch(e) {
+                console.warn("[Map] Failed fetching peding ugc: ", e);
+            }
+
             const vipMarkersBatch = [];
             let foreignVipCount = 0;
             PROFILES.forEach(p => {
@@ -559,28 +702,40 @@
         }
 
         function addVipMarker(p, addToCluster = true) {
-            const m = L.marker([p.lat, p.lng], { icon: makeGraveIcon(false) });
+            const isPending = p.isPending;
+            const iconOpts = isPending ? {
+                className: 'custom-div-icon',
+                html: `<div style="width:24px;height:24px;background:#71717a;border-radius:50%;border:2px solid #27272a;display:flex;align-items:center;justify-content:center;opacity:0.8;"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            } : makeGraveIcon(false);
+            
+            const m = L.marker([p.lat, p.lng], isPending ? { icon: L.divIcon(iconOpts) } : { icon: iconOpts });
             m.bindPopup(`
       <div style="padding:12px; min-width:200px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <div style="width:40px;height:40px;border-radius:50%;background:#18181b;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-weight:700;color:#d4af37;font-size:14px;overflow:hidden;flex-shrink:0;">
+          <div style="width:40px;height:40px;border-radius:50%;background:#18181b;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-weight:700;color:${isPending ? '#71717a' : '#d4af37'};font-size:14px;overflow:hidden;flex-shrink:0;">
             ${p.photo ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : (p.name ? p.name[0] : '?')}
           </div>
           <div>
-            <div style="font-weight:700;font-size:0.9rem;">${p.name || p.fullName}</div>
+            ${isPending ? '<div style="color:#eab308;font-size:0.75rem;font-weight:700;">⏱️ На модерации</div>' : ''}
+            <div style="font-weight:700;font-size:0.9rem;color:${isPending ? '#71717a' : '#f4f4f5'}">${p.name || p.fullName}</div>
             <div style="color:#71717a;font-size:0.75rem;">📅 ${p.birth} — ${p.death}</div>
           </div>
         </div>
         <div style="color:#71717a;font-size:0.75rem;margin-bottom:10px;">📍 ${p.cemetery}, ${p.city}</div>
+        ${!isPending ? `
         <a href="profile.html?id=${p.id}" style="display:block;background:#d4af37;color:#09090b;text-align:center;padding:8px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.8rem;">
           ${t('map_btn_profile')}
-        </a>
+        </a>` : ''}
       </div>
     `);
 
             m.on('popupopen', () => {
                 if (activeId && activeId !== p.id && pMarkers[activeId]) {
-                    pMarkers[activeId].setIcon(makeGraveIcon(false));
+                    if (!PROFILES.find(x=>x.id===activeId)?.isPending) {
+                        pMarkers[activeId].setIcon(makeGraveIcon(false));
+                    }
                 }
                 activeId = p.id;
                 m.setIcon(makeGraveIcon(true));

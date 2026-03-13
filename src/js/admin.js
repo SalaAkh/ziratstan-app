@@ -567,7 +567,7 @@ async function apiRequest(path, options = {}) {
         };
 
         const table = tableMap[body.type];
-        if (!table || !body.id || !['approved', 'rejected'].includes(body.status)) {
+        if (!table || !body.id || !['approved', 'rejected', 'pending'].includes(body.status)) {
             throw toError('Invalid payload', 400);
         }
 
@@ -1363,6 +1363,64 @@ function renderTab(tab, items) {
     items.forEach((item) => container.appendChild(createCard(tab, item)));
 }
 
+// Region detection helper for Admin Panel
+const ADMIN_KZ_REGIONS = [
+    { id: 'almaty', n_ru: "Алматы", geo_lt: 43.2, geo_ln: 76.8, radius: 0.2 },
+    { id: 'astana', n_ru: "Астана", geo_lt: 51.16, geo_ln: 71.44, radius: 0.2 },
+    { id: 'shymkent', n_ru: "Шымкент", geo_lt: 42.34, geo_ln: 69.59, radius: 0.15 },
+    { id: 'abai', n_ru: "Абайская область", geo_lt: 48.9, geo_ln: 80.2 },
+    { id: 'akmola', n_ru: "Акмолинская область", geo_lt: 51.8, geo_ln: 69.4 },
+    { id: 'aktobe', n_ru: "Актюбинская область", geo_lt: 48.8, geo_ln: 58.3 },
+    { id: 'almaty_obl', n_ru: "Алматинская область", geo_lt: 44.5, geo_ln: 77.8 },
+    { id: 'atyrau', n_ru: "Атырауская область", geo_lt: 47.1, geo_ln: 51.9 },
+    { id: 'vko', n_ru: "Восточный Казахстан", geo_lt: 49.9, geo_ln: 82.6 },
+    { id: 'zhambyl', n_ru: "Жамбылская область", geo_lt: 43.8, geo_ln: 72.8 },
+    { id: 'zhetysu', n_ru: "Жетісу облысы", geo_lt: 45.0, geo_ln: 79.0 },
+    { id: 'zko', n_ru: "Западный Казахстан", geo_lt: 50.0, geo_ln: 50.5 },
+    { id: 'karaganda', n_ru: "Карагандинская область", geo_lt: 48.5, geo_ln: 72.0 },
+    { id: 'kostanay', n_ru: "Костанайская область", geo_lt: 52.5, geo_ln: 63.6 },
+    { id: 'kyzylorda', n_ru: "Кызылординская область", geo_lt: 44.8, geo_ln: 63.5 },
+    { id: 'mangystau', n_ru: "Мангистауская область", geo_lt: 44.0, geo_ln: 53.0 },
+    { id: 'pavlodar', n_ru: "Павлодарская область", geo_lt: 52.3, geo_ln: 76.0 },
+    { id: 'sko', n_ru: "Северо-Казахстанская область", geo_lt: 53.5, geo_ln: 68.5 },
+    { id: 'turkestan', n_ru: "Туркестанская область", geo_lt: 42.8, geo_ln: 68.3 },
+    // Custom bounding for ulytau because it's massive and sparse
+    { id: 'ulytau', n_ru: "Ұлытау облысы", geo_lt: 47.8, geo_ln: 66.0, b_min_lt: 46.0, b_max_lt: 49.0, b_min_ln: 64.0, b_max_ln: 69.0 },
+    { id: 'zarubezh', n_ru: "Зарубежье", geo_lt: 55.7, geo_ln: 37.6 }
+];
+
+function getAdminRegion(lat, lng) {
+    if (!lat || !lng) return 'Неизвестно';
+    let bestR = null;
+    
+    // Bounds check first for explicit overriding (e.g. Ulytau)
+    for (const r of ADMIN_KZ_REGIONS) {
+        if (r.b_min_lt && lat >= r.b_min_lt && lat <= r.b_max_lt && lng >= r.b_min_ln && lng <= r.b_max_ln) {
+            return r.n_ru;
+        }
+    }
+
+    if (lat > 56 || lat < 39 || lng < 45 || lng > 88) {
+        bestR = ADMIN_KZ_REGIONS.find(x => x.id === 'zarubezh');
+    } else {
+        let minD = Infinity;
+        ADMIN_KZ_REGIONS.forEach(r => {
+            if (r.id === 'zarubezh') return;
+            const dx = (r.geo_ln - lng) * Math.cos((r.geo_lt + lat) * Math.PI / 360);
+            const dy = (r.geo_lt - lat);
+            let d = dx * dx + dy * dy;
+            
+            // Major city penalty: if beyond ~15-20km (radius^2), do not classify as city
+            if (r.radius && d > (r.radius * r.radius)) {
+                d += 50.0; // massive penalty ensuring it falls back to the surrounding Oblast
+            }
+
+            if (d < minD) { minD = d; bestR = r; }
+        });
+    }
+    return bestR ? bestR.n_ru : 'Неизвестно';
+}
+
 function createCard(type, item) {
     const div = document.createElement('div');
     div.className = 'card';
@@ -1389,6 +1447,9 @@ function createCard(type, item) {
             <div class="card-meta-item">Текущее название: <span>${item.current_name || '-'}</span></div>
             <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
         </div>
+        <div class="card-meta-row">
+            <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
+        </div>
         ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
     } else if (type === 'profiles') {
         badgeClass = 'badge-profiles';
@@ -1397,6 +1458,10 @@ function createCard(type, item) {
         <div class="card-meta-row">
             <div class="card-meta-item">Годы: <span>${item.birth_year || '?'} - ${item.death_year || '?'}</span></div>
             <div class="card-meta-item">Кладбище: <span>${item.cemetery_name || '-'}</span></div>
+        </div>
+        <div class="card-meta-row">
+            <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
+            <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
         </div>
         ${item.description ? `<div class="card-detail" style="margin-top:8px;">${item.description}</div>` : ''}`;
     } else if (type === 'bios') {
@@ -1436,18 +1501,22 @@ function createCard(type, item) {
         ${item.status === 'pending' ? `
             <button class="btn-approve" onclick="updateStatus('${type}', '${item.id}', 'approved')">Одобрить</button>
             <button class="btn-reject" onclick="updateStatus('${type}', '${item.id}', 'rejected')">Отклонить</button>
-        ` : item.status ? '<span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>' : ''}
+        ` : item.status ? `
+            <span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>
+            <button class="btn-reject" style="background:transparent; color:var(--muted); border-color:var(--border); margin-top:5px;" onclick="updateStatus('${type}', '${item.id}', 'pending')">Отменить (Вернуть)</button>
+        ` : ''}
     </div>`;
 
     return div;
 }
 
 async function updateStatus(type, id, status) {
-    const btn = document.querySelector(`#card-${id} .btn-${status === 'approved' ? 'approve' : 'reject'}`);
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '...';
-    }
+    const btnApprove = document.querySelector(`#card-${id} .btn-approve`);
+    const btnReject = document.querySelector(`#card-${id} .btn-reject`);
+    
+    // Disable all buttons in this card while loading
+    if (btnApprove) { btnApprove.disabled = true; }
+    if (btnReject) { btnReject.disabled = true; btnReject.textContent = '...'; }
 
     try {
         await apiRequest('/admin/status', {
@@ -1469,16 +1538,21 @@ async function updateStatus(type, id, status) {
         }
 
         showToast(
-            status === 'approved' ? 'Одобрено и опубликовано' : 'Заявка отклонена',
-            status === 'approved' ? 'success' : 'error'
+            status === 'approved' ? 'Одобрено и опубликовано' : (status === 'pending' ? 'Возвращено на модерацию' : 'Заявка отклонена'),
+            status === 'approved' ? 'success' : (status === 'pending' ? 'success' : 'error')
         );
     } catch (err) {
         console.error('Error updating status:', err);
         showToast('Ошибка при обновлении статуса', 'error');
 
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = status === 'approved' ? 'Одобрить' : 'Отклонить';
+        // Restore buttons if failed
+        const card = document.getElementById(`card-${id}`);
+        if (card) {
+            const item = allData[type].find((x) => x.id === id);
+            if (item) {
+                const newCard = createCard(type, item);
+                card.replaceWith(newCard);
+            }
         }
     }
 }
