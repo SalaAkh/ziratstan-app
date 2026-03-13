@@ -13,15 +13,15 @@ var SUPABASE_URL = supabaseConfig.SUPABASE_URL || '';
 var SUPABASE_ANON_KEY = supabaseConfig.SUPABASE_ANON_KEY || '';
 
 // Инициализация клиента через CDN (supabase-js v2)
-var createClient = supabase.createClient || supabase.createClient;
-var db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    // supabase-auth.js handles OAuth redirect processing manually.
-    // Disabling auto-detection prevents the SDK from calling history.replaceState
-    // without user interaction, which triggers Chrome's History Manipulation warning.
-    detectSessionInUrl: false,
-  }
-});
+// Reuse client from supabase-auth.js if already created (same PKCE config, avoids duplicate GoTrueClient)
+var db = window._sb || (function() {
+  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true }
+  });
+  window._sb = client;
+  return client;
+})();
+
 
 // Helper для получения текущей сессии
 async function getSession() {

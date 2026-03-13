@@ -23,7 +23,13 @@ function getSupabase() {
     return _supabase;
   }
   if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        flowType: 'pkce',           // Use PKCE instead of implicit — prevents refresh_token rotation issues
+        detectSessionInUrl: true,   // SDK auto-processes ?code= and #access_token= on load
+        persistSession: true,
+      },
+    });
     window._sb = _supabase;
     return _supabase;
   }
@@ -286,7 +292,9 @@ async function signInWithGoogle() {
   const { data, error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + window.location.pathname
+      // Always redirect to root — ensures the page that has the ?code= handler
+      // is always index.html which has Supabase SDK loaded in correct order
+      redirectTo: window.location.origin + '/'
     }
   });
   
