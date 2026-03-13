@@ -13,6 +13,10 @@
 
     if (global.supabase && SB_URL && SB_KEY) {
       global._public_sb = global.supabase.createClient(SB_URL, SB_KEY);
+      if (global.window) {
+        global.window._sb = global._public_sb;
+        global.window.supabaseClient = global._public_sb;
+      }
       return global._public_sb;
     }
     
@@ -146,6 +150,9 @@
   async function fetchFamilyRelations(profileId) {
     var sb = getSb();
     if (!sb || !profileId) return [];
+    // profile_relations.profile_id_1 is UUID type — skip non-UUID slugs like "tole_bi_8"
+    var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(profileId)) return [];
     try {
       var { data, error } = await sb
         .from('profile_relations')
@@ -159,6 +166,7 @@
       return [];
     }
   }
+
 
   async function resolveQrSlug(slug) {
     var sb = getSb();
@@ -245,4 +253,9 @@
   global.fetchQrByProfile = fetchQrByProfile;
   global.generateQrSlug = generateQrSlug;
   global.fetchProfileIdBySlug = fetchProfileIdBySlug;
+
+  // Eagerly initialize client so window._sb is set BEFORE supabase-auth.js runs.
+  // This prevents the "Multiple GoTrueClient instances detected" warning.
+  getSb();
 })(window);
+
