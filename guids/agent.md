@@ -1,6 +1,6 @@
 # Ziratstan.kz — актуальный гайд по проекту
 
-Обновлено: 2026-03-13
+Обновлено: 2026-03-13 (08:14 UTC+5)
 
 ## Суть проекта
 
@@ -108,15 +108,16 @@ Ziratstan.kz — платформа для поиска захоронений, 
 - но считать, что после применения модель уже корректна, нельзя;
 - любые изменения в auth и ownership нужно сверять сразу с обеими SQL-точками: схемой и миграциями.
 
-### Настройка Google OAuth
+### Настройка Google OAuth (АКТУАЛЬНО на 2026-03-13)
 
 Для корректной работы входа через Google на боевом домене:
 
 1. В Google Cloud Console добавить точный URI: `https://[PROJECT_REF].supabase.co/auth/v1/callback`.
-2. В Supabase Dashboard (`Authentication -> URL Configuration`) указать:
+2. В Supabase Dashboard (`Authentication → URL Configuration`) указать:
    - Site URL: `https://ziratstan-app.web.app/`
    - Redirect URLs: `https://ziratstan-app.web.app/*`
-3. Учитывать задержку применения изменений со стороны Google: обновления могут занимать от 5 до 60 минут. Если возникает `400: redirect_uri_mismatch`, это не всегда означает неверную конфигурацию в текущую минуту.
+3. **Confirm email — ДОЛЖЕН БЫТЬ ВЫКЛЮЧЕН** (`Authentication → Sign In / Providers → Confirm email = OFF`). Если включён — Supabase создаёт сессию для нового Google-пользователя, но через ~2 секунды её инвалидирует. В логах это видно как `/callback → /logout` с задержкой 2с.
+4. Supabase JS SDK настроен на **PKCE flow** (не implicit). Менять `flowType` в `createClient()` и `signInWithOAuth()` нельзя — это критично для работы OAuth с новыми аккаунтами.
 
 ### Intended security model
 
@@ -535,3 +536,55 @@ node -e "const t=process.env.SUPABASE_SERVICE_ROLE_KEY||'';const p=t.split('.')[
 ```
 
 Expected for admin scripts: `service_role` or non-JWT `sb_secret_*` key.
+
+---
+
+## OAuth / Google Sign-In Troubleshooting (2026-03-13)
+
+### Диагностированные причины немедленного SIGNED_OUT после SIGNED_IN
+
+Если в консоли видно:
+```
+onAuthStateChange → SIGNED_IN user@gmail.com
+onAuthStateChange → INITIAL_SESSION user@gmail.com
+onAuthStateChange → SIGNED_OUT (no user)
+```
+— это серверная инвалидация сессии Supabase. Причины в порядке убывания вероятности:
+
+| # | Причина | Признак | Фикс |
+|---|---------|---------|------|
+| 1 | **`Confirm email` включён** | В логах сервера: `/callback → /logout` через ~2с | Dashboard: `Auth → Sign In/Providers → Confirm email = OFF` |
+| 2 | **Implicit flow + refresh\_token rotation** | Логи: SIGNED\_IN → мгновенный SIGNED\_OUT | `flowType: 'pkce'` в `createClient()` |
+| 3 | **Двойной `setSession()` вызов** | Старый код `processOAuthRedirect` вызывал `setSession` вручную, SDK делал то же самое | Убран ручной `setSession` из `processOAuthRedirect` |
+| 4 | **Триггер `handle_new_user` без EXCEPTION** | Новые пользователи не создаются | `SECURITY DEFINER` + `EXCEPTION WHEN OTHERS THEN RETURN NEW` |
+
+### Текущее состояние auth-кода (2026-03-13)
+
+**`supabase-auth.js`:**
+- `getSupabase()` создаёт клиент с `{ auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true } }`
+- `processOAuthRedirect()` — только детектирует URL, НЕ вызывает `setSession()` или `exchangeCodeForSession()`. SDK делает это сам через `detectSessionInUrl: true`.
+- `initAuth()` — ждёт 1000ms после детектирования OAuth редиректа, потом проверяет сессию через `getSession()`
+- `onAuthStateChange` — логирует все события: `console.log('[Auth] onAuthStateChange →', event, ...)`
+- `signInWithGoogle()` — `redirectTo: window.location.origin + '/'` (всегда на главную)
+
+**`supabase/client.js`:**
+- Также использует `flowType: 'pkce'` и переиспользует `window._sb` если клиент уже создан в `supabase-auth.js`
+
+**Supabase Dashboard (проект `atxqjzjerdvpiampxamk`):**
+- `Confirm email`: **OFF** ✅
+- `Allow new users to sign up`: **ON** ✅
+- Site URL: `https://ziratstan-app.web.app/` ✅
+- Redirect URLs: `https://ziratstan-app.web.app/*` ✅
+- Auth Hooks: **нет** ✅
+- Trigger `handle_new_user`: содержит `EXCEPTION WHEN OTHERS THEN RETURN NEW` ✅
+
+### Как работает PKCE flow
+
+1. `signInWithGoogle()` → SDK генерирует `code_verifier`, сохраняет в localStorage, отправляет `code_challenge` в Supabase
+2. Supabase → Google OAuth → пользователь логинится
+3. Google → Supabase → наш сайт перенаправляется с `?code=...` в URL (НЕ `#access_token=` в хэше)
+4. SDK обнаруживает `?code=` + находит `code_verifier` в localStorage → вызывает `exchangeCodeForSession` внутри
+5. Supabase возвращает `access_token` + `refresh_token` → SIGNED_IN
+6. `initAuth` через 1000ms проверяет сессию → `cleanupOAuthRedirectUrl()` → UI обновляется
+
+**Важно:** `code_verifier` хранится в localStorage. Если localStorage очищен между п.1 и п.4 (разные браузеры, extensions, private mode без сохранения) — PKCE не сработает.
