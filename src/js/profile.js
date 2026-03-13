@@ -17,6 +17,8 @@ let _lastQrData = null;
 let _lastQrProfileId = null;
 let _lastQrHasSession = false;
 let _lastQrMode = null; // 'display' | 'create' | 'admin' | 'supabase_only' | 'mock' | 'public_fallback'
+let _galleryPhotos = [];
+let _currentPhotoIndex = 0;
 
 function t(key) {
     return (window.i18n && typeof i18n.t === 'function') ? i18n.t(key) : key;
@@ -65,6 +67,24 @@ function updateSeo(p) {
             city: displayOrUnknown(p.city)
         });
         descEl.setAttribute('content', desc);
+    }
+
+    // Dynamic OG data
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', `${p.fullName} | Зиратстан`);
+    if (twitterTitle) twitterTitle.setAttribute('content', `${p.fullName} | Зиратстан`);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', descEl ? descEl.getAttribute('content') : '');
+    if (twitterDesc) twitterDesc.setAttribute('content', descEl ? descEl.getAttribute('content') : '');
+
+    if (p.photo) {
+        const ogImg = document.querySelector('meta[property="og:image"]');
+        const twitterImg = document.querySelector('meta[name="twitter:image"]');
+        if (ogImg) ogImg.setAttribute('content', p.photo);
+        if (twitterImg) twitterImg.setAttribute('content', p.photo);
     }
 }
 
@@ -131,10 +151,11 @@ function renderBio(data) {
         <div style="margin-top:2rem;">
             <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> ${t('prof_gallery_title')}</h3>
             <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin;">
-                ${data.photos.map(url => `<img src="${url}" style="height:160px;min-width:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`).join('')}
+                ${data.photos.map((url, idx) => `<img src="${url}" onclick="openLightbox(${idx})" style="height:160px;min-width:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">`).join('')}
             </div>
         </div>
     ` : '';
+    _galleryPhotos = data.photos || [];
 
     bioSection.innerHTML = `
         <h2><span class="s-icon">📖</span> ${t('prof_bio_title')}</h2>
@@ -201,6 +222,69 @@ function toggleBio() {
         if (btn) btn.textContent = t('prof_read_more');
     }
 }
+
+// ── LIGHTBOX (P2.2) ──
+function openLightbox(index) {
+    if (!_galleryPhotos || _galleryPhotos.length === 0) return;
+    _currentPhotoIndex = index;
+    const overlay = document.getElementById('lightboxOverlay');
+    overlay.classList.add('active');
+    updateLightbox();
+    // Prevent scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function updateLightbox() {
+    const img = document.getElementById('lightboxImg');
+    const counter = document.getElementById('lightboxCounter');
+    const url = _galleryPhotos[_currentPhotoIndex];
+    img.src = url;
+    counter.textContent = `${_currentPhotoIndex + 1} / ${_galleryPhotos.length}`;
+
+    // Show/hide nav buttons if only 1 photo
+    const prevBtn = document.getElementById('prevPhotoBtn');
+    const nextBtn = document.getElementById('nextPhotoBtn');
+    if (_galleryPhotos.length <= 1) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    } else {
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+    }
+}
+
+function closeLightbox(e) {
+    if (e) {
+        // If clicked on overlay or close button, NOT the image or nav
+        const isOverlay = e.target.id === 'lightboxOverlay';
+        const isClose = e.target.classList.contains('lightbox-close');
+        if (!isOverlay && !isClose) return;
+    }
+    const overlay = document.getElementById('lightboxOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function nextPhoto(e) {
+    if (e) e.stopPropagation();
+    _currentPhotoIndex = (_currentPhotoIndex + 1) % _galleryPhotos.length;
+    updateLightbox();
+}
+
+function prevPhoto(e) {
+    if (e) e.stopPropagation();
+    _currentPhotoIndex = (_currentPhotoIndex - 1 + _galleryPhotos.length) % _galleryPhotos.length;
+    updateLightbox();
+}
+
+// Close on ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+    if (document.getElementById('lightboxOverlay').classList.contains('active')) {
+        if (e.key === 'ArrowRight') nextPhoto();
+        if (e.key === 'ArrowLeft') prevPhoto();
+    }
+});
 
 // ── LOAD PROFILE ──
 async function initProfile() {

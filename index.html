@@ -170,6 +170,94 @@
       background: var(--gold-dim);
     }
 
+    .service-card.selected .service-icon {
+      background: var(--gold);
+    }
+
+    /* ─── KHANS SOON (P1.1) ─── */
+    .khan-card.soon {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: grayscale(1);
+    }
+    .khan-card.soon::after {
+      content: "Coming Soon";
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.8);
+      color: var(--gold);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--gold-border);
+    }
+
+    /* ─── SUPPORT SECTION (P1) ─── */
+    .support-section {
+      background: linear-gradient(135deg, #1a1a1d 0%, #09090b 100%);
+      border: 1px solid var(--gold-border);
+      border-radius: 24px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .support-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at center, rgba(212,175,55,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .kaspi-card-num {
+      display: inline-block;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--gold-border);
+      color: var(--gold);
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin: 1.5rem 0 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .kaspi-card-num:hover {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+    .kaspi-copied-msg {
+      color: #22c55e;
+      font-size: 0.85rem;
+      font-weight: 600;
+      height: 20px;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .kaspi-copied-msg.visible {
+      opacity: 1;
+    }
+    .btn-support-kaspi {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .btn-support-kaspi:hover {
+      transform: scale(1.05);
+    }
+
     /* Mobile hamburger */
     .hamburger {
       display: none;
@@ -1924,12 +2012,12 @@
   <!-- STATS -->
   <div class="stats">
     <div class="stat">
-      <div class="stat-val">150+</div>
+      <div class="stat-val" id="stat-cemeteries">150+</div>
       <div class="stat-lbl" data-i18n="stat_cemeteries">Қазақстандағы зираттар</div>
     </div>
     <div class="stat">
-      <div class="stat-val">2M+</div>
-      <div class="stat-lbl" data-i18n="stat_graves">Цифрландыруға арналған қабірлер</div>
+      <div class="stat-val" id="stat-graves">0</div>
+      <div class="stat-lbl" data-i18n="stat_graves">Цифрландырылған қабірлер</div>
     </div>
     <div class="stat">
       <div class="stat-val">PWA</div>
@@ -1997,7 +2085,7 @@
     <div class="khans-timeline-wrap">
       <div class="khans-timeline" id="khansTimeline">
 
-        <a href="profile.html?id=kerey_khan_200" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_foundation">Құрылуы</div>
           <div class="khan-icon">👑</div>
           <div class="khan-name" data-i18n="khan_kerey">Керей хан</div>
@@ -2013,7 +2101,7 @@
           <div class="khan-place" data-i18n="khan_zhanibek_place" data-i18n="khan_kasym_place">📍 Сарайшық, Атырау</div>
         </a>
 
-        <a href="profile.html?id=burunduk_khan_201" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_burunduk">Бұрындық хан</div>
           <div class="khan-dates">1474 – 1513</div>
@@ -2028,35 +2116,35 @@
           <div class="khan-place">📍 Сарайшық, Атырау</div>
         </a>
 
-        <a href="profile.html?id=mamash_khan_202" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_mamash">Мамаш хан</div>
           <div class="khan-dates">~1495 – 1522</div>
           <div class="khan-place">📍 Сарайшық, Атырау обл.</div>
         </a>
 
-        <a href="profile.html?id=tahir_khan_203" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_tahir">Тахир хан</div>
           <div class="khan-dates">~1490 – 1535</div>
           <div class="khan-place" data-i18n="khan_tahir_place">📍 Белгісіз (Моғолстан)</div>
         </a>
 
-        <a href="profile.html?id=buydash_khan_204" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_buydash">Бұйдаш хан</div>
           <div class="khan-dates">~1500 – 1560</div>
           <div class="khan-place" data-i18n="khan_buydash_place" data-i18n="khan_tugum_place" data-i18n="khan_kaiyp_place">📍 Түркістан обл.</div>
         </a>
 
-        <a href="profile.html?id=tugum_khan_205" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_tugum">Тұғым хан</div>
           <div class="khan-dates">~1495 – 1537</div>
           <div class="khan-place">📍 Түркістан обл.</div>
         </a>
 
-        <a href="profile.html?id=haknazar_khan_206" class="khan-card khan-card--gold">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_power">Қуатты кезең</div>
           <div class="khan-icon">👑</div>
           <div class="khan-name" data-i18n="khan_haknazar">Хақназар хан</div>
@@ -2064,21 +2152,21 @@
           <div class="khan-place" data-i18n="khan_haknazar_place">📍 Түркістан маңы</div>
         </a>
 
-        <a href="profile.html?id=shygai_khan_207" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_shygai">Шығай хан</div>
           <div class="khan-dates">~1500 – 1582</div>
           <div class="khan-place" data-i18n="khan_shygai_place" data-i18n="khan_salqam_place" data-i18n="khan_tauke_place" data-i18n="khan_abylai_place">📍 Мавзолей Яссауи, Түркістан</div>
         </a>
 
-        <a href="profile.html?id=taukel_khan_208" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_taukel">Тәуекел хан</div>
           <div class="khan-dates">1545 – 1598</div>
           <div class="khan-place" data-i18n="khan_taukel_place" data-i18n="khan_bolat_place">📍 Түркістан</div>
         </a>
 
-        <a href="profile.html?id=esim_khan_209" class="khan-card khan-card--gold">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_esim">«Есім ханның ескі жолы»</div>
           <div class="khan-icon">👑</div>
           <div class="khan-name" data-i18n="khan_esim">Есім хан</div>
@@ -2086,7 +2174,7 @@
           <div class="khan-place" data-i18n="khan_esim_place">📍 Мавзолей Есім хан, Түркістан</div>
         </a>
 
-        <a href="profile.html?id=salqam_117" class="khan-card khan-card--gold">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_orbulak">Орбұлақ шайқасы</div>
           <div class="khan-icon">⚔️</div>
           <div class="khan-name" data-i18n="khan_salqam">Салқам Жәңгір хан</div>
@@ -2102,28 +2190,28 @@
           <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
         </a>
 
-        <a href="profile.html?id=kaiyp_khan_210" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_kaiyp">Қайып хан</div>
           <div class="khan-dates">~1660 – 1718</div>
           <div class="khan-place">📍 Түркістан обл.</div>
         </a>
 
-        <a href="profile.html?id=bolat_khan_211" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_bolat">Болат хан</div>
           <div class="khan-dates">~1670 – 1724</div>
           <div class="khan-place">📍 Түркістан</div>
         </a>
 
-        <a href="profile.html?id=sameke_khan_212" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_sameke">Сәмеке хан</div>
           <div class="khan-dates">~1685 – 1737</div>
           <div class="khan-place" data-i18n="khan_sameke_place">📍 Сарайшық маңы, Атырау обл.</div>
         </a>
 
-        <a href="profile.html?id=abulkhair_khan_213" class="khan-card khan-card--gold">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_junior">Кіші жүз ханы</div>
           <div class="khan-icon">👑</div>
           <div class="khan-name" data-i18n="khan_abulkhair">Әбілқайыр хан</div>
@@ -2139,28 +2227,28 @@
           <div class="khan-place">📍 Мавзолей Яссауи, Түркістан</div>
         </a>
 
-        <a href="profile.html?id=uali_khan_214" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_uali">Уәли хан</div>
           <div class="khan-dates">1741 – 1819</div>
           <div class="khan-place" data-i18n="khan_uali_place">📍 Бұхара маңы (Өзб)</div>
         </a>
 
-        <a href="profile.html?id=nura_new_87" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_nura">Нұралы хан</div>
           <div class="khan-dates">1710 – 1790</div>
           <div class="khan-place" data-i18n="khan_nura_place">📍 Уфа (РФ)</div>
         </a>
 
-        <a href="profile.html?id=zhantore_new_88" class="khan-card">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-icon">☽</div>
           <div class="khan-name" data-i18n="khan_zhantore">Жантөре хан</div>
           <div class="khan-dates">1759 – 1809</div>
           <div class="khan-place" data-i18n="khan_zhantore_place">📍 Орынбор (РФ)</div>
         </a>
 
-        <a href="profile.html?id=kenesary_khan_215" class="khan-card khan-card--gold">
+        <a href="javascript:void(0)" class="khan-card soon">
           <div class="khan-era" data-i18n="khan_era_last">Соңғы хан</div>
           <div class="khan-icon">🏴</div>
           <div class="khan-name" data-i18n="khan_kenesary">Кенесары хан</div>
@@ -2398,65 +2486,52 @@
     }
   </script>
 
+  <script src="src/js/donate.js"></script>
+
   <script>
-    /* ─── KASPI DONATION LOGIC ─── */
-    const KASPI_CARD = '4400430320985507';
-    const KASPI_CARD_DISPLAY = '4400 4303 2098 5507';
-
-    function copyKaspiCard() {
-      navigator.clipboard.writeText(KASPI_CARD).then(() => {
-        const msg = document.getElementById('kaspiCopied');
-        const num = document.getElementById('kaspiCardNum');
-        msg.classList.add('visible');
-        num.classList.add('copied');
-        setTimeout(() => {
-          msg.classList.remove('visible');
-          num.classList.remove('copied');
-        }, 2500);
-      }).catch(() => {
-        // fallback for older browsers
-        const el = document.createElement('textarea');
-        el.value = KASPI_CARD;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      });
+    // ══════ REAL-TIME STATS ══════
+    async function initStats() {
+      if (!window.db) return;
+      
+      try {
+        const { count: cemCount } = await db.from('cemeteries').select('*', { count: 'exact', head: true });
+        const { count: profCount } = await db.from('profiles').select('*', { count: 'exact', head: true });
+        
+        if (cemCount) animateValue('stat-cemeteries', 0, cemCount, 1500, '+');
+        if (profCount) animateValue('stat-graves', 0, profCount, 2000);
+      } catch (e) {
+        console.error('Stats fetch failed:', e);
+      }
     }
 
-    function copyKaspiCardPopup() {
-      navigator.clipboard.writeText(KASPI_CARD).then(() => {
-        const msg = document.getElementById('donatePopupCopied');
-        msg.classList.add('visible');
-        setTimeout(() => msg.classList.remove('visible'), 2500);
-      });
+    function animateValue(id, start, end, duration, suffix = '') {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = current.toLocaleString() + suffix;
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
     }
 
-    /* ─── DONATION POPUP LOGIC ─── */
-    const POPUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-    const POPUP_FIRST_DELAY_MS = 60 * 1000;   // first show after 1 min
-
-    function showDonatePopup() {
-      const popup = document.getElementById('donatePopup');
-      const overlay = document.getElementById('donateOverlay');
-      popup.classList.add('visible');
-      overlay.classList.add('visible');
-    }
-
-    function closeDonatePopup() {
-      const popup = document.getElementById('donatePopup');
-      const overlay = document.getElementById('donateOverlay');
-      popup.classList.remove('visible');
-      overlay.classList.remove('visible');
-    }
-
-    // First popup after 1 minute, then every 5 minutes
-    setTimeout(() => {
-      showDonatePopup();
-      setInterval(showDonatePopup, POPUP_INTERVAL_MS);
-    }, POPUP_FIRST_DELAY_MS);
+    // Trigger stats when visible
+    const statsObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        initStats();
+        statsObserver.disconnect();
+      }
+    }, { threshold: 0.1 });
+    
+    const statsEl = document.querySelector('.stats');
+    if (statsEl) statsObserver.observe(statsEl);
   </script>
-
 </body>
 
 </html>

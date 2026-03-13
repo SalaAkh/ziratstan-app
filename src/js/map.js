@@ -11,6 +11,15 @@
         let pMarkers = {};
         let refreshRegionsUI = function () { };
 
+        /* ─── UTILS (P2.5) ─── */
+        function debounce(fn, ms) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fn.apply(this, args), ms);
+            };
+        }
+
         function t(key) {
             return (window.i18n && typeof i18n.t === 'function') ? i18n.t(key) : key;
         }
@@ -65,13 +74,24 @@
             document.getElementById('mapNavBtn').classList.remove('active');
         }
 
-        // Центр Казахстана
+        // Initial state from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLat = parseFloat(urlParams.get('lat'));
+        const urlLng = parseFloat(urlParams.get('lng'));
+        const urlZoom = parseInt(urlParams.get('zoom'), 10);
+
         const map = L.map('map', {
             zoomControl: false,
             preferCanvas: true,
-            minZoom: 5,  // Запрет отдаления (чтобы не улетать в космос)
-            maxZoom: 16  // Вернул глубокий зум, так как проблема была в отдалении
-        }).setView([48.0196, 66.9237], 5);
+            minZoom: 5,
+            maxZoom: 16
+        });
+
+        if (!isNaN(urlLat) && !isNaN(urlLng)) {
+            map.setView([urlLat, urlLng], !isNaN(urlZoom) ? urlZoom : 12);
+        } else {
+            map.setView([48.0196, 66.9237], 5);
+        }
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
@@ -130,15 +150,14 @@
             maxClusterRadius: 50,
             disableClusteringAtZoom: 15
         });
-        markersCluster.addTo(map); // VIP markers are always visible
+        markersCluster.addTo(map); 
+        
         // ── REGIONS & CLUSTERS ──
         const regionsLayer = L.layerGroup();
         const KZ_REGIONS = [
-            // Қалалық маңызы қалалар
             { id: 'almaty', n_kk: "Алматы", n_ru: "Алматы", lt: 43.2380, ln: 76.9458, geo_lt: 43.2, geo_ln: 76.8, count: 0 },
             { id: 'astana', n_kk: "Астана", n_ru: "Астана", lt: 51.1282, ln: 71.4307, geo_lt: 51.16, geo_ln: 71.44, count: 0 },
             { id: 'shymkent', n_kk: "Шымкент", n_ru: "Шымкент", lt: 42.3154, ln: 69.5967, geo_lt: 42.34, geo_ln: 69.59, count: 0 },
-            // Облыстар
             { id: 'abai', n_kk: "Абай облысы", n_ru: "Абайская область", lt: 50.4111, ln: 80.2275, geo_lt: 48.9, geo_ln: 80.2, count: 0 },
             { id: 'akmola', n_kk: "Ақмола облысы", n_ru: "Акмолинская область", lt: 52.9500, ln: 69.3833, geo_lt: 51.8, geo_ln: 69.4, count: 0 },
             { id: 'aktobe', n_kk: "Ақтөбе облысы", n_ru: "Актюбинская область", lt: 50.2839, ln: 57.2100, geo_lt: 48.8, geo_ln: 58.3, count: 0 },
@@ -146,7 +165,7 @@
             { id: 'atyrau', n_kk: "Атырау облысы", n_ru: "Атырауская область", lt: 47.1076, ln: 51.9139, geo_lt: 47.1, geo_ln: 51.9, count: 0 },
             { id: 'vko', n_kk: "Шығыс Қазақстан", n_ru: "Восточный Казахстан", lt: 49.9481, ln: 82.6282, geo_lt: 49.9, geo_ln: 82.6, count: 0 },
             { id: 'zhambyl', n_kk: "Жамбыл облысы", n_ru: "Жамбылская область", lt: 42.9000, ln: 71.3667, geo_lt: 43.8, geo_ln: 72.8, count: 0 },
-            { id: 'zhetysu', n_kk: "Жетісу облысы", n_ru: "Область Жетысу", lt: 45.0178, ln: 78.3738, geo_lt: 45.0, geo_ln: 79.0, count: 0 },
+            { id: 'zhetysu', n_kk: "Жетісу облысы", n_ru: "Жетісу облысы", lt: 45.0178, ln: 78.3738, geo_lt: 45.0, geo_ln: 79.0, count: 0 },
             { id: 'zko', n_kk: "Батыс Қазақстан", n_ru: "Западный Казахстан", lt: 50.0000, ln: 51.5000, geo_lt: 50.0, geo_ln: 50.5, count: 0 },
             { id: 'karaganda', n_kk: "Қарағанды облысы", n_ru: "Карагандинская область", lt: 49.8019, ln: 73.1021, geo_lt: 48.5, geo_ln: 72.0, count: 0 },
             { id: 'kostanay', n_kk: "Қостанай облысы", n_ru: "Костанайская область", lt: 52.9000, ln: 63.6246, geo_lt: 52.5, geo_ln: 63.6, count: 0 },
@@ -155,7 +174,7 @@
             { id: 'pavlodar', n_kk: "Павлодар облысы", n_ru: "Павлодарская область", lt: 52.2873, ln: 76.9674, geo_lt: 52.3, geo_ln: 76.0, count: 0 },
             { id: 'sko', n_kk: "Солтүстік Қазақстан", n_ru: "Северо-Казахстанская область", lt: 53.0000, ln: 69.5000, geo_lt: 53.5, geo_ln: 68.5, count: 0 },
             { id: 'turkestan', n_kk: "Түркістан облысы", n_ru: "Туркестанская область", lt: 43.3017, ln: 68.2522, geo_lt: 42.8, geo_ln: 68.3, count: 0 },
-            { id: 'ulytau', n_kk: "Ұлытау облысы", n_ru: "Область Улытау", lt: 47.7845, ln: 67.7144, geo_lt: 47.8, geo_ln: 66.0, count: 0 },
+            { id: 'ulytau', n_kk: "Ұлытау облысы", n_ru: "Ұлытау облысы", lt: 47.7845, ln: 67.7144, geo_lt: 47.8, geo_ln: 66.0, count: 0 },
             { id: 'zarubezh', n_kk: "Шет елдер", n_ru: "Зарубежье", lt: 55.75, ln: 37.61, geo_lt: 55.7, geo_ln: 37.6, count: 0 }
         ];
 
@@ -199,15 +218,12 @@
             });
         }
 
-        // Добавляем обычные кладбища пакетом через Supercluster
         const cemeteriesLayer = L.layerGroup();
         let superclusterIndex = null;
-        let allFeatures = []; // Храним все точки для перезагрузки
-        let activeRegionId = null; // Текущий выбранный регион
+        let allFeatures = []; 
+        let activeRegionId = null;
 
         if (typeof CEMETERIES_DATA !== 'undefined' && typeof Supercluster !== 'undefined') {
-
-            // Считаем кол-во для каждого региона + вшиваем region_id
             CEMETERIES_DATA.forEach(c => {
                 let bestR = null;
                 if (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88) {
@@ -231,38 +247,32 @@
                 });
             });
 
-            // Инициализация Supercluster
             superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
             superclusterIndex.load(allFeatures);
 
-            // Функция загрузки только точек выбранного региона
             function drillIntoRegion(regionId) {
                 activeRegionId = regionId;
                 const filtered = allFeatures.filter(f => f.properties.region_id === regionId);
                 superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
                 superclusterIndex.load(filtered);
                 const r = KZ_REGIONS.find(x => x.id === regionId);
-                console.log(`[Ziratstan] Drill-down: ${r ? regionName(r) : regionId} → ${filtered.length} точек`);
-                // Показать кнопку "назад"
                 document.getElementById('regionBackBtn').style.display = 'flex';
                 document.getElementById('regionBackLabel').textContent = r ? regionName(r) : regionId;
+                
+                const sel = document.getElementById('regionSelect');
+                if (sel) sel.value = regionId;
+                if (typeof renderList === 'function') renderList();
             }
 
-            // Функция сброса на все регионы
             function resetToAllRegions() {
                 activeRegionId = null;
                 superclusterIndex = new Supercluster({ radius: 50, maxZoom: 15 });
                 superclusterIndex.load(allFeatures);
                 document.getElementById('regionBackBtn').style.display = 'none';
-                // Сброс dropdown
                 const sel = document.getElementById('regionSelect');
                 if (sel) sel.value = '';
-
-                // Refresh the sidebar list to show all regions
                 if (typeof renderList === 'function') renderList();
-                console.log('[Ziratstan] Reset to all regions');
             }
-            // Делаем доступной глобально для кнопки
             window.resetToAllRegions = resetToAllRegions;
             document.getElementById('regionBackBtn').addEventListener('click', () => {
                 resetToAllRegions();
@@ -270,7 +280,6 @@
             });
 
             refreshRegionsUI = function () {
-                // Sidebar dropdown (keep the first "all regions" option intact)
                 const regionSel = document.getElementById('regionSelect');
                 if (regionSel) {
                     while (regionSel.options.length > 1) regionSel.remove(1);
@@ -284,7 +293,6 @@
                     });
                 }
 
-                // Region markers layer
                 regionsLayer.clearLayers();
                 KZ_REGIONS.forEach(r => {
                     if (r.count > 0) {
@@ -298,16 +306,13 @@
                     }
                 });
 
-                // Back button label (when drilled down)
                 if (activeRegionId) {
                     const r = KZ_REGIONS.find(x => x.id === activeRegionId);
                     if (r) document.getElementById('regionBackLabel').textContent = regionName(r);
                 }
             };
-
             refreshRegionsUI();
 
-            // Глобальный обработчик выбора из dropdown
             window.handleRegionSelect = function (regionId) {
                 if (regionId) {
                     drillIntoRegion(regionId);
@@ -317,24 +322,8 @@
                     resetToAllRegions();
                     map.flyTo([48.0196, 66.9237], 5, { duration: 1 });
                 }
-
-                // Filter the sidebar list by region
-                if (typeof renderList === 'function') renderList();
             };
 
-            // Синхронизуем dropdown при клике на карте
-            const origDrill = drillIntoRegion;
-            drillIntoRegion = function (regionId) {
-                origDrill(regionId);
-                const sel = document.getElementById('regionSelect');
-                if (sel) sel.value = regionId;
-
-                // Update sidebar list when clicking region cluster on map
-                if (typeof renderList === 'function') renderList();
-            };
-
-            // Рендер видимых кластеров/точек из Supercluster
-            // Граница Казахстана (bounding box)
             const KZ_BOUNDS = { latMin: 40.5, latMax: 55.5, lngMin: 46.5, lngMax: 87.5 };
 
             function renderClusters() {
@@ -346,16 +335,7 @@
 
                 clusters.forEach(f => {
                     const [lng, lat] = f.geometry.coordinates;
-                    // Фильтр: пропускаем точки за пределами КЗ
                     if (lat < KZ_BOUNDS.latMin || lat > KZ_BOUNDS.latMax || lng < KZ_BOUNDS.lngMin || lng > KZ_BOUNDS.lngMax) return;
-
-                    // Блокируем показ точек/кластеров за пределами выбранного региона
-                    if (activeRegionId && activeRegionId !== 'zarubezh') {
-                        // Используем заранее посчитанный region_id из allFeatures
-                        // Для кластеров (у которых f.properties.cluster == true) getLeaves вернет точки
-                        // Но так как supercluster уже фильтруется через drillIntoRegion(), 
-                        // все приходящие сюда точки и кластеры УЖЕ принадлежат выбранному региону!
-                    }
 
                     if (f.properties.cluster) {
                         const count = f.properties.point_count;
@@ -392,58 +372,52 @@
                 });
             }
 
-            // Динамическое переключение слоев
             function updateMapLayers() {
                 const z = map.getZoom();
                 if (z < 7) {
-                    // Режим обзора всей страны: показываем ТОЛЬКО маркеры областей
                     if (activeRegionId) resetToAllRegions();
-
-                    // Жесткая очистка кластеров
                     cemeteriesLayer.clearLayers();
-                    if (map.hasLayer(cemeteriesLayer)) {
-                        map.removeLayer(cemeteriesLayer);
-                    }
-                    if (!map.hasLayer(regionsLayer)) {
-                        map.addLayer(regionsLayer);
-                    }
+                    if (map.hasLayer(cemeteriesLayer)) map.removeLayer(cemeteriesLayer);
+                    if (!map.hasLayer(regionsLayer)) map.addLayer(regionsLayer);
                 } else {
-                    // Режим зума: прячем текстовые маркеры, рисуем Supercluster точки
                     if (map.hasLayer(regionsLayer)) map.removeLayer(regionsLayer);
                     if (!map.hasLayer(cemeteriesLayer)) map.addLayer(cemeteriesLayer);
                     renderClusters();
-
-                    // Update VIP markers overlay visibility to match the current filtered list
                     if (typeof renderList === 'function') renderList();
                 }
             }
 
-            map.on('moveend', updateMapLayers);
-            updateMapLayers(); // Инициализация
+            function updateUrl() {
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                const url = new URL(window.location);
+                url.searchParams.set('lat', center.lat.toFixed(6));
+                url.searchParams.set('lng', center.lng.toFixed(6));
+                url.searchParams.set('zoom', zoom);
+                window.history.replaceState({}, '', url);
+            }
+
+            map.on('moveend', debounce(() => {
+                updateMapLayers();
+                updateUrl();
+            }, 300));
+            updateMapLayers();
         }
 
         // ── RENDER SIDEBAR ──
         function renderList() {
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const qCode = document.getElementById('searchInput').value.toLowerCase().trim();
             const filteredVip = PROFILES.filter(p => {
-                // Base filter matching
                 const matchFilter = currentFilter === 'all' || (currentFilter === 'historical' && p.filter === 'historical');
-
-                // Era matching (only applies if we are in historical tab and an era is selected)
                 const matchEra = (currentFilter === 'all') || (currentEra === 'all') || (p.era === currentEra);
-
-                // Region filtering based on activeRegionId
+                
                 let matchRegion = true;
                 if (activeRegionId && activeRegionId !== 'zarubezh') {
                     const r = KZ_REGIONS.find(x => x.id === activeRegionId);
                     if (r) {
-                        // Simple bounding box proxy for regions (or relying on city name)
-                        // This uses a proximity check to the region center, similar to how cluster assignments work
                         const dx = (r.geo_ln - p.lng) * Math.cos((r.geo_lt + p.lat) * Math.PI / 360);
                         const dy = (r.geo_lt - p.lat);
-                        const distanceSq = dx * dx + dy * dy;
-                        // Rough radius squared (~5.0 degrees approx 550km)
-                        matchRegion = distanceSq < 25.0;
+                        matchRegion = (dx * dx + dy * dy) < 25.0;
                     }
                 } else if (activeRegionId === 'zarubezh') {
                     matchRegion = (p.lat > 56 || p.lat < 39 || p.lng < 45 || p.lng > 88);
@@ -453,51 +427,45 @@
                 const pCem = (p.cemetery || '').toLowerCase();
                 const pCity = (p.city || '').toLowerCase();
                 const pId = (p.id || '').toLowerCase();
-                const searchQ = !q || pName.includes(q) || pCem.includes(q) || pCity.includes(q) || pId.includes(q);
+                const searchQ = !qCode || pName.includes(qCode) || pCem.includes(qCode) || pCity.includes(qCode) || pId.includes(qCode);
 
                 return matchFilter && matchEra && matchRegion && searchQ;
             }).filter(p => currentFilter !== 'cemeteries');
 
             const filteredGen = [];
             if (typeof CEMETERIES_DATA !== 'undefined' && (currentFilter === 'all' || currentFilter === 'cemeteries')) {
-                for (let i = 0; i < CEMETERIES_DATA.length; i++) {
-                    const c = CEMETERIES_DATA[i];
-                    // Verify correct region for simple cemeteries
+                CEMETERIES_DATA.forEach(c => {
                     let matchRegion = true;
                     if (activeRegionId) {
                         const r = KZ_REGIONS.find(x => x.id === activeRegionId);
                         if (r && activeRegionId !== 'zarubezh') {
                             const dx = (r.geo_ln - c.ln) * Math.cos((r.geo_lt + c.lt) * Math.PI / 360);
                             const dy = (r.geo_lt - c.lt);
-                            const distanceSq = dx * dx + dy * dy;
-                            matchRegion = distanceSq < 25.0; // Same bounding proxy
+                            matchRegion = (dx * dx + dy * dy) < 25.0;
                         } else if (activeRegionId === 'zarubezh') {
                             matchRegion = (c.lt > 56 || c.lt < 39 || c.ln < 45 || c.ln > 88);
                         }
                     }
-
-                    if (matchRegion && (!q || c.n.toLowerCase().includes(q))) {
+                    if (matchRegion && (!qCode || c.n.toLowerCase().includes(qCode))) {
                         filteredGen.push(c);
                     }
-                }
+                });
             }
 
             const total = filteredVip.length + filteredGen.length;
-            document.getElementById('resultsCount').textContent = `${t('map_results_found')}: ${total}`;
+            const resCountEl = document.getElementById('resultsCount');
+            if (resCountEl) resCountEl.textContent = `${t('map_results_found')}: ${total}`;
 
             let displayList = '';
-
-            if (total === 0 && q) {
+            if (total === 0 && qCode) {
                 displayList += `
                 <div style="padding: 2rem 1rem; text-align: center;">
                     <div style="font-size: 2rem; margin-bottom: 1rem; color: var(--muted);">🔍</div>
                     <div style="color: var(--text); margin-bottom: 0.5rem; font-weight: 600;">${t('map_not_found')}</div>
                     <div style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem;">${t('map_empty_desc')}</div>
                     <button class="geo-btn" style="background: var(--gold); color: #09090b; border: none; font-weight: 700;" onclick="openAddProfileModal(null, null, null, null)">➕ ${t('map_add_profile')}</button>
-                </div>
-                `;
+                </div>`;
             }
-
 
             filteredVip.forEach(p => {
                 const displayName = p.name || p.fullName || 'Белгісіз';
@@ -516,7 +484,6 @@
       </a>`;
             });
 
-            // Лимит на 50 общих кладбищ в панели, иначе зависнет DOM
             const genLimit = Math.min(filteredGen.length, 50);
             for (let i = 0; i < genLimit; i++) {
                 const c = filteredGen[i];
@@ -535,90 +502,62 @@
                 displayList += `<div style="text-align:center; padding:15px; color:var(--muted); font-size:0.8rem; border-bottom:1px solid var(--border);">${t('map_showing_top')}: 50 / ${filteredGen.length}. ${t('map_refine_search')}</div>`;
             }
 
-            document.getElementById('resultsList').innerHTML = displayList;
+            const resListEl = document.getElementById('resultsList');
+            if (resListEl) resListEl.innerHTML = displayList;
 
             PROFILES.forEach(p => {
                 if (pMarkers[p.id]) {
-                    const visible = filteredVip.find(f => f.id === p.id);
-                    if (visible) {
-                        if (!markersCluster.hasLayer(pMarkers[p.id])) {
-                            markersCluster.addLayer(pMarkers[p.id]);
-                        }
+                    const isVisible = filteredVip.find(f => f.id === p.id);
+                    if (isVisible) {
+                        if (!markersCluster.hasLayer(pMarkers[p.id])) markersCluster.addLayer(pMarkers[p.id]);
                     } else {
-                        if (markersCluster.hasLayer(pMarkers[p.id])) {
-                            markersCluster.removeLayer(pMarkers[p.id]);
-                        }
+                        if (markersCluster.hasLayer(pMarkers[p.id])) markersCluster.removeLayer(pMarkers[p.id]);
                     }
                 }
             });
         }
 
-        // ── INIT SUPABASE DATA ──
         async function initData() {
             try {
                 if (typeof fetchVipProfiles === 'function') {
                     const dbProfiles = await fetchVipProfiles();
-                    console.log('[Ziratstan] Loaded', dbProfiles.length, 'profiles from Supabase');
-
-                    // Merge local PROFILES_STATIC with Supabase data to ensure local 'era' data is present
                     const localProfiles = typeof PROFILES_STATIC !== 'undefined' ? PROFILES_STATIC : [];
-
-                    // Deduplicate: drop DB profiles that overlap with local ones.
-                    // Supabase uses UUIDs, local uses string IDs — so we match by COORDINATES (within ~1km)
-                    // AND by name similarity to avoid false positives.
-                    const COORD_THRESHOLD = 0.02; // ~2km in degrees
+                    const COORD_THRESHOLD = 0.02;
                     const dbOnlyProfiles = dbProfiles.filter(dbP => {
-                        // Skip if no coords
                         if (!dbP.lat || !dbP.lng) return false;
-                        // Check if any local profile is nearby
-                        const hasDuplicate = localProfiles.some(localP => {
+                        return !localProfiles.some(localP => {
                             if (!localP.lat || !localP.lng) return false;
-                            const dLat = Math.abs(dbP.lat - localP.lat);
-                            const dLng = Math.abs(dbP.lng - localP.lng);
-                            return dLat < COORD_THRESHOLD && dLng < COORD_THRESHOLD;
+                            return Math.abs(dbP.lat - localP.lat) < COORD_THRESHOLD && Math.abs(dbP.lng - localP.lng) < COORD_THRESHOLD;
                         });
-                        return !hasDuplicate;
                     });
-
                     PROFILES = [...localProfiles, ...dbOnlyProfiles];
-                    console.log('[Ziratstan] Merged with local static profiles. Total records:', PROFILES.length);
-
                 } else {
-                    console.warn('[Ziratstan] fetchVipProfiles missing — using local fallback');
                     PROFILES = typeof PROFILES_STATIC !== 'undefined' ? PROFILES_STATIC : [];
                 }
             } catch (err) {
-                console.error('[Ziratstan] Failed to load from Supabase, using local fallback:', err);
+                console.error('[Data Init Error]', err);
                 PROFILES = typeof PROFILES_STATIC !== 'undefined' ? PROFILES_STATIC : [];
             }
 
-            // Рендерим загруженные маркеры пакетом
             const vipMarkersBatch = [];
             let foreignVipCount = 0;
             PROFILES.forEach(p => {
-                const m = addVipMarker(p, false); // false for delay add
+                const m = addVipMarker(p, false);
                 vipMarkersBatch.push(m);
-                // Проверяем, находится ли VIP-профиль за пределами КЗ
-                if (p.lat > 56 || p.lat < 39 || p.lng < 45 || p.lng > 88) {
-                    foreignVipCount++;
-                }
+                if (p.lat > 56 || p.lat < 39 || p.lng < 45 || p.lng > 88) foreignVipCount++;
             });
             markersCluster.addLayers(vipMarkersBatch);
 
-            // Обновляем маркер Зарубежья с VIP-профилями
             if (foreignVipCount > 0) {
                 const zr = KZ_REGIONS.find(x => x.id === 'zarubezh');
                 if (zr) {
                     zr.count += foreignVipCount;
-                    if (typeof refreshRegionsUI === 'function') refreshRegionsUI();
+                    refreshRegionsUI();
                 }
             }
-
-            // Рендер общих кладбищ (остаются из статического cemeteries_data.js)
             renderList();
         }
 
-        // Обёртка для создания маркеров VIP
         function addVipMarker(p, addToCluster = true) {
             const m = L.marker([p.lat, p.lng], { icon: makeGraveIcon(false) });
             m.bindPopup(`
@@ -661,12 +600,9 @@
             return m;
         }
 
-
-        // ── SELECT PROFILE (From Sidebar) ──
         function selectProfile(id, flyTo = true) {
             const p = PROFILES.find(x => x.id === id);
             if (!p) return;
-
             if (flyTo) {
                 map.flyTo([p.lat, p.lng], 16, { duration: 1 });
                 map.once('moveend', () => {
@@ -677,67 +613,62 @@
             }
         }
 
-        // ── FILTER ──
         let currentEra = 'all';
-
         function setFilter(f, el) {
             currentFilter = f;
             document.querySelectorAll('.filter-btn').forEach(t => t.classList.remove('active'));
             if (el) el.classList.add('active');
 
-            // Show/hide era select
             const eraSelectWrap = document.getElementById('eraSelectWrap');
             if (f === 'historical') {
-                eraSelectWrap.style.display = 'block';
+                if (eraSelectWrap) eraSelectWrap.style.display = 'block';
             } else {
-                eraSelectWrap.style.display = 'none';
-                currentEra = 'all'; // reset era when switching main tabs
+                if (eraSelectWrap) eraSelectWrap.style.display = 'none';
+                currentEra = 'all';
                 document.querySelectorAll('.era-btn').forEach(b => b.classList.remove('active'));
                 const allBtn = document.querySelector('.era-btn[data-era="all"]');
                 if (allBtn) allBtn.classList.add('active');
             }
-
             renderList();
         }
 
-        // Add click listeners to filter buttons since we removed onclick from HTML
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                setFilter(e.target.dataset.filter, e.target);
-            });
+            btn.addEventListener('click', (e) => setFilter(e.target.dataset.filter, e.target));
         });
 
-        // Era buttons click listener
         document.querySelectorAll('.era-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.era-btn').forEach(b => b.classList.remove('active'));
-                const el = e.target;
-                el.classList.add('active');
-                currentEra = el.dataset.era;
+                e.target.classList.add('active');
+                currentEra = e.target.dataset.era;
                 renderList();
             });
         });
 
-        // ── SEARCH ──
-        let debounceTimer;
-        document.getElementById('searchInput').addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                renderList();
-            }, 300);
-        });
+        // Debounce utility function
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
 
-        // ── GEOLOCATION ──
+        // Apply debounce to search input
+        if (document.getElementById('searchInput')) {
+            document.getElementById('searchInput').addEventListener('input', debounce(renderList, 300));
+        }
+
         let userMarker = null;
         function geolocate() {
             const btn = document.getElementById('geoBtnText');
             const status = document.getElementById('geoStatus');
-            btn.textContent = t('map_geo_locating');
+            if (btn) btn.textContent = t('map_geo_locating');
 
             if (!navigator.geolocation) {
-                status.className = 'geo-status error';
-                status.textContent = t('map_geo_not_supported');
-                btn.textContent = t('map_geo_btn');
+                if (status) { status.className = 'geo-status error'; status.textContent = t('map_geo_not_supported'); }
+                if (btn) btn.textContent = t('map_geo_btn');
                 return;
             }
 
@@ -748,64 +679,56 @@
                         .bindPopup(`<div style="padding:8px;font-family:Inter,sans-serif;font-weight:600;">${t('map_you_are_here')}</div>`)
                         .openPopup();
                     map.flyTo([lat, lng], 16, { duration: 1.5 });
-                    status.className = 'geo-status success';
-                    status.textContent = t('map_geo_found');
-                    btn.textContent = t('map_geo_refresh');
+                    if (status) { status.className = 'geo-status success'; status.textContent = t('map_geo_found'); }
+                    if (btn) btn.textContent = t('map_geo_refresh');
                 },
                 err => {
-                    status.className = 'geo-status error';
-                    status.textContent = `❌ ${err.message}`;
-                    btn.textContent = t('map_geo_btn');
+                    if (status) { status.className = 'geo-status error'; status.textContent = `❌ ${err.message}`; }
+                    if (btn) btn.textContent = t('map_geo_btn');
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
         }
 
-        // ── MOBILE ──
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('toggleBtn').textContent =
-                document.getElementById('sidebar').classList.contains('open') ? '🗺️' : '🗂️';
+            const s = document.getElementById('sidebar');
+            const b = document.getElementById('toggleBtn');
+            if (s) s.classList.toggle('open');
+            if (b) b.textContent = s.classList.contains('open') ? '🗺️' : '🗂️';
         }
 
-        // Init data from Supabase
         initData();
-
         document.addEventListener('langchange', () => {
-            if (typeof refreshRegionsUI === 'function') refreshRegionsUI();
-            if (typeof renderList === 'function') renderList();
+            refreshRegionsUI();
+            renderList();
         });
 
-        // ── UGC MODALS ──
         function openUgcModal(cemeteryId, currentName, lat, lng) {
-            // AUTH GUARD
             if (typeof ZiratAuth === 'undefined' || !ZiratAuth.isLoggedIn()) {
-                if (typeof ZiratAuth !== 'undefined') {
-                    ZiratAuth.openAuthModal();
-                    return;
-                }
+                if (typeof ZiratAuth !== 'undefined') { ZiratAuth.openAuthModal(); return; }
             }
-            window.currentUgcContext = {
-                cemeteryId: cemeteryId || null,
-                currentName: currentName || null,
+            window.currentUgcContext = { 
+                cemeteryId: cemeteryId || null, 
+                currentName: currentName || null, 
                 lat: Number.isFinite(Number(lat)) ? Number(lat) : null,
                 lng: Number.isFinite(Number(lng)) ? Number(lng) : null
             };
-            document.getElementById('ugcNameInput').value = currentName || '';
-            document.getElementById('ugcModal').style.display = 'flex';
+            const inp = document.getElementById('ugcNameInput');
+            if (inp) inp.value = currentName || '';
+            const mod = document.getElementById('ugcModal');
+            if (mod) mod.style.display = 'flex';
         }
 
         function closeUgcModal() {
-            document.getElementById('ugcModal').style.display = 'none';
+            const mod = document.getElementById('ugcModal');
+            if (mod) mod.style.display = 'none';
         }
 
         async function submitUgcName(event) {
             event.preventDefault();
             const newName = document.getElementById('ugcNameInput').value.trim();
             if (!newName) return;
-
             const submitBtn = event.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
             submitBtn.textContent = t('map_submit_loading');
             submitBtn.disabled = true;
 
@@ -820,50 +743,42 @@
                         lng: ctx.lng
                     });
                 }
-            } catch (err) {
-                console.warn('[UGC] Supabase error (working offline?):', err);
-                // Fail gracefully — still show success to user
-            }
+            } catch (err) { console.warn('[UGC Error]', err); }
 
-            // Show success
-            document.getElementById('ugcModal').innerHTML = `
+            const mod = document.getElementById('ugcModal');
+            if (mod) mod.innerHTML = `
                 <div style="background:var(--surface); padding:30px; border-radius:12px; border:1px solid var(--border); width:90%; max-width:400px; text-align:center;">
                     <div style="font-size:3rem; margin-bottom:10px;">✨</div>
                     <h3 style="color:var(--gold); margin-bottom:10px;">${t('map_modal_thanks_title')}</h3>
                     <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">${t('map_modal_thanks_desc_name')}</p>
                     <button type="button" onclick="closeUgcModal()" style="width:100%; padding:12px; background:var(--gold); color:var(--surface); border:none; border-radius:8px; font-weight:700; cursor:pointer;">${t('map_modal_close')}</button>
-                </div>
-            `;
+                </div>`;
         }
 
-        // ── ADD PROFILE MODAL ──
         function openAddProfileModal(cemeteryId, cemeteryName, lat, lng) {
-            // AUTH GUARD
             if (typeof ZiratAuth === 'undefined' || !ZiratAuth.isLoggedIn()) {
-                if (typeof ZiratAuth !== 'undefined') {
-                    ZiratAuth.openAuthModal();
-                    return;
-                }
+                if (typeof ZiratAuth !== 'undefined') { ZiratAuth.openAuthModal(); return; }
             }
             window.currentAddCemetery = { id: cemeteryId, name: cemeteryName, lat, lng };
-            document.getElementById('addCemeteryInfo').innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName}</strong><br>${t('map_coords_label')}: ${lat}, ${lng}`;
-            document.getElementById('addFullName').value = '';
-            document.getElementById('addBirth').value = '';
-            document.getElementById('addDeath').value = '';
-            document.getElementById('addDescription').value = '';
-            document.getElementById('addProfileModal').style.display = 'flex';
+            const info = document.getElementById('addCemeteryInfo');
+            if (info) info.innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName || ''}</strong><br>${t('map_coords_label')}: ${lat || ''}, ${lng || ''}`;
+            ['addFullName', 'addBirth', 'addDeath', 'addDescription'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const mod = document.getElementById('addProfileModal');
+            if (mod) mod.style.display = 'flex';
         }
 
         function closeAddProfileModal() {
-            document.getElementById('addProfileModal').style.display = 'none';
+            const mod = document.getElementById('addProfileModal');
+            if (mod) mod.style.display = 'none';
         }
 
         async function submitAddProfile(event) {
             event.preventDefault();
-
             const fullName = document.getElementById('addFullName').value.trim();
             if (!fullName) return;
-
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = t('map_submit_loading');
@@ -884,23 +799,22 @@
                 if (typeof submitUgcProfile === 'function') {
                     await submitUgcProfile(data);
                 } else {
-                    console.warn('[Ziratstan] submitUgcProfile function not found. Fallback to localStorage.');
                     const localSubmissions = JSON.parse(localStorage.getItem('ziratstan_profiles_ugc') || '[]');
                     localSubmissions.push({ ...data, date: new Date().toISOString() });
                     localStorage.setItem('ziratstan_profiles_ugc', JSON.stringify(localSubmissions));
                 }
 
-                document.getElementById('addProfileModal').innerHTML = `
+                const mod = document.getElementById('addProfileModal');
+                if (mod) mod.innerHTML = `
                     <div style="background:var(--surface); padding:30px; border-radius:14px; border:1px solid var(--border); width:90%; max-width:440px; text-align:center;">
                         <div style="font-size:3rem; margin-bottom:12px;">✨</div>
                         <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Outfit', sans-serif;">${t('map_modal_thanks_title')}</h3>
                         <p style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;"><strong style="color:var(--text);">${data.fullName}</strong></p>
                         <p style="color:var(--muted); font-size:0.85rem; margin-bottom:20px;">${t('map_modal_thanks_desc_profile')}</p>
                         <button type="button" onclick="closeAddProfileModal()" style="padding:12px 24px; background:var(--gold); color:#09090b; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;">${t('map_modal_close')}</button>
-                    </div>
-                `;
+                    </div>`;
             } catch (err) {
-                console.error('[Ziratstan] Error submitting profile:', err);
+                console.error('[Add Profile Error]', err);
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
                 const toast = document.getElementById('toast');
@@ -908,8 +822,6 @@
                     toast.textContent = t('map_toast_err');
                     toast.classList.add('show');
                     setTimeout(() => toast.classList.remove('show'), 3000);
-                } else {
-                    alert(t('map_toast_err'));
-                }
+                } else { alert(t('map_toast_err')); }
             }
         }

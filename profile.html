@@ -431,6 +431,69 @@
             }
         }
 
+        /* ─── LIGHTBOX (P2.2) ─── */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            user-select: none;
+        }
+        .lightbox-overlay.active { display: flex; animation: fbFadeIn 0.3s ease; }
+        .lightbox-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: -50px; right: 0;
+            background: none; border: none;
+            color: white; font-size: 2.5rem;
+            cursor: pointer; opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .lightbox-close:hover { opacity: 1; }
+        .lightbox-nav {
+            position: absolute;
+            top: 50%; width: 100%;
+            display: flex; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .lightbox-nav button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white; width: 48px; height: 48px;
+            border-radius: 50%; font-size: 1.5rem;
+            cursor: pointer; pointer-events: auto;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .lightbox-nav button:hover { background: rgba(255,255,255,0.2); }
+        .lightbox-counter {
+            position: absolute;
+            bottom: -40px; left: 50%;
+            transform: translateX(-50%);
+            color: var(--muted); font-size: 0.85rem; font-weight: 600;
+        }
+        @keyframes fbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         /* NOT FOUND */
         .not-found {
             text-align: center;
@@ -1031,6 +1094,19 @@
     </div>
     <div class="donate-popup-overlay" id="donateOverlay" onclick="closeDonatePopup()"></div>
 
+    <!-- LIGHTBOX MODAL (P2.2) -->
+    <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox(event)">×</button>
+            <img src="" id="lightboxImg" class="lightbox-img">
+            <div class="lightbox-nav">
+                <button onclick="prevPhoto(event)" id="prevPhotoBtn">‹</button>
+                <button onclick="nextPhoto(event)" id="nextPhotoBtn">›</button>
+            </div>
+            <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
@@ -1046,63 +1122,7 @@
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
 
-    <script>
-        const KASPI_CARD = '4400430320985507';
-
-        function copyKaspiCard() {
-            navigator.clipboard.writeText(KASPI_CARD).then(() => {
-                const msg = document.getElementById('kaspiCopied');
-                const num = document.getElementById('kaspiCardNum');
-                msg.classList.add('visible');
-                num.classList.add('copied');
-                setTimeout(() => {
-                    msg.classList.remove('visible');
-                    num.classList.remove('copied');
-                }, 2500);
-            }).catch(() => {
-                const el = document.createElement('textarea');
-                el.value = KASPI_CARD;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-            });
-        }
-
-        function copyKaspiCardPopup() {
-            navigator.clipboard.writeText(KASPI_CARD).then(() => {
-                const msg = document.getElementById('donatePopupCopied');
-                msg.classList.add('visible');
-                setTimeout(() => msg.classList.remove('visible'), 2500);
-            });
-        }
-
-        const POPUP_INTERVAL_MS = 5 * 60 * 1000;
-        const POPUP_FIRST_DELAY_MS = 60 * 1000;
-
-        function showDonatePopup() {
-            const popup = document.getElementById('donatePopup');
-            const overlay = document.getElementById('donateOverlay');
-            if(popup && overlay) {
-                popup.classList.add('visible');
-                overlay.classList.add('visible');
-            }
-        }
-
-        function closeDonatePopup() {
-            const popup = document.getElementById('donatePopup');
-            const overlay = document.getElementById('donateOverlay');
-            if(popup && overlay) {
-                popup.classList.remove('visible');
-                overlay.classList.remove('visible');
-            }
-        }
-
-        setTimeout(() => {
-            showDonatePopup();
-            setInterval(showDonatePopup, POPUP_INTERVAL_MS);
-        }, POPUP_FIRST_DELAY_MS);
-    </script>
+    <script src="src/js/donate.js"></script>
 </body>
 
 </html>

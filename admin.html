@@ -657,6 +657,8 @@
                         id="cnt-profiles">0</span></button>
                 <button class="tab" onclick="switchTab('bios', this)">📖 <span data-i18n="admin_tab_bios">Биографии</span> <span class="tab-count"
                         id="cnt-bios">0</span></button>
+                <button class="tab" onclick="switchTab('leads', this)">📋 <span data-i18n="admin_tab_leads">Тапсырыстар</span> <span class="tab-count"
+                        id="cnt-leads">0</span></button>
                 <button class="tab" onclick="switchTab('manage', this)">📇 <span data-i18n="admin_tab_manage">Управление профилями</span></button>
                 <button class="tab" onclick="switchTab('sessions', this)"><span data-i18n="admin_tab_sessions">Сессии</span></button>
             </div>
@@ -664,6 +666,7 @@
             <div id="content-names" class="cards-list"></div>
             <div id="content-profiles" class="cards-list" style="display:none;"></div>
             <div id="content-bios" class="cards-list" style="display:none;"></div>
+            <div id="content-leads" class="cards-list" style="display:none;"></div>
             <div id="content-manage" class="cards-list" style="display:none;">
                 <div class="card" style="grid-template-columns: 1fr; margin-bottom: 20px;">
                     <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ <span data-i18n="admin_cp_title">Создать новый профиль</span></div>

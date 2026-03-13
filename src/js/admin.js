@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 let currentTab = 'names';
-let allData = { names: [], profiles: [], bios: [], manage: [], sessions: [] };
+let allData = { names: [], profiles: [], bios: [], leads: [], manage: [], sessions: [] };
 let hasLoadedDashboard = false;
 
 const ADMIN_EMAIL_STORAGE_KEY = 'ziratstan_admin_email';
@@ -508,20 +508,23 @@ async function apiRequest(path, options = {}) {
     };
 
     if (path === '/admin/bootstrap' && method === 'GET') {
-        const [namesRes, profilesRes, biosRes] = await Promise.all([
+        const [namesRes, profilesRes, biosRes, leadsRes] = await Promise.all([
             db.from('ugc_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
             db.from('ugc_profile_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
             db.from('ugc_bio_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
+            db.from('services_leads').select('*').order('submitted_at', { ascending: false }).limit(100),
         ]);
 
         throwIfError(namesRes, 'Failed to load name submissions');
         throwIfError(profilesRes, 'Failed to load profile submissions');
         throwIfError(biosRes, 'Failed to load biography submissions');
+        throwIfError(leadsRes, 'Failed to load service leads');
 
         return {
             names: namesRes.data || [],
             profiles: profilesRes.data || [],
             bios: biosRes.data || [],
+            leads: leadsRes.data || [],
         };
     }
 
@@ -560,6 +563,7 @@ async function apiRequest(path, options = {}) {
             names: 'ugc_submissions',
             profiles: 'ugc_profile_submissions',
             bios: 'ugc_bio_submissions',
+            leads: 'services_leads',
         };
 
         const table = tableMap[body.type];
@@ -1054,7 +1058,7 @@ function switchTab(tab, btn) {
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
     btn.classList.add('active');
 
-    ['names', 'profiles', 'bios', 'manage', 'sessions'].forEach((t) => {
+    ['names', 'profiles', 'bios', 'leads', 'manage', 'sessions'].forEach((t) => {
         const el = document.getElementById(`content-${t}`);
         if (!el) {
             return;
@@ -1127,8 +1131,11 @@ function formatDateTime(value) {
     if (!value) {
         return '-';
     }
-
-    return new Date(value).toLocaleString('ru-KZ');
+    try {
+        return new Date(value).toLocaleString('ru-KZ');
+    } catch (e) {
+        return value;
+    }
 }
 
 function isSessionActive(item) {
@@ -1299,6 +1306,7 @@ async function loadAllData() {
     showLoading('names');
     showLoading('profiles');
     showLoading('bios');
+    showLoading('leads');
 
     try {
         const payload = await apiRequest('/admin/bootstrap');
@@ -1306,10 +1314,12 @@ async function loadAllData() {
         allData.names = payload.names || [];
         allData.profiles = payload.profiles || [];
         allData.bios = payload.bios || [];
+        allData.leads = payload.leads || [];
 
         renderTab('names', allData.names);
         renderTab('profiles', allData.profiles);
         renderTab('bios', allData.bios);
+        renderTab('leads', allData.leads);
         updateCounts();
     } catch (err) {
         console.error('Error loading data:', err);
@@ -1324,11 +1334,13 @@ function updateCounts() {
     const pendingN = allData.names.filter((x) => x.status === 'pending').length;
     const pendingP = allData.profiles.filter((x) => x.status === 'pending').length;
     const pendingB = allData.bios.filter((x) => x.status === 'pending').length;
-    const total = pendingN + pendingP + pendingB;
+    const pendingL = allData.leads.length; // No status in schema, consider all as pending/new
+    const total = pendingN + pendingP + pendingB + pendingL;
 
     document.getElementById('cnt-names').textContent = pendingN;
     document.getElementById('cnt-profiles').textContent = pendingP;
     document.getElementById('cnt-bios').textContent = pendingB;
+    document.getElementById('cnt-leads').textContent = pendingL;
     document.getElementById('totalPendingBadge').textContent = `${total} на проверке`;
 }
 
@@ -1356,13 +1368,14 @@ function createCard(type, item) {
     div.className = 'card';
     div.id = `card-${item.id}`;
 
-    const submitted = new Date(item.submitted_at).toLocaleString('ru-KZ');
-    const statusClass = `status-${item.status}`;
+    const submitted = item.submitted_at || item.created_at;
+    const dateStr = submitted ? new Date(submitted).toLocaleString('ru-KZ') : '-';
+    const statusClass = item.status ? `status-${item.status}` : '';
     const statusText = item.status === 'pending'
         ? 'На проверке'
         : item.status === 'approved'
             ? 'Одобрено'
-            : 'Отклонено';
+            : item.status === 'rejected' ? 'Отклонено' : '';
 
     let content = '';
     let badgeClass = '';
@@ -1392,9 +1405,22 @@ function createCard(type, item) {
         content = `
         ${item.author_name ? `<div class="card-detail" style="margin-bottom:6px;">От: <strong>${item.author_name}</strong></div>` : ''}
         <div class="card-detail" style="background:#18181b; border-radius:8px; padding:10px; margin-top:6px; line-height:1.6;">"${item.bio_text}"</div>`;
+    } else if (type === 'leads') {
+        badgeClass = 'badge-profiles'; // Reuse profile color or custom
+        title = `Заказ: ${item.service_type}`;
+        content = `
+        <div class="card-meta-row">
+            <div class="card-meta-item">Клиент: <span>${item.customer_name}</span></div>
+            <div class="card-meta-item">Телефон: <span>${item.customer_phone}</span></div>
+        </div>
+        <div class="card-meta-row">
+            <div class="card-meta-item">Профиль: <span>${item.profile_ref || '-'}</span></div>
+            <div class="card-meta-item">Цена: <span>${item.price || '-'} ₸</span></div>
+        </div>
+        ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
     }
 
-    const typeLabel = type === 'names' ? 'Название' : type === 'profiles' ? 'Личность' : 'Биография';
+    const typeLabel = type === 'names' ? 'Название' : type === 'profiles' ? 'Личность' : type === 'bios' ? 'Биография' : 'Заказ';
 
     div.innerHTML = `
     <div>
@@ -1402,15 +1428,15 @@ function createCard(type, item) {
         <div class="card-title">${title}</div>
         ${content}
         <div class="card-meta-row" style="margin-top:12px;">
-            <div class="card-meta-item">Время: <span>${submitted}</span></div>
-            <span class="status-chip ${statusClass}">${statusText}</span>
+            <div class="card-meta-item">Время: <span>${dateStr}</span></div>
+            ${item.status ? `<span class="status-chip ${statusClass}">${statusText}</span>` : ''}
         </div>
     </div>
     <div class="card-actions">
         ${item.status === 'pending' ? `
             <button class="btn-approve" onclick="updateStatus('${type}', '${item.id}', 'approved')">Одобрить</button>
             <button class="btn-reject" onclick="updateStatus('${type}', '${item.id}', 'rejected')">Отклонить</button>
-        ` : '<span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>'}
+        ` : item.status ? '<span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>' : ''}
     </div>`;
 
     return div;

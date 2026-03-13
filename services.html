@@ -112,6 +112,48 @@
             color: var(--gold);
         }
 
+        /* Mobile hamburger (P1.2) */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 101;
+        }
+        .hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--text);
+            border-radius: 2px;
+            transition: transform 0.25s, opacity 0.2s;
+        }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        @media (max-width: 640px) {
+            .hamburger { display: flex; }
+            .nav-links {
+                position: fixed;
+                top: 0; right: -100%;
+                width: 70%; height: 100vh;
+                background: var(--surface);
+                flex-direction: column;
+                justify-content: center;
+                gap: 1.5rem;
+                padding: 2rem;
+                transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+                z-index: 100;
+            }
+            .nav-links.active { right: 0; }
+            .nav-links a { font-size: 1rem; width: 100%; justify-content: center; }
+        }
+
         .header {
             padding: 2rem 1.5rem 1.5rem;
             margin-top: 64px;
@@ -521,11 +563,12 @@
 
     <nav>
         <a href="index.html" class="nav-logo"><span>З</span>иратстан</a>
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="index.html" data-i18n="nav_home">Басты бет</a>
             <a href="map.html" data-i18n="nav_map">Карта</a>
             <a href="services.html" class="active" data-i18n="nav_services">Қызметтер</a>
             <a href="profile.html" data-i18n="nav_profile">Демо</a>
+            <a href="admin.html" data-i18n="nav_admin">Admin</a>
         </div>
         <button class="hamburger" id="hamburgerBtn" onclick="toggleMenu()" aria-label="Мәзір" aria-expanded="false">
             <span></span>
@@ -595,8 +638,12 @@
             <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" data-i18n-ph="serv_form_phone_ph" />
             <label for="profileInput" data-i18n-html="serv_form_profile_ref">Марқұмның профиль ID-і <span class="optional">(міндетті емес)</span></label>
             <input type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" data-i18n-ph="serv_form_profile_ref_ph" />
-            <label for="commentInput" data-i18n="serv_form_notes">Пікір</label>
             <textarea rows="3" id="commentInput" placeholder="Қосымша тілектер..." data-i18n-ph="serv_form_notes_ph"></textarea>
+
+            <!-- Honeypot field (P2.1) -->
+            <div style="display:none !important;" aria-hidden="true">
+                <input type="text" id="website_honeypot" tabindex="-1" autocomplete="off" />
+            </div>
         </div>
         <div class="form-btns">
             <button class="btn btn-outline" onclick="goBack()" data-i18n="serv_form_back">Артқа</button>
@@ -642,6 +689,17 @@
         }
 
         async function submitOrder() {
+            // Honeypot check (P2.1)
+            if (document.getElementById('website_honeypot').value) {
+                console.warn('[Services] Honeypot triggered');
+                return;
+            }
+
+            if (isRateLimited('service_order', 60)) {
+                alert(window.i18n ? i18n.t('serv_spam_warning') || 'Сәл күте тұрыңыз (60 сек)' : 'Пожалуйста, подождите 60 секунд перед повторным заказом');
+                return;
+            }
+
             const name = document.getElementById('nameInput').value.trim();
             const phone = document.getElementById('phoneInput').value.trim();
             const profileRef = document.getElementById('profileInput').value.trim();
@@ -650,6 +708,8 @@
                 alert(window.i18n ? i18n.t('serv_validation_required') : 'Атыңызды және телефоныңызды толтырыңыз');
                 return;
             }
+
+            setRateLimit('service_order');
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.textContent = window.i18n ? i18n.t('serv_submit_loading') : '⏳ Жіберілуде...';
@@ -760,62 +820,18 @@
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
 
+    <script src="src/js/donate.js"></script>
+
     <script>
-        const KASPI_CARD = '4400430320985507';
-
-        function copyKaspiCard() {
-            navigator.clipboard.writeText(KASPI_CARD).then(() => {
-                const msg = document.getElementById('kaspiCopied');
-                const num = document.getElementById('kaspiCardNum');
-                msg.classList.add('visible');
-                num.classList.add('copied');
-                setTimeout(() => {
-                    msg.classList.remove('visible');
-                    num.classList.remove('copied');
-                }, 2500);
-            }).catch(() => {
-                const el = document.createElement('textarea');
-                el.value = KASPI_CARD;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-            });
+        /* ─── RATE LIMITING (P2.4) ─── */
+        function isRateLimited(key, limitSeconds) {
+            const last = localStorage.getItem(`zrt_limit_${key}`);
+            if (last && (Date.now() - last < limitSeconds * 1000)) return true;
+            return false;
         }
-
-        function copyKaspiCardPopup() {
-            navigator.clipboard.writeText(KASPI_CARD).then(() => {
-                const msg = document.getElementById('donatePopupCopied');
-                msg.classList.add('visible');
-                setTimeout(() => msg.classList.remove('visible'), 2500);
-            });
+        function setRateLimit(key) {
+            localStorage.setItem(`zrt_limit_${key}`, Date.now());
         }
-
-        const POPUP_INTERVAL_MS = 5 * 60 * 1000;
-        const POPUP_FIRST_DELAY_MS = 60 * 1000;
-
-        function showDonatePopup() {
-            const popup = document.getElementById('donatePopup');
-            const overlay = document.getElementById('donateOverlay');
-            if(popup && overlay) {
-                popup.classList.add('visible');
-                overlay.classList.add('visible');
-            }
-        }
-
-        function closeDonatePopup() {
-            const popup = document.getElementById('donatePopup');
-            const overlay = document.getElementById('donateOverlay');
-            if(popup && overlay) {
-                popup.classList.remove('visible');
-                overlay.classList.remove('visible');
-            }
-        }
-
-        setTimeout(() => {
-            showDonatePopup();
-            setInterval(showDonatePopup, POPUP_INTERVAL_MS);
-        }, POPUP_FIRST_DELAY_MS);
 
         /* ─── HAMBURGER MENU ─── */
         function toggleMenu() {
