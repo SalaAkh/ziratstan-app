@@ -29,30 +29,6 @@
     content="Қазақстандағы жақындарыңызды табыңыз, цифрландырыңыз және естелігін сақтаңыз." />
   <meta name="twitter:image" content="https://ziratstan-app.web.app/assets/images/og-image-v4.jpg" />
 
-  <link rel="canonical" href="https://ziratstan-app.web.app/" />
-  <link rel="alternate" hreflang="kk" href="https://ziratstan-app.web.app/" />
-  <link rel="alternate" hreflang="x-default" href="https://ziratstan-app.web.app/" />
-
-  <!-- JSON-LD Structured Data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Зиратстан",
-    "url": "https://ziratstan-app.web.app/",
-    "description": "Қазақстандағы жерлеу орындарын іздеу, цифрландыру және есте сақтау платформасы.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://ziratstan-app.web.app/map.html?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    },
-    "inLanguage": "kk-KZ"
-  }
-
-  <link rel="canonical" href="https://ziratstan-app.web.app/" />
-  <link rel="alternate" hreflang="kk" href="https://ziratstan-app.web.app/" />
-  <link rel="alternate" hreflang="x-default" href="https://ziratstan-app.web.app/" />
-
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -69,6 +45,10 @@
     "inLanguage": "kk-KZ"
   }
   </script>
+
+  <link rel="canonical" href="https://ziratstan-app.web.app/" />
+  <link rel="alternate" hreflang="kk" href="https://ziratstan-app.web.app/" />
+  <link rel="alternate" hreflang="x-default" href="https://ziratstan-app.web.app/" />
 
   <!-- Favicon -->
   <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
@@ -1608,6 +1588,211 @@
     .donate-popup-btn-later:hover {
       color: var(--text);
       border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ─── SUPPORT / DONATION SECTION ─── */
+    .support-section {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2rem;
+      background: linear-gradient(180deg, transparent 0%, rgba(212, 175, 55, 0.03) 50%, transparent 100%);
+      border-top: 1px solid var(--border);
+    }
+
+    .support-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .support-badge {
+      display: inline-block;
+      background: var(--gold-dim);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      color: var(--gold);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.9rem;
+      border-radius: 99px;
+      margin-bottom: 1.25rem;
+    }
+
+    .support-title {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .support-desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .support-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      transition: border-color 0.25s;
+    }
+
+    .support-card:hover {
+      border-color: var(--gold-border);
+    }
+
+    .support-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .kaspi-logo {
+      width: 40px;
+      height: 40px;
+      background: #ef4444;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .kaspi-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .kaspi-sublabel {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .kaspi-card-num {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      user-select: all;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .kaspi-card-num:hover {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: rgba(212, 175, 55, 0.4);
+    }
+
+    .kaspi-card-num.copied {
+      border-color: #22c55e;
+    }
+
+    .kaspi-copy-hint {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+
+    .kaspi-copied-msg {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #22c55e;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.3s, transform 0.3s;
+      margin-bottom: 0.75rem;
+      pointer-events: none;
+    }
+
+    .kaspi-copied-msg.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .support-card-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .btn-support-kaspi {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 2rem;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-support-kaspi:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .support-why {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: left;
+    }
+
+    .support-why-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+
+    .support-why-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .support-why-item strong {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .support-why-item p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      .support-why {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>

@@ -299,6 +299,27 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- API & Auth Scripts (must load before QR logic) -->
+    <script src="src/js/config.public.js"></script>
+    <script src="src/js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="src/js/api/public-api.js?v=20260313-v6"></script>
+    <script src="src/js/auth/supabase-auth.js"></script>
+
+    <!-- QR Resolution Logic -->
+    <script>
+        function showState(id) {
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        (async () => {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('s') || params.get('slug') || params.get('id');
+            const generate = params.get('generate');
+
             if (generate === 'true') {
                 showState('stateGenerate');
                 return;
@@ -332,15 +353,13 @@
                 showState('stateError');
             }
         })();
-
-        function showState(id) {
-            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
     </script>
+
     <script src="src/js/core/locales.js"></script>
     <script src="src/js/core/i18n.js"></script>
+
     <!-- DONATION NOTIFICATION POPUP -->
+    <div class="donate-popup-overlay" id="donateOverlay" onclick="closeDonatePopup()"></div>
     <div class="donate-popup" id="donatePopup" role="dialog" aria-modal="true" aria-label="Жобаны қолдаңыз">
         <button class="donate-popup-close" onclick="closeDonatePopup()" aria-label="Жабу">×</button>
         <div class="donate-popup-icon">💛</div>
@@ -358,7 +377,6 @@
             <button class="donate-popup-btn-later" onclick="closeDonatePopup()">Кейінірек</button>
         </div>
     </div>
-    <div class="donate-popup-overlay" id="donateOverlay" onclick="closeDonatePopup()"></div>
 
     <script>
         const KASPI_CARD = '4400430320985507';

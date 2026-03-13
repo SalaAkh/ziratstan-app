@@ -393,9 +393,101 @@
             line-height: 1.65;
         }
 
-        @media (max-width:640px) {
+        /* ─── HAMBURGER ─── */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .hamburger span {
+            display: block;
+            height: 2px;
+            background: var(--text);
+            border-radius: 2px;
+            transition: transform 0.3s, opacity 0.3s, width 0.3s;
+            transform-origin: center;
+        }
+
+        .hamburger.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+
+        .hamburger.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* ─── MOBILE MENU ─── */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            background: rgba(9, 9, 11, 0.97);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            flex-direction: column;
+            gap: 0.25rem;
+            animation: mobMenuIn 0.25s ease;
+        }
+
+        @keyframes mobMenuIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-menu.open {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .mobile-menu a:hover,
+        .mobile-menu a.active {
+            color: var(--gold);
+            background: var(--gold-dim);
+        }
+
+        @media (max-width: 640px) {
             .nav-links {
                 display: none;
+            }
+
+            .hamburger {
+                display: flex;
             }
         }
 
@@ -435,7 +527,20 @@
             <a href="services.html" class="active" data-i18n="nav_services">Қызметтер</a>
             <a href="profile.html" data-i18n="nav_profile">Демо</a>
         </div>
+        <button class="hamburger" id="hamburgerBtn" onclick="toggleMenu()" aria-label="Мәзір" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu" role="navigation" aria-label="Мобильді мәзір">
+        <a href="index.html" onclick="closeMenu()" data-i18n="nav_home">🏠 Басты бет</a>
+        <a href="map.html" onclick="closeMenu()" data-i18n="nav_map">🗺️ Карта</a>
+        <a href="services.html" class="active" onclick="closeMenu()" data-i18n="nav_services">🤲 Қызметтер</a>
+        <a href="profile.html" onclick="closeMenu()" data-i18n="nav_profile">👤 Демо</a>
+    </div>
 
     <div class="header">
         <h1 data-i18n="serv_page_h1">Бейітті күту қызметтері</h1>
@@ -711,6 +816,32 @@
             showDonatePopup();
             setInterval(showDonatePopup, POPUP_INTERVAL_MS);
         }, POPUP_FIRST_DELAY_MS);
+
+        /* ─── HAMBURGER MENU ─── */
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.getElementById('hamburgerBtn');
+            const isOpen = menu.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.getElementById('hamburgerBtn');
+            menu.classList.remove('open');
+            btn.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.getElementById('hamburgerBtn');
+            if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+                closeMenu();
+            }
+        });
     </script>
 </body>
 
