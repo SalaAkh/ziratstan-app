@@ -395,6 +395,7 @@
                         // Bilingual cemetery name based on current UI language
                         const lang = window.i18n ? window.i18n.getLang() : 'kk';
                         const localizedName = lang === 'kk' ? (c.n_kk || c.n) : (c.n_ru || c.n);
+                        const encodedLocalizedName = encodeURIComponent(localizedName || '');
 
                         // Custom style for pending UGC
                         let markerOpts = cemIconOpts;
@@ -429,8 +430,8 @@
                             <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">${t('map_coords_label')}: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
                             ${!isPending ? `
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                              <a href="#" onclick="openUgcModal('${c.id}', ${JSON.stringify(localizedName)}, ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
-                              <a href="#" onclick="openAddProfileModal('${c.id}', ${JSON.stringify(localizedName)}, ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
+                              <a href="#" onclick="openUgcModal('${c.id}', decodeURIComponent('${encodedLocalizedName}'), ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
+                              <a href="#" onclick="openAddProfileModal('${c.id}', decodeURIComponent('${encodedLocalizedName}'), ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:6px; padding:6px; color:var(--gold); text-decoration:none; font-size:0.8rem; font-weight:600;">➕ ${t('map_add_profile')}</a>
                             </div>` : ''}
                         </div>`);
                         cemeteriesLayer.addLayer(m);
