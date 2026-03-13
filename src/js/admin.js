@@ -1025,7 +1025,10 @@ async function verifyMfaCode() {
     }));
 
     if (error) {
-        showGateMessage('error', error.message || 'Не удалось подтвердить код.');
+        let message = error.message === 'Invalid TOTP code entered'
+            ? 'Неверный или просроченный код. Попробуйте еще раз.'
+            : (error.message || 'Не удалось подтвердить код.');
+        showGateMessage('error', message);
         setMfaButtonState(false, pendingMfa.buttonLabel);
         return;
     }
