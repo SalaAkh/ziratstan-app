@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS services_leads (
 -- 9. UGC: Предложения пользователей по добавлению новых личностей
 CREATE TABLE IF NOT EXISTS ugc_profile_submissions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   cemetery_id VARCHAR(255),
   cemetery_name VARCHAR(255),
   lat DECIMAL(10, 7),
@@ -160,6 +161,7 @@ CREATE TABLE IF NOT EXISTS ugc_profile_submissions (
   birth_year VARCHAR(50),
   death_year VARCHAR(50),
   description TEXT,
+  published_profile_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

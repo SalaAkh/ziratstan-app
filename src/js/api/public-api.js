@@ -56,7 +56,15 @@
   async function submitUgcProfile(data) {
     var sb = getSb();
     if (!sb) throw new Error('API Client not initialized');
-    var { error } = await sb.from('ugc_profile_submissions').insert([{
+    var ownerId = null;
+    try {
+      var sessionRes = await sb.auth.getSession();
+      ownerId = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user
+        ? sessionRes.data.session.user.id
+        : null;
+    } catch (_e) {}
+
+    var payload = {
       cemetery_id: data.cemeteryId || null,
       cemetery_name: data.cemeteryName || null,
       lat: data.lat || null,
@@ -64,8 +72,17 @@
       full_name: data.fullName || null,
       birth_year: data.birth || null,
       death_year: data.death || null,
-      description: data.description || null
-    }]);
+      description: data.description || null,
+      owner_id: ownerId
+    };
+
+    var { error } = await sb.from('ugc_profile_submissions').insert([payload]);
+    if (error && String(error.message || '').includes('owner_id')) {
+      // Backward compatibility: DB may not have owner_id column yet.
+      delete payload.owner_id;
+      var retry = await sb.from('ugc_profile_submissions').insert([payload]);
+      error = retry.error || null;
+    }
     if (error) throw error;
   }
 
@@ -277,10 +294,13 @@
                            
       // Fetch profiles
       var profilesPromise = sb.from('ugc_profile_submissions')
-                              .select('id, full_name, birth_year, death_year, cemetery_name, lat, lng, status')
-                              .eq('status', 'pending');
+                              .select('id, full_name, birth_year, death_year, cemetery_name, lat, lng, status, owner_id')
+                              .eq('status', 'pending')
+                              .eq('owner_id', sessionData.session.user.id);
 
-      var [namesRes, profilesRes] = await Promise.all([namesPromise, profilesPromise]);
+      var settled = await Promise.allSettled([namesPromise, profilesPromise]);
+      var namesRes = settled[0].status === 'fulfilled' ? settled[0].value : { data: [] };
+      var profilesRes = settled[1].status === 'fulfilled' ? settled[1].value : { data: [] };
       
       return {
         names: namesRes.data || [],
@@ -310,4 +330,3 @@
   // This prevents the "Multiple GoTrueClient instances detected" warning.
   getSb();
 })(window);
-

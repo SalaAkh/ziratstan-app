@@ -51,7 +51,17 @@ create policy "public_submit_ugc_profile_submissions"
 on public.ugc_profile_submissions
 for insert
 to anon, authenticated
-with check (coalesce(status, 'pending') = 'pending');
+with check (
+  coalesce(status, 'pending') = 'pending'
+  and (owner_id is null or auth.uid() = owner_id)
+);
+
+drop policy if exists "user_read_own_ugc_profile_submissions" on public.ugc_profile_submissions;
+create policy "user_read_own_ugc_profile_submissions"
+on public.ugc_profile_submissions
+for select
+to authenticated
+using (auth.uid() = owner_id or public.is_admin());
 
 drop policy if exists "admin_read_ugc_profile_submissions" on public.ugc_profile_submissions;
 create policy "admin_read_ugc_profile_submissions"

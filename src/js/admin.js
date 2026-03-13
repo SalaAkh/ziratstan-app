@@ -513,6 +513,7 @@ async function apiRequest(path, options = {}) {
 
     const method = (options.method || 'GET').toUpperCase();
     const body = options.body || {};
+    const approverUserId = session?.user?.id || null;
 
     const toError = (message, statusCode = 500) => {
         const error = new Error(message);
@@ -524,6 +525,18 @@ async function apiRequest(path, options = {}) {
         if (result?.error) {
             throw toError(result.error.message || fallbackMessage, statusCode);
         }
+    };
+
+    const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+    const toSafeYearDate = (value) => {
+        const raw = value === null || value === undefined ? '' : String(value).trim();
+        if (!raw) return null;
+        const match = raw.match(/\d{4}/);
+        return match ? `${match[0]}-01-01` : null;
+    };
+    const toFiniteNumber = (value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : null;
     };
 
     if (path === '/admin/bootstrap' && method === 'GET') {
@@ -588,6 +601,68 @@ async function apiRequest(path, options = {}) {
         const table = tableMap[body.type];
         if (!table || !body.id || !['approved', 'rejected', 'pending'].includes(body.status)) {
             throw toError('Invalid payload', 400);
+        }
+
+        if (body.type === 'profiles' && body.status === 'approved') {
+            let subRes = await db
+                .from('ugc_profile_submissions')
+                .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id, published_profile_id')
+                .eq('id', body.id)
+                .maybeSingle();
+
+            let hasPublishedIdColumn = true;
+            if (subRes?.error && String(subRes.error.message || '').includes('published_profile_id')) {
+                hasPublishedIdColumn = false;
+                subRes = await db
+                    .from('ugc_profile_submissions')
+                    .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id')
+                    .eq('id', body.id)
+                    .maybeSingle();
+            }
+
+            throwIfError(subRes, 'Failed to load profile submission');
+            if (!subRes.data) {
+                throw toError('Submission not found', 404);
+            }
+
+            const submission = subRes.data;
+            let publishedProfileId = submission.published_profile_id || null;
+
+            if (!publishedProfileId) {
+                const lng = toFiniteNumber(submission.lng);
+                const lat = toFiniteNumber(submission.lat);
+                const ownerId = isUuid(submission.owner_id)
+                    ? submission.owner_id
+                    : (isUuid(approverUserId) ? approverUserId : null);
+
+                const createRes = await db.from('profiles').insert([{
+                    first_name: (submission.full_name || '').trim() || 'Unknown',
+                    last_name: null,
+                    patronymic: null,
+                    birth_date: toSafeYearDate(submission.birth_year),
+                    death_date: toSafeYearDate(submission.death_year),
+                    biography: submission.description ? String(submission.description).trim() : null,
+                    visibility_status: 'public',
+                    owner_id: ownerId,
+                    cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
+                    location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
+                }]).select('id').single();
+
+                throwIfError(createRes, 'Failed to publish approved profile');
+                publishedProfileId = createRes.data?.id || null;
+            }
+
+            const updatePayload = hasPublishedIdColumn
+                ? { status: body.status, published_profile_id: publishedProfileId }
+                : { status: body.status };
+
+            const updateRes = await db
+                .from('ugc_profile_submissions')
+                .update(updatePayload)
+                .eq('id', body.id);
+
+            throwIfError(updateRes, 'Failed to update status');
+            return { ok: true, profile_id: publishedProfileId };
         }
 
         const result = await db.from(table).update({ status: body.status }).eq('id', body.id);
@@ -1630,8 +1705,9 @@ async function updateStatus(type, id, status) {
             card.replaceWith(newCard);
         }
 
+        const approvedMsg = type === 'profiles' ? 'Одобрено и опубликовано' : 'Одобрено';
         showToast(
-            status === 'approved' ? 'Одобрено и опубликовано' : (status === 'pending' ? 'Возвращено на модерацию' : 'Заявка отклонена'),
+            status === 'approved' ? approvedMsg : (status === 'pending' ? 'Возвращено на модерацию' : 'Заявка отклонена'),
             status === 'approved' ? 'success' : (status === 'pending' ? 'success' : 'error')
         );
     } catch (err) {

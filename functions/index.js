@@ -76,6 +76,14 @@ function toSafeNumber(value) {
     return Number.isFinite(n) ? n : null;
 }
 
+function toSafeYearDate(value) {
+    const raw = toSafeString(value, 20);
+    if (!raw) return null;
+    const match = raw.match(/\d{4}/);
+    if (!match) return null;
+    return `${match[0]}-01-01`;
+}
+
 function isUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 }
@@ -175,6 +183,7 @@ async function handlePublicUgcProfile(req, res) {
     if (!db) return sendJson(res, 500, { error: 'Server is not configured' });
 
     const body = req.body || {};
+    const ownerId = toSafeString(body.owner_id ?? body.ownerId, 80);
     const payload = {
         cemetery_id: toSafeString(body.cemeteryId, 80),
         cemetery_name: toSafeString(body.cemeteryName, 200),
@@ -184,6 +193,7 @@ async function handlePublicUgcProfile(req, res) {
         birth_year: toSafeString(body.birth, 10),
         death_year: toSafeString(body.death, 10),
         description: toSafeString(body.description, 1000),
+        owner_id: isUuid(ownerId) ? ownerId : null,
         status: 'pending',
         submitted_at: new Date().toISOString(),
     };
@@ -448,7 +458,7 @@ async function handleProfilesPost(req, res) {
 }
 
 async function handleStatusPost(req, res) {
-    await requireAdmin(req);
+    const adminUser = await requireAdmin(req);
     const db = getAdminDb();
 
     const tableMap = {
@@ -460,8 +470,65 @@ async function handleStatusPost(req, res) {
     const { type, id, status } = req.body || {};
     const table = tableMap[type];
 
-    if (!table || !id || !['approved', 'rejected'].includes(status)) {
+    if (!table || !id || !['approved', 'rejected', 'pending'].includes(status)) {
         return sendJson(res, 400, { error: 'Invalid payload' });
+    }
+
+    if (type === 'profiles' && status === 'approved') {
+        let subRes = await db
+            .from('ugc_profile_submissions')
+            .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id, published_profile_id')
+            .eq('id', id)
+            .maybeSingle();
+
+        let hasPublishedIdColumn = true;
+        if (subRes.error && String(subRes.error.message || '').includes('published_profile_id')) {
+            hasPublishedIdColumn = false;
+            subRes = await db
+                .from('ugc_profile_submissions')
+                .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id')
+                .eq('id', id)
+                .maybeSingle();
+        }
+
+        if (subRes.error) throw subRes.error;
+        if (!subRes.data) return sendJson(res, 404, { error: 'Submission not found' });
+
+        const submission = subRes.data;
+        let publishedProfileId = submission.published_profile_id || null;
+
+        if (!publishedProfileId) {
+            const lat = toSafeNumber(submission.lat);
+            const lng = toSafeNumber(submission.lng);
+            const ownerId = isUuid(submission.owner_id)
+                ? submission.owner_id
+                : (isUuid(adminUser?.id) ? adminUser.id : null);
+            const profilePayload = {
+                first_name: toSafeString(submission.full_name, 100) || 'Unknown',
+                last_name: null,
+                patronymic: null,
+                birth_date: toSafeYearDate(submission.birth_year),
+                death_date: toSafeYearDate(submission.death_year),
+                biography: toSafeString(submission.description, 4000),
+                visibility_status: 'public',
+                owner_id: ownerId,
+                cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
+                location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
+            };
+
+            const created = await db.from('profiles').insert([profilePayload]).select('id').single();
+            if (created.error) throw created.error;
+            publishedProfileId = created.data?.id || null;
+        }
+
+        const updatePayload = hasPublishedIdColumn
+            ? { status, published_profile_id: publishedProfileId }
+            : { status };
+
+        const updated = await db.from('ugc_profile_submissions').update(updatePayload).eq('id', id);
+        if (updated.error) throw updated.error;
+
+        return sendJson(res, 200, { ok: true, profile_id: publishedProfileId });
     }
 
     const { error } = await db.from(table).update({ status }).eq('id', id);
