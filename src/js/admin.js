@@ -39,6 +39,24 @@ function isSupabaseLockAbortError(error) {
             || message.includes('was not released within 5000ms'));
 }
 
+function isTransientNetworkAuthError(error) {
+    const name = (error && error.name) ? String(error.name) : '';
+    const message = (error && error.message) ? String(error.message) : '';
+
+    return (name === 'TypeError' && message.includes('Failed to fetch'))
+        || message.includes('NetworkError')
+        || message.includes('ERR_CONNECTION_')
+        || message.includes('Load failed');
+}
+
+function toAuthUiErrorMessage(error, fallbackMessage) {
+    if (isTransientNetworkAuthError(error)) {
+        return 'Network connection to Supabase failed. Check VPN/proxy/antivirus and try again.';
+    }
+
+    return (error && error.message) ? error.message : fallbackMessage;
+}
+
 async function withAuthRetry(fn) {
     let attempt = 0;
 
@@ -47,7 +65,8 @@ async function withAuthRetry(fn) {
             return await fn();
         } catch (error) {
             attempt += 1;
-            if (!isSupabaseLockAbortError(error) || attempt >= AUTH_RETRY_MAX_ATTEMPTS) {
+            const shouldRetry = isSupabaseLockAbortError(error) || isTransientNetworkAuthError(error);
+            if (!shouldRetry || attempt >= AUTH_RETRY_MAX_ATTEMPTS) {
                 throw error;
             }
 
@@ -918,6 +937,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 resetGateMessages();
                 return;
             }
+            if (isTransientNetworkAuthError(error)) {
+                showGateMessage('error', toAuthUiErrorMessage(error, 'Auth network error.'));
+                return;
+            }
             if (isSupabaseLockAbortError(error)) {
                 showGateMessage('error', 'Retry sign in. Parallel auth requests were detected.');
                 return;
@@ -951,7 +974,17 @@ async function loginUser() {
     setMagicLinkButtonState(true);
     localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
 
-    const { error } = await withAuthRetry(() => db.auth.signInWithPassword({ email, password }));
+    let loginResult;
+    try {
+        loginResult = await withAuthRetry(() => db.auth.signInWithPassword({ email, password }));
+    } catch (error) {
+        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to sign in.'));
+        setLoginButtonState(false);
+        setMagicLinkButtonState(false);
+        return;
+    }
+
+    const { error } = loginResult;
 
     if (error) {
         const message = error.message === 'Invalid login credentials'
@@ -981,13 +1014,23 @@ async function sendMagicLink() {
     setMagicLinkButtonState(true);
     localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email);
 
-    const { error } = await withAuthRetry(() => db.auth.signInWithOtp({
-        email,
-        options: {
-            emailRedirectTo: getAdminRedirectUrl(),
-            shouldCreateUser: false,
-        },
-    }));
+    let otpResult;
+    try {
+        otpResult = await withAuthRetry(() => db.auth.signInWithOtp({
+            email,
+            options: {
+                emailRedirectTo: getAdminRedirectUrl(),
+                shouldCreateUser: false,
+            },
+        }));
+    } catch (error) {
+        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to send magic link.'));
+        setLoginButtonState(false);
+        setMagicLinkButtonState(false);
+        return;
+    }
+
+    const { error } = otpResult;
 
     if (error) {
         const message = error.message && error.message.includes('Signups not allowed for otp')
@@ -1019,10 +1062,19 @@ async function verifyMfaCode() {
     resetGateMessages();
     setMfaButtonState(true, pendingMfa.buttonLabel);
 
-    const { error } = await withAuthRetry(() => db.auth.mfa.challengeAndVerify({
-        factorId: pendingMfa.factorId,
-        code,
-    }));
+    let verifyResult;
+    try {
+        verifyResult = await withAuthRetry(() => db.auth.mfa.challengeAndVerify({
+            factorId: pendingMfa.factorId,
+            code,
+        }));
+    } catch (error) {
+        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to verify code.'));
+        setMfaButtonState(false, pendingMfa.buttonLabel);
+        return;
+    }
+
+    const { error } = verifyResult;
 
     if (error) {
         let message = error.message === 'Invalid TOTP code entered'
