@@ -1,10 +1,9 @@
 -- ==========================================
 -- UP MIGRATION
--- Исправление предупреждений Supabase Security & Performance
+-- Fix Supabase Security and Performance Warnings
 -- ==========================================
 
--- 1. Исправление: Function Search Path Mutable для handle_new_user
--- Добавляем пустой search_path чтобы предотвратить атаки с подменой функций (search_path = '')
+-- 1. Fix Function Search Path Mutable for handle_new_user
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -19,15 +18,15 @@ BEGIN
 END;
 $$;
 
--- 2. Исправление: RLS Disabled in Public для spatial_ref_sys (PostGIS)
+-- 2. Fix RLS Disabled in Public for spatial_ref_sys
 ALTER TABLE public.spatial_ref_sys ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "spatial_ref_sys_public_read" ON public.spatial_ref_sys;
 CREATE POLICY "spatial_ref_sys_public_read" ON public.spatial_ref_sys FOR SELECT USING (true);
 
--- 3. Улучшение производительности: Unindexed foreign keys
+-- 3. Fix Unindexed foreign keys
 CREATE INDEX IF NOT EXISTS idx_profiles_cemetery_id ON public.profiles(cemetery_id);
 
--- 4. Исправление: RLS Policy Always True для services_leads
+-- 4. Fix RLS Policy Always True for services_leads
 DROP POLICY IF EXISTS "public_submit_services_leads" ON public.services_leads;
 CREATE POLICY "public_submit_services_leads"
 ON public.services_leads
@@ -35,9 +34,7 @@ FOR INSERT
 TO anon, authenticated
 WITH CHECK (service_type IS NOT NULL);
 
--- 5. Исправление: Auth RLS Initialization Plan и Multiple Permissive Policies
--- Чтобы Postgres мог оптимизировать запросы с auth.uid(), мы оборачиваем его в подзапрос: (select auth.uid()).
--- Также, где возможно, объединяем проверяющие политики SELECT.
+-- 5. Fix Auth RLS Initialization Plan and Multiple Permissive Policies
 
 -- 5.1 user_profiles
 DROP POLICY IF EXISTS "user_profiles_self_read" ON public.user_profiles;
@@ -57,14 +54,11 @@ CREATE POLICY "user_profiles_self_update"
   WITH CHECK ((select auth.uid()) = user_id);
 
 -- 5.2 profiles
--- Удаляем старые, потенциально мешающие друг другу политики на чтение. 
--- public_read_public_profiles из admin_security.sql уже частично перекрывала это.
 DROP POLICY IF EXISTS "memorial_public_read" ON public.profiles;
 DROP POLICY IF EXISTS "memorial_owner_read" ON public.profiles;
 DROP POLICY IF EXISTS "memorial_collaborator_read" ON public.profiles;
 DROP POLICY IF EXISTS "public_read_public_profiles" ON public.profiles;
 
--- Единая политика для чтения профилей
 CREATE POLICY "profiles_read_all"
   ON public.profiles FOR SELECT
   USING (
@@ -160,6 +154,3 @@ WITH CHECK (
   COALESCE(status, 'pending') = 'pending'
   AND (owner_id IS NULL OR (select auth.uid()) = owner_id)
 );
-
--- Выводим сообщение
-DO $$ BEGIN RAISE NOTICE 'Миграция (UP) успешно применена. Бисмиллях!'; END $$;

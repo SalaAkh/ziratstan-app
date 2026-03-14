@@ -103,7 +103,7 @@
     try {
       var { data, error } = await sb
         .from('profiles')
-        .select('id, first_name, last_name, patronymic, birth_date, death_date, epitaph, biography, main_photo_url, cemetery_id, location, cemeteries(name, city)')
+        .select('id, owner_id, first_name, last_name, patronymic, birth_date, death_date, epitaph, biography, main_photo_url, cemetery_id, location, cemeteries(name, city)')
         .eq('visibility_status', 'public')
         .limit(2000);
       
@@ -112,6 +112,7 @@
       return (data || []).map(function(p) {
         return {
           id: p.id,
+          owner_id: p.owner_id || null,
           name: [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(' '),
           birth: p.birth_date ? String(p.birth_date).substring(0, 4) : '?',
           death: p.death_date ? String(p.death_date).substring(0, 4) : '?',
@@ -124,7 +125,11 @@
           bio: p.biography || '',
           epitaph: p.epitaph || ''
         };
-      }).filter(p => p.lat && p.lng);
+      }).filter(function (p) {
+        // Do not place user-owned memorials as separate markers on the public map.
+        // They are shown inside cemetery popup based on access rules.
+        return p.lat && p.lng && !p.owner_id;
+      });
     } catch (e) {
       console.error("[public-api] Error fetching VIP profiles:", e);
       return [];
@@ -294,7 +299,7 @@
                            
       // Fetch profiles
       var profilesPromise = sb.from('ugc_profile_submissions')
-                              .select('id, full_name, birth_year, death_year, cemetery_name, lat, lng, status, owner_id')
+                              .select('id, full_name, birth_year, death_year, cemetery_id, cemetery_name, lat, lng, status, owner_id')
                               .eq('status', 'pending')
                               .eq('owner_id', sessionData.session.user.id);
 
@@ -321,32 +326,73 @@
       return [];
     }
 
+    var userId = sessionRes.data.session.user.id;
+    var merged = [];
+    var seen = new Set();
+    var pushUnique = function (row) {
+      if (!row) return;
+      var latKey = Number.isFinite(Number(row.lat)) ? Number(row.lat).toFixed(5) : 'x';
+      var lngKey = Number.isFinite(Number(row.lng)) ? Number(row.lng).toFixed(5) : 'x';
+      var key = [row.id || '', row.cemetery_id || '', (row.name || '').toLowerCase(), latKey, lngKey].join('|');
+      if (seen.has(key)) return;
+      seen.add(key);
+      merged.push(row);
+    };
+
     try {
-      var { data, error } = await sb
+      var profilesRes = await sb
         .from('profiles')
-        .select('id, first_name, last_name, patronymic, birth_date, death_date, visibility_status, location')
+        .select('id, cemetery_id, first_name, last_name, patronymic, birth_date, death_date, visibility_status, location')
         .in('visibility_status', ['private', 'family_only'])
         .limit(2000);
 
-      if (error) throw error;
+      if (profilesRes.error) throw profilesRes.error;
 
-      return (data || []).map(function (p) {
-        return {
+      (profilesRes.data || []).forEach(function (p) {
+        pushUnique({
           id: p.id,
           name: [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(' '),
           birth: p.birth_date ? String(p.birth_date).substring(0, 4) : '?',
           death: p.death_date ? String(p.death_date).substring(0, 4) : '?',
           visibility_status: p.visibility_status || 'private',
+          cemetery_id: p.cemetery_id || null,
           lat: p.location && p.location.coordinates ? p.location.coordinates[1] : null,
           lng: p.location && p.location.coordinates ? p.location.coordinates[0] : null
-        };
-      }).filter(function (p) {
-        return Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+        });
       });
     } catch (e) {
-      console.error('[public-api] Error fetching cemetery private profiles:', e);
-      return [];
+      console.warn('[public-api] profiles private/family read skipped:', e);
     }
+
+    try {
+      var submissionsRes = await sb
+        .from('ugc_profile_submissions')
+        .select('id, cemetery_id, full_name, birth_year, death_year, lat, lng, status')
+        .eq('owner_id', userId)
+        .eq('status', 'approved')
+        .limit(2000);
+
+      if (submissionsRes.error) throw submissionsRes.error;
+
+      (submissionsRes.data || []).forEach(function (s) {
+        pushUnique({
+          id: 'ugc_approved_' + s.id,
+          name: s.full_name || '',
+          birth: s.birth_year ? String(s.birth_year).substring(0, 4) : '?',
+          death: s.death_year ? String(s.death_year).substring(0, 4) : '?',
+          visibility_status: 'private',
+          cemetery_id: s.cemetery_id || null,
+          lat: s.lat,
+          lng: s.lng
+        });
+      });
+    } catch (e) {
+      console.warn('[public-api] approved submissions fallback skipped:', e);
+    }
+
+    return merged.filter(function (p) {
+      return Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+    });
   }
 
 

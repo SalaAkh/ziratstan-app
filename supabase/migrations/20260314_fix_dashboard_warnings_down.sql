@@ -1,9 +1,9 @@
 -- ==========================================
 -- DOWN MIGRATION (ROLLBACK)
--- Откат исправлений Supabase Security & Performance
+-- Rollback Fixes for Supabase Security warnings
 -- ==========================================
 
--- 1. Откат Function Search Path Mutable
+-- 1. Rollback Function Search Path Mutable
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -18,15 +18,14 @@ BEGIN
 END;
 $$;
 
--- 2. Откат: Отключаем RLS для spatial_ref_sys
+-- 2. Rollback RLS Disabled for spatial_ref_sys
 DROP POLICY IF EXISTS "spatial_ref_sys_public_read" ON public.spatial_ref_sys;
 ALTER TABLE public.spatial_ref_sys DISABLE ROW LEVEL SECURITY;
 
-
--- 3. Удаляем индекс
+-- 3. Rollback index
 DROP INDEX IF EXISTS public.idx_profiles_cemetery_id;
 
--- 4. Откат: RLS Policy Always True для services_leads
+-- 4. Rollback RLS Policy Always True for services_leads
 DROP POLICY IF EXISTS "public_submit_services_leads" ON public.services_leads;
 CREATE POLICY "public_submit_services_leads"
 ON public.services_leads
@@ -34,8 +33,7 @@ FOR INSERT
 TO anon, authenticated
 WITH CHECK (true);
 
--- 5. Откат к прямым вызовам auth.uid() и возвращение множественных политик SELECT
-
+-- 5. Rollback to direct auth.uid()
 -- 5.1 user_profiles
 DROP POLICY IF EXISTS "user_profiles_self_read" ON public.user_profiles;
 CREATE POLICY "user_profiles_self_read"
@@ -66,21 +64,13 @@ CREATE POLICY "memorial_owner_read"
 
 CREATE POLICY "memorial_collaborator_read"
   ON public.profiles FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.profile_collaborators c
-      WHERE c.profile_id = public.profiles.id
-        AND c.user_id = auth.uid()
-    )
-  );
+  USING (EXISTS (SELECT 1 FROM public.profile_collaborators c WHERE c.profile_id = public.profiles.id AND c.user_id = auth.uid()));
 
 CREATE POLICY "public_read_public_profiles"
 ON public.profiles
 FOR SELECT
 TO anon, authenticated
 USING (visibility_status = 'public' OR public.is_admin());
-
 
 DROP POLICY IF EXISTS "memorial_owner_insert" ON public.profiles;
 CREATE POLICY "memorial_owner_insert"
@@ -96,14 +86,7 @@ CREATE POLICY "memorial_owner_update"
 DROP POLICY IF EXISTS "memorial_collaborator_update" ON public.profiles;
 CREATE POLICY "memorial_collaborator_update"
   ON public.profiles FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profile_collaborators c
-      WHERE c.profile_id = public.profiles.id
-        AND c.user_id = auth.uid()
-        AND c.role IN ('editor', 'admin')
-    )
-  );
+  USING (EXISTS (SELECT 1 FROM public.profile_collaborators c WHERE c.profile_id = public.profiles.id AND c.user_id = auth.uid() AND c.role IN ('editor', 'admin')));
 
 DROP POLICY IF EXISTS "memorial_owner_delete" ON public.profiles;
 CREATE POLICY "memorial_owner_delete"
@@ -120,7 +103,6 @@ CREATE POLICY "collab_owner_read"
 CREATE POLICY "collab_self_read"
   ON public.profile_collaborators FOR SELECT
   USING (user_id = auth.uid());
-
 
 DROP POLICY IF EXISTS "collab_owner_insert" ON public.profile_collaborators;
 CREATE POLICY "collab_owner_insert"
@@ -162,17 +144,9 @@ FOR SELECT
 TO authenticated
 USING (public.is_admin());
 
-
 DROP POLICY IF EXISTS "public_submit_ugc_profile_submissions" ON public.ugc_profile_submissions;
 CREATE POLICY "public_submit_ugc_profile_submissions"
 ON public.ugc_profile_submissions
 FOR INSERT
 TO anon, authenticated
-WITH CHECK (
-  COALESCE(status, 'pending') = 'pending'
-  AND (owner_id IS NULL OR auth.uid() = owner_id)
-);
-
-
--- Выводим сообщение
-DO $$ BEGIN RAISE NOTICE 'Откат (DOWN) успешно применен. Архитектура вернулась в исходное состояние.'; END $$;
+WITH CHECK (COALESCE(status, 'pending') = 'pending' AND (owner_id IS NULL OR auth.uid() = owner_id));

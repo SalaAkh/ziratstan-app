@@ -62,9 +62,14 @@
                 && Math.abs(lngA - lngB) <= CEMETERY_PROFILE_MATCH_EPS;
         }
 
-        function getCemeteryProfilesForPoint(lat, lng) {
+        function isSameCemetery(cemeteryIdA, cemeteryIdB) {
+            if (!cemeteryIdA || !cemeteryIdB) return false;
+            return String(cemeteryIdA) === String(cemeteryIdB);
+        }
+
+        function getCemeteryProfilesForPoint(cemeteryId, lat, lng) {
             const approved = PRIVATE_CEMETERY_PROFILES
-                .filter(p => isNearSameCemetery(p.lat, p.lng, lat, lng))
+                .filter(p => isSameCemetery(p.cemetery_id, cemeteryId) || isNearSameCemetery(p.lat, p.lng, lat, lng))
                 .map(p => ({
                     id: p.id,
                     name: p.name || p.fullName || '',
@@ -75,7 +80,7 @@
                 }));
 
             const pending = PENDING_CEMETERY_PROFILES
-                .filter(p => isNearSameCemetery(p.lat, p.lng, lat, lng))
+                .filter(p => isSameCemetery(p.cemetery_id, cemeteryId) || isNearSameCemetery(p.lat, p.lng, lat, lng))
                 .map(p => ({
                     id: p.id,
                     name: p.name || p.fullName || '',
@@ -88,8 +93,8 @@
             return [...approved, ...pending];
         }
 
-        function renderCemeteryProfilesHtml(lat, lng) {
-            const rows = getCemeteryProfilesForPoint(lat, lng);
+        function renderCemeteryProfilesHtml(cemeteryId, lat, lng) {
+            const rows = getCemeteryProfilesForPoint(cemeteryId, lat, lng);
             if (!rows.length) return '';
 
             const lang = getLang();
@@ -513,7 +518,7 @@
                             ${regionLabel ? `<div style="font-size:0.75rem; color:var(--gold); margin-bottom:2px; font-weight:600;">🗺️ ${regionLabel}</div>` : ''}
                             <div class="cem-district" style="font-size:0.75rem; color:var(--muted); margin-bottom:4px; display:none;"></div>
                             <div style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">${t('map_coords_label')}: ${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
-                            ${!isPending ? renderCemeteryProfilesHtml(lat, lng) : ''}
+                            ${!isPending ? renderCemeteryProfilesHtml(c.id, lat, lng) : ''}
                             ${!isPending ? `
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
                               <a href="#" onclick="openUgcModal('${c.id}', decodeURIComponent('${encodedLocalizedName}'), ${lat}, ${lng}); return false;" style="display:block; text-align:center; background:var(--surface-light); border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600;">${t('map_popup_refine_name')}</a>
@@ -790,12 +795,48 @@
                             name: p.full_name,
                             birth: p.birth_year ? String(p.birth_year).substring(0, 4) : '?',
                             death: p.death_year ? String(p.death_year).substring(0, 4) : '?',
+                            cemetery_id: p.cemetery_id || null,
                             lat: Number(p.lat),
                             lng: Number(p.lng)
                         }));
                 }
             } catch (e) {
                 console.warn("[Map] Failed fetching pending ugc:", e);
+            }
+
+            const shouldRetryPrivateLoad = (
+                typeof ZiratAuth !== 'undefined'
+                && typeof ZiratAuth.isLoggedIn === 'function'
+                && ZiratAuth.isLoggedIn()
+                && PRIVATE_CEMETERY_PROFILES.length === 0
+                && PENDING_CEMETERY_PROFILES.length === 0
+            );
+
+            if (shouldRetryPrivateLoad) {
+                setTimeout(async () => {
+                    try {
+                        if (typeof fetchMyCemeteryProfiles === 'function') {
+                            PRIVATE_CEMETERY_PROFILES = await fetchMyCemeteryProfiles();
+                        }
+                        if (typeof fetchMyPendingUgc === 'function') {
+                            const retryPending = await fetchMyPendingUgc();
+                            PENDING_CEMETERY_PROFILES = (retryPending.profiles || [])
+                                .filter(p => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)))
+                                .map(p => ({
+                                    id: p.id,
+                                    name: p.full_name,
+                                    birth: p.birth_year ? String(p.birth_year).substring(0, 4) : '?',
+                                    death: p.death_year ? String(p.death_year).substring(0, 4) : '?',
+                                    cemetery_id: p.cemetery_id || null,
+                                    lat: Number(p.lat),
+                                    lng: Number(p.lng)
+                                }));
+                        }
+                        if (typeof updateMapLayers === 'function') updateMapLayers();
+                    } catch (retryError) {
+                        console.warn('[Map] Delayed private profile reload failed:', retryError);
+                    }
+                }, 1200);
             }
 
             if (typeof updateMapLayers === 'function') {
@@ -1087,6 +1128,7 @@
                         name: data.fullName,
                         birth: data.birth ? String(data.birth).substring(0, 4) : '?',
                         death: data.death ? String(data.death).substring(0, 4) : '?',
+                        cemetery_id: data.cemeteryId || null,
                         lat: lat,
                         lng: lng
                     });
