@@ -1,8 +1,9 @@
 -- Ziratstan (Зиратстан) Database Schema (Supabase)
 -- Бисмиллях! Эта схема создает фундамент для хранения профилей, локаций и медиа.
 -- Включаем PostGIS (для геолокации могил)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE SCHEMA IF NOT EXISTS "extensions";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA "extensions";
+CREATE EXTENSION IF NOT EXISTS postgis SCHEMA "extensions";
 -- 1. Таблица Кладбищ (Cemeteries)
 CREATE TABLE IF NOT EXISTS cemeteries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
