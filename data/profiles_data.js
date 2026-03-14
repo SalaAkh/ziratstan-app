@@ -26,9 +26,24 @@ const PROFILES_STATIC = [
         filter: 'historical', lat: 47.116265, lng: 51.883812, photo: null
     },
     {
-        id: 'zhanibek_khan_7', name: 'Жәнібек хан', fullName: 'Керей мен Жәнібек', era: 'khanate',
-        birth: 'XV', death: 'XV', cemetery: 'Сарайшық көне қаласы', city: 'Атырау',
+        id: 'zhanibek_khan_7', name: 'Жәнібек хан', fullName: 'Жәнібек хан', era: 'khanate',
+        birth: '1428', death: '1480', cemetery: 'Сарайшық көне қаласы', city: 'Атырау',
         filter: 'historical', lat: 47.117124, lng: 51.884271, photo: null
+    },
+    {
+        id: 'kerey_khan_200', name: 'Керей хан', fullName: 'Керей хан', era: 'khanate',
+        birth: '1425', death: '1482', cemetery: 'Хантау тауы', city: 'Жамбыл обл.',
+        filter: 'historical', lat: 44.200000, lng: 74.300000, photo: null
+    },
+    {
+        id: 'burunduk_khan_201', name: 'Бұрындық хан', fullName: 'Бұрындық хан', era: 'khanate',
+        birth: '1474', death: '1513', cemetery: 'Самарқанд көне қаласы', city: 'Өзбекстан',
+        filter: 'historical', lat: 39.654167, lng: 66.959722, photo: null
+    },
+    {
+        id: 'haknazar_khan_206', name: 'Хақназар хан', fullName: 'Хақназар хан', era: 'khanate',
+        birth: '1509', death: '1580', cemetery: 'Мавзолей Хақназар', city: 'Түркістан маңы',
+        filter: 'historical', lat: 43.300000, lng: 68.300000, photo: null
     },
     {
         id: 'tole_bi_8', name: 'Төле би', fullName: 'Төле би Әлібекұлы', era: 'khanate',

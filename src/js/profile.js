@@ -130,13 +130,96 @@ function renderBio(data) {
     const wikiKK = data.wiki_link_kk ? `<a href="${data.wiki_link_kk}" target="_blank" rel="noopener" id="wikiLinkKK" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">${t('prof_wikipedia_kk')}</a>` : '';
     const wikiRU = data.wiki_link_ru ? `<a href="${data.wiki_link_ru}" target="_blank" rel="noopener" id="wikiLinkRU" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:99px;color:var(--gold);font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1">${t('prof_wikipedia_ru')}</a>` : '';
 
-    const langSwitcher = (_bioDataKK && _bioDataRU) ? `
-        <div id="bioLangSwitch" style="display:flex;gap:6px;margin-bottom:1rem;">
-            <button id="btnLangKK" onclick="switchBioLang('kk')" style="padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">${t('lang_kk')}</button>
-            <button id="btnLangRU" onclick="switchBioLang('ru')" style="padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">${t('lang_ru')}</button>
-        </div>` : '';
-
     const bioText = _bioLang === 'kk' ? (_bioDataKK || _bioDataRU) : (_bioDataRU || _bioDataKK);
+
+    // Render VIP profile if it's a rich profile with a filter of "historical" (or if it has rich HTML tags)
+    // We will assume that if we have a lot of HTML (e.g., <p>, <br>) it's a vip profile.
+    const isVipProfile = bioText && (bioText.includes('<p>') || bioText.includes('<h3>') || data.shezhire);
+
+    if (isVipProfile) {
+        document.getElementById('standardBioContainer').style.display = 'none';
+        document.getElementById('vipProfileContainer').style.display = 'flex';
+        
+        // Fill VIP Sidebar
+        document.getElementById('vipSidebarName').textContent = _currentProfile.fullName;
+        
+        const summaryHtml = `
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_birth') || 'Birth'}</span>
+                <span class="vip-summary-value">${_currentProfile.birth}</span>
+            </div>
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_death') || 'Death'}</span>
+                <span class="vip-summary-value">${_currentProfile.death}</span>
+            </div>
+            ${_currentProfile.cemetery ? `
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_cemetery') || 'Burial Place'}</span>
+                <span class="vip-summary-value">${_currentProfile.cemetery}</span>
+            </div>` : ''}
+            ${_currentProfile.city ? `
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_city') || 'Location'}</span>
+                <span class="vip-summary-value">${_currentProfile.city}</span>
+            </div>` : ''}
+        `;
+        document.getElementById('vipSummaryContent').innerHTML = summaryHtml;
+
+        // Fill VIP Main Bio
+        document.getElementById('vipBioContent').innerHTML = bioText;
+
+        // Wiki Links
+        const wikiLinksHtml = `
+            ${wikiKK}
+            ${wikiRU}
+        `;
+        document.getElementById('vipWikiLinks').innerHTML = wikiLinksHtml;
+
+        // Language Switcher Logic
+        const bioLangSwitch = document.getElementById('bioLangSwitch');
+        if (_bioDataKK && _bioDataRU) {
+            bioLangSwitch.style.display = 'flex';
+            
+            // Adjust buttons active state
+            const btnKK = document.getElementById('btnLangKK');
+            const btnRU = document.getElementById('btnLangRU');
+            if (_bioLang === 'kk') {
+                btnKK.className = 'btn-action btn-fill';
+                btnRU.className = 'btn-action btn-outline';
+            } else {
+                btnRU.className = 'btn-action btn-fill';
+                btnKK.className = 'btn-action btn-outline';
+            }
+        } else {
+            bioLangSwitch.style.display = 'none';
+        }
+
+    } else {
+        // Standard Bio Logic (Fallback)
+        document.getElementById('vipProfileContainer').style.display = 'none';
+        document.getElementById('standardBioContainer').style.display = 'block';
+        
+        const langSwitcher = (_bioDataKK && _bioDataRU) ? `
+            <div id="bioLangSwitchStandard" style="display:flex;gap:6px;margin-bottom:1rem;">
+                <button id="btnLangKK" onclick="switchBioLang('kk')" style="padding:5px 14px;border-radius:99px;border:1px solid var(--gold);background:var(--gold);color:#09090b;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">${t('lang_kk')}</button>
+                <button id="btnLangRU" onclick="switchBioLang('ru')" style="padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">${t('lang_ru')}</button>
+            </div>` : '';
+
+        // Inject standard bio 
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            ${langSwitcher}
+            <div id="bioTextWrapper" style="position:relative;">
+                <p id="biographyText" style="font-size:1rem;line-height:1.8;color:var(--text);opacity:0.82;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;margin-bottom:1rem;">${bioText}</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" style="font-size:0.82rem;">${t('prof_read_more')}</button>
+                ${wikiKK}
+                ${wikiRU}
+            </div>
+        `;
+        document.getElementById('standardBioContainer').innerHTML = wrapper.innerHTML;
+    }
 
     const videoHTML = data.video_link ? `
         <div style="margin-top:2rem;">
@@ -157,20 +240,21 @@ function renderBio(data) {
     ` : '';
     _galleryPhotos = data.photos || [];
 
-    bioSection.innerHTML = `
-        <h2><span class="s-icon">📖</span> ${t('prof_bio_title')}</h2>
-        ${langSwitcher}
-        <div id="bioTextWrapper" style="position:relative;">
-            <p id="biographyText" style="font-size:1rem;line-height:1.8;color:var(--text);opacity:0.82;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;margin-bottom:1rem;">${bioText}</p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" style="font-size:0.82rem;">${t('prof_read_more')}</button>
-            ${wikiKK}
-            ${wikiRU}
-        </div>
-        ${galleryHTML}
-        ${videoHTML}
-    `;
+    const galleryContainer = document.getElementById('galleryContainer');
+    if (galleryHTML) {
+        galleryContainer.innerHTML = galleryHTML;
+        galleryContainer.style.display = 'block';
+    } else {
+        galleryContainer.style.display = 'none';
+    }
+
+    const videoContainer = document.getElementById('videoContainer');
+    if (videoHTML) {
+        videoContainer.innerHTML = videoHTML;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+    }
 
     // Ensure UI matches current selected bio language and reset expand button.
     if (_bioDataKK && _bioDataRU) switchBioLang(_bioLang);
@@ -181,6 +265,26 @@ function switchBioLang(lang) {
     const bioText = lang === 'kk' ? (_bioDataKK || _bioDataRU) : (_bioDataRU || _bioDataKK);
     const bioEl = document.getElementById('biographyText');
     if (bioEl) bioEl.textContent = bioText;
+
+    // Update VIP logic if in VIP mode
+    const vipBio = document.getElementById('vipBioContent');
+    if (vipBio && document.getElementById('vipProfileContainer').style.display !== 'none') {
+        vipBio.innerHTML = bioText;
+        
+        // Adjust buttons
+        const btnKK = document.getElementById('btnLangKK');
+        const btnRU = document.getElementById('btnLangRU');
+        if (btnKK && btnRU) {
+            if (lang === 'kk') {
+                btnKK.className = 'btn-action btn-fill';
+                btnRU.className = 'btn-action btn-outline';
+            } else {
+                btnRU.className = 'btn-action btn-fill';
+                btnKK.className = 'btn-action btn-outline';
+            }
+        }
+        return; // Fast exit if VIP mode
+    }
 
     const btnKK = document.getElementById('btnLangKK');
     const btnRU = document.getElementById('btnLangRU');
@@ -200,7 +304,7 @@ function switchBioLang(lang) {
         bioEl.style.webkitBoxOrient = 'vertical';
     }
     const btn = document.getElementById('readBioBtn');
-    if (btn) btn.textContent = t('prof_read_more');
+    if (btn) btn.textContent = t('prof_read_more') || 'Read biography';
 }
 
 // ── TOGGLE BIO ──
@@ -419,6 +523,12 @@ async function initProfile() {
 
 async function loadFamilyTree(profileId, currentProfile) {
     try {
+        // Check if we have Custom JSON Shezhire data first!
+        if (_enrichedData && _enrichedData.shezhire) {
+            renderCustomShezhire(_enrichedData.shezhire, currentProfile);
+            return;
+        }
+
         if (typeof fetchFamilyRelations !== 'function') return;
         const relations = await fetchFamilyRelations(profileId);
         _familyRelations = relations || null;
@@ -435,6 +545,112 @@ async function loadFamilyTree(profileId, currentProfile) {
         document.getElementById('familySection').style.display = 'none';
     }
 }
+
+function renderCustomShezhire(shezhire, self) {
+    document.getElementById('familySection').style.display = 'block';
+    const treeEl = document.getElementById('familyTree');
+    treeEl.innerHTML = '';
+
+    // Parents Level
+    if (shezhire.parents && shezhire.parents.length > 0) {
+        const pLevel = document.createElement('div');
+        pLevel.className = 'tree-level';
+        shezhire.parents.forEach(p => {
+            pLevel.appendChild(createVirtualNode(p, t('prof_role_parent') || 'Parent'));
+        });
+        treeEl.appendChild(pLevel);
+    }
+
+    // Self & Spouses Level
+    const selfLevel = document.createElement('div');
+    selfLevel.className = 'tree-level';
+    
+    const selfNode = createNode(self, t('prof_role_self') || 'Self');
+    selfNode.classList.add('active');
+    selfLevel.appendChild(selfNode);
+    
+    if (shezhire.spouses && shezhire.spouses.length > 0) {
+        // Simple visual connection between self and spouses
+        const spouseContainer = document.createElement('div');
+        spouseContainer.style.display = 'flex';
+        spouseContainer.style.gap = '20px';
+        spouseContainer.style.position = 'relative';
+        
+        // Add horizontal connector pseudo-element via JS styles wouldn't work reliably, using container
+        selfLevel.style.alignItems = 'center';
+        
+        shezhire.spouses.forEach((s, idx) => {
+            const spouseNode = createVirtualNode(s, t('prof_role_spouse') || 'Spouse');
+            
+            // Add horizontal bridge
+            const bridge = document.createElement('div');
+            bridge.style.width = '20px';
+            bridge.style.height = '2px';
+            bridge.style.backgroundColor = 'rgba(212, 175, 55, 0.4)';
+            bridge.style.marginTop = '40px'; // align with avatar roughly
+            
+            selfLevel.appendChild(bridge);
+            selfLevel.appendChild(spouseNode);
+        });
+    }
+
+    treeEl.appendChild(selfLevel);
+
+    // Children Level
+    if (shezhire.children && shezhire.children.length > 0) {
+        const cLevel = document.createElement('div');
+        cLevel.className = 'tree-level';
+        
+        // Add vertical lines to children
+        shezhire.children.forEach(c => {
+            const childNode = createVirtualNode(c, t('prof_role_child') || 'Child');
+            // Adding vertical connector to the child node itself
+            const connector = document.createElement('div');
+            connector.className = 'connector-vertical';
+            childNode.appendChild(connector);
+            
+            cLevel.appendChild(childNode);
+        });
+        
+        // If multiple children, add top horizontal bar across them
+        if (shezhire.children.length > 1) {
+            const hBar = document.createElement('div');
+            hBar.className = 'connector-horizontal';
+            hBar.style.width = `calc(100% - 160px)`; // roughly span across children
+            hBar.style.position = 'absolute';
+            hBar.style.left = '80px';
+            hBar.style.top = '-40px';
+            cLevel.appendChild(hBar);
+        }
+
+        treeEl.appendChild(cLevel);
+    }
+}
+
+// Dedicated function for JSON/Virtual nodes that might not have full db structure
+function createVirtualNode(p, role) {
+    const node = document.createElement('a');
+    node.className = 'tree-node';
+    
+    if (p.id) {
+        node.href = `profile.html?id=${p.id}`;
+    } else {
+        node.style.cursor = 'default';
+        node.style.opacity = '0.7';
+    }
+
+    const initials = p.name ? p.name.split(' ').map(n => n[0]).join('') : '?';
+    
+    node.innerHTML = `
+        <div class="node-avatar">
+            ${p.photo ? `<img src="${p.photo}" />` : initials}
+        </div>
+        <div class="node-name">${p.name}</div>
+        <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.75; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">${role}</div>
+    `;
+    return node;
+}
+
 
 function renderTree(relations, self) {
     const treeEl = document.getElementById('familyTree');
@@ -460,15 +676,32 @@ function renderTree(relations, self) {
     if (children.length > 0) {
         const cLevel = document.createElement('div');
         cLevel.className = 'tree-level';
-        children.forEach(r => cLevel.appendChild(createNode(r.profiles, t('prof_role_child'))));
+        children.forEach(r => {
+             const n = createNode(r.profiles, t('prof_role_child'));
+             const vert = document.createElement('div');
+             vert.className = 'connector-vertical';
+             n.appendChild(vert);
+             cLevel.appendChild(n);
+        });
+        
+        if (children.length > 1) {
+            const hBar = document.createElement('div');
+            hBar.className = 'connector-horizontal';
+            hBar.style.width = `calc(100% - 160px)`;
+            hBar.style.position = 'absolute';
+            hBar.style.left = '80px';
+            hBar.style.top = '-40px';
+            cLevel.appendChild(hBar);
+        }
+        
         treeEl.appendChild(cLevel);
     }
 }
 
 function createNode(p, role) {
-    const node = document.createElement('div');
+    const node = document.createElement('a');
     node.className = 'tree-node';
-    node.onclick = () => { window.location.href = `profile.html?id=${p.id}`; };
+    node.href = `profile.html?id=${p.id}`;
 
     const birth = p.birth_date ? p.birth_date.substring(0, 4) : (p.birth || '?');
     const death = p.death_date ? p.death_date.substring(0, 4) : (p.death || '?');

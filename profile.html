@@ -643,25 +643,28 @@
             justify-content: center;
             gap: 20px;
             position: relative;
+            margin-bottom: 2rem;
         }
 
         .tree-node {
             background: var(--surface);
             border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            width: 140px;
+            border-radius: 12px;
+            padding: 12px 16px;
+            width: 160px;
             text-align: center;
             position: relative;
             transition: all 0.2s;
             cursor: pointer;
             z-index: 2;
+            text-decoration: none;
+            display: block;
         }
 
         .tree-node:hover {
             border-color: var(--gold);
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
         }
 
         .tree-node.active {
@@ -713,10 +716,102 @@
 
         .connector-vertical {
             width: 2px;
-            height: 40px;
+            height: 48px;
             top: -40px;
             left: 50%;
             transform: translateX(-50%);
+            background: rgba(212, 175, 55, 0.4);
+        }
+        
+        .connector-horizontal {
+            height: 2px;
+            top: -40px;
+            background: rgba(212, 175, 55, 0.4);
+        }
+
+        /* VIP PROFILE WIKIPEDIA STYLE */
+        .vip-profile-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 860px) {
+            .vip-profile-layout {
+                flex-direction: row-reverse;
+                align-items: flex-start;
+            }
+        }
+
+        .vip-sidebar {
+            flex: 0 0 320px;
+            background: var(--surface);
+            border: 1px solid var(--gold-dim);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: sticky;
+            top: 84px;
+        }
+
+        .vip-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .vip-bio-content {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: var(--text);
+            opacity: 0.9;
+        }
+
+        .vip-bio-content p {
+            margin-bottom: 1.25rem;
+        }
+
+        .vip-bio-content h3 {
+            font-size: 1.3rem;
+            color: var(--gold);
+            margin: 2rem 0 1rem;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.02em;
+        }
+
+        .vip-summary-item {
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .vip-summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .vip-summary-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .vip-summary-value {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .vip-summary-link {
+            color: var(--gold);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .vip-summary-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
         }
 
         /* QR MEMORIAL SECTION */
@@ -948,33 +1043,51 @@
         <!-- Biography -->
         <section id="bioSection">
             <h2><span class="s-icon">📖</span> <span data-i18n="prof_bio_title">Өмірбаян</span></h2>
-            <div id="fullBioSection" style="display: none;">
-                <p class="bio" id="expandedBioText"></p>
+            
+            <div id="vipProfileContainer" class="vip-profile-layout" style="display:none;">
+                <aside class="vip-sidebar">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; text-align: center; color: var(--gold);" id="vipSidebarName">Аты-жөні</h3>
+                    <div id="vipSummaryContent">
+                        <!-- Filled by JS -->
+                    </div>
+                </aside>
+                <div class="vip-main">
+                    <div id="bioLangSwitch" style="display:none; gap:6px; margin-bottom:1rem;">
+                        <button id="btnLangKK" onclick="switchBioLang('kk')" class="btn-action btn-fill">Қазақша</button>
+                        <button id="btnLangRU" onclick="switchBioLang('ru')" class="btn-action btn-outline">Русский</button>
+                    </div>
+                    <div id="vipBioContent" class="vip-bio-content">
+                        <!-- Rich Bio HTML injected here -->
+                    </div>
+                    
+                    <div id="vipWikiLinks" style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <!-- Wiki links injected here if available and not local -->
+                    </div>
+                </div>
             </div>
-            <p class="bio" id="biographyText"
-                style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; margin-bottom: 1rem;">
-            </p>
-            <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" data-i18n="prof_read_more">Read biography</button>
+
+            <!-- Standard Bio (for legacy/non-rich profiles) -->
+            <div id="standardBioContainer">
+                <div id="fullBioSection" style="display: none;">
+                    <p class="bio" id="expandedBioText"></p>
+                </div>
+                <p class="bio" id="biographyText"
+                    style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; margin-bottom: 1rem;">
+                </p>
+                <button id="readBioBtn" class="btn-action btn-outline" onclick="toggleBio()" data-i18n="prof_read_more">Read biography</button>
+            </div>
+            
+            <div id="galleryContainer" style="margin-top: 2rem; display: none;"></div>
+            <div id="videoContainer" style="margin-top: 2rem; display: none;"></div>
         </section>
 
         <!-- Family Tree (Шежіре) -->
         <section id="familySection" style="display:none;">
-            <h2><span class="s-icon">🌳</span> <span data-i18n="prof_tree_title">Шежіре</span></h2>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); text-align: center; margin-bottom: 2rem;"><span aria-hidden="true">🌳</span> Шежіре (Генеалогиялық ағаш)</h2>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem;">Туыстық байланыстарды көру үшін тұлғалардың үстіне басыңыз.</p>
             <div class="tree-container">
                 <div class="tree" id="familyTree">
-                    <ul>
-                        <li>
-                            <a href="#" class="family-node" data-i18n="prof_role_parent">Атасы</a>
-                            <ul>
-                                <li>
-                                    <a href="#" class="family-node" data-i18n="prof_role_self">Ол</a>
-                                    <ul>
-                                        <li><a href="#" class="family-node" data-i18n="prof_role_child">Ұрпағы</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <!-- Tree rendered via JS -->
                 </div>
             </div>
         </section>
