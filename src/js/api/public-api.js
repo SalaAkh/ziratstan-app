@@ -312,6 +312,43 @@
     }
   }
 
+  async function fetchMyCemeteryProfiles() {
+    var sb = getSb();
+    if (!sb) return [];
+
+    var sessionRes = await sb.auth.getSession();
+    if (!sessionRes || !sessionRes.data || !sessionRes.data.session || !sessionRes.data.session.user) {
+      return [];
+    }
+
+    try {
+      var { data, error } = await sb
+        .from('profiles')
+        .select('id, first_name, last_name, patronymic, birth_date, death_date, visibility_status, location')
+        .in('visibility_status', ['private', 'family_only'])
+        .limit(2000);
+
+      if (error) throw error;
+
+      return (data || []).map(function (p) {
+        return {
+          id: p.id,
+          name: [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(' '),
+          birth: p.birth_date ? String(p.birth_date).substring(0, 4) : '?',
+          death: p.death_date ? String(p.death_date).substring(0, 4) : '?',
+          visibility_status: p.visibility_status || 'private',
+          lat: p.location && p.location.coordinates ? p.location.coordinates[1] : null,
+          lng: p.location && p.location.coordinates ? p.location.coordinates[0] : null
+        };
+      }).filter(function (p) {
+        return Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+      });
+    } catch (e) {
+      console.error('[public-api] Error fetching cemetery private profiles:', e);
+      return [];
+    }
+  }
+
 
   global.submitUgcSuggestion = submitUgcSuggestion;
   global.createServicesLead = createServicesLead;
@@ -325,6 +362,7 @@
   global.generateQrSlug = generateQrSlug;
   global.fetchProfileIdBySlug = fetchProfileIdBySlug;
   global.fetchMyPendingUgc = fetchMyPendingUgc;
+  global.fetchMyCemeteryProfiles = fetchMyCemeteryProfiles;
 
   // Eagerly initialize client so window._sb is set BEFORE supabase-auth.js runs.
   // This prevents the "Multiple GoTrueClient instances detected" warning.
