@@ -607,3 +607,32 @@ onAuthStateChange → SIGNED_OUT (no user)
 
 - *Обычные директивы `eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs` не работают* и вызывают warning об unused directive (потому что правило кастомное или настроено иначе).
 - **Решение:** Для утилит, предназначенных только для backend/терминала (не идущих в frontend bundle), в начало файла добавляется глобальная директива `/* eslint-disable */`. Это полностью решает проблему линтера.
+
+---
+
+## Supabase Security Troubleshooting (2026-03-15)
+
+### Ошибка: RLS Disabled on `public.spatial_ref_sys`
+
+Если Supabase Security Advisor (или линтер) выдает критическую ошибку об отключенном RLS на таблице `spatial_ref_sys`, **не пытайтесь включить RLS вручную или сменить владельца таблицы** (она принадлежит `supabase_admin`).
+
+- **Причина:** Расширение PostGIS по умолчанию создает свои внутренние таблицы в той схеме, где оно инициализировано. Изначально в проекте оно инициализировалось в `public`, выставляя технические таблицы под API-доступ.
+- **Решение (на миллиард):** Расширения должны лежать в выделенной непубличной схеме `extensions`.
+
+**Как это уже исправлено в проекте:**
+
+1. В `schema.sql` добавлено:
+
+   ```sql
+   CREATE SCHEMA IF NOT EXISTS "extensions";
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA "extensions";
+   CREATE EXTENSION IF NOT EXISTS postgis SCHEMA "extensions";
+   ```
+
+2. Создана миграция `supabase/migrations/20260315_move_postgis.sql`, которая переносит существующие расширения:
+
+   ```sql
+   ALTER EXTENSION postgis SET SCHEMA "extensions";
+   ```
+
+**Действия:** Если ошибка всё еще висит в дашборде, просто выполните скрипт из миграции `20260315_move_postgis.sql` в SQL Editor'е, и безопасность будет восстановлена.
