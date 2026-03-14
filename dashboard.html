@@ -331,6 +331,7 @@
 
     let currentUser = null;
     let myProfiles = [];
+    let moderationStatusByProfileId = new Map();
 
     // ─── Init ──────────────────────────────────────────────────
     async function init() {
@@ -378,6 +379,34 @@
       document.getElementById('settings-phone').value = data?.phone || '';
     }
 
+    async function loadModerationStatusMap(profileIds) {
+      moderationStatusByProfileId = new Map();
+      if (!Array.isArray(profileIds) || profileIds.length === 0) return;
+
+      try {
+        const { data, error } = await sb
+          .from('ugc_profile_submissions')
+          .select('published_profile_id, status, submitted_at')
+          .in('published_profile_id', profileIds)
+          .order('submitted_at', { ascending: false });
+
+        if (error) {
+          if (String(error.message || '').includes('published_profile_id')) return;
+          console.warn('[Dashboard] Moderation status map error:', error.message);
+          return;
+        }
+
+        (data || []).forEach(row => {
+          if (!row?.published_profile_id) return;
+          if (!moderationStatusByProfileId.has(row.published_profile_id)) {
+            moderationStatusByProfileId.set(row.published_profile_id, row.status || null);
+          }
+        });
+      } catch (e) {
+        console.warn('[Dashboard] Moderation map load failed:', e);
+      }
+    }
+
       // ─── Load Profiles ─────────────────────────────────────────
     async function loadMyProfiles() {
       document.getElementById('profiles-loading').style.display = 'flex';
@@ -399,6 +428,11 @@
       }
 
       myProfiles = data || [];
+      await loadModerationStatusMap(myProfiles.map(p => p.id));
+      myProfiles = myProfiles.map(p => ({
+        ...p,
+        moderation_status: moderationStatusByProfileId.get(p.id) || null
+      }));
       updateStats();
 
       if (myProfiles.length === 0) {
@@ -418,6 +452,8 @@
       div.className = 'profile-card';
 
       const visibility = profile.visibility_status || 'public';
+      const moderationStatus = profile.moderation_status || '';
+      const lockedByAdmin = !!moderationStatus && moderationStatus !== 'approved';
       profile.visibility = visibility;
       const badgeClass = visibility === 'public' ? 'badge-public'
         : visibility === 'private' ? 'badge-private' : 'badge-family';
@@ -448,8 +484,8 @@
         <div class="profile-actions">
           <a href="profile.html?id=${profile.id}" class="btn btn-outline">👁️ Көру</a>
           <a href="map.html#${profile.id}" class="btn btn-outline">🗺️ Карта</a>
-          <button class="btn btn-outline" onclick="toggleVisibility('${profile.id}', '${visibility}')">
-            ${profile.visibility === 'public' ? '🔒 Жабу' : '🌐 Ашу'}
+          <button class="btn btn-outline" ${lockedByAdmin ? 'disabled style="opacity:0.55; cursor:not-allowed;" title="Статус зафиксирован администратором"' : ''} onclick="toggleVisibility('${profile.id}', '${visibility}', '${moderationStatus}')">
+            ${lockedByAdmin ? '🛡️ Решение админа' : (profile.visibility === 'public' ? '🔒 Жабу' : '🌐 Ашу')}
           </button>
         </div>
       `;
@@ -469,7 +505,12 @@
     }
 
     // ─── Toggle Visibility ─────────────────────────────────────
-    async function toggleVisibility(id, currentVis) {
+    async function toggleVisibility(id, currentVis, moderationStatus) {
+      if (moderationStatus && moderationStatus !== 'approved') {
+        showToast('Статус зафиксирован администратором. Для изменения свяжитесь с админом.', 'error');
+        return;
+      }
+
       const newVis = currentVis === 'public' ? 'private' : 'public';
       const { error } = await sb
         .from('profiles')
@@ -477,7 +518,14 @@
         .eq('id', id)
         .eq('owner_id', currentUser.id);
       
-      if (error) { showToast('Қате: ' + error.message, 'error'); return; }
+      if (error) {
+        if (error.code === '42501') {
+          showToast('Статус зафиксирован администратором. Для изменения свяжитесь с админом.', 'error');
+          return;
+        }
+        showToast('Қате: ' + error.message, 'error');
+        return;
+      }
       showToast(newVis === 'public' ? '🌐 Профиль ашылды' : '🔒 Профиль жабылды', 'success');
       await loadMyProfiles();
     }
