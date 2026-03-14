@@ -348,7 +348,36 @@
 
       if (profilesRes.error) throw profilesRes.error;
 
-      (profilesRes.data || []).forEach(function (p) {
+      var profileRows = profilesRes.data || [];
+      var moderationByProfileId = new Map();
+      var profileIds = profileRows.map(function (p) { return p.id; }).filter(Boolean);
+
+      if (profileIds.length > 0) {
+        var moderationRes = await sb
+          .from('ugc_profile_submissions')
+          .select('published_profile_id, status, submitted_at')
+          .in('published_profile_id', profileIds)
+          .order('submitted_at', { ascending: false });
+
+        if (moderationRes.error) {
+          if (!String(moderationRes.error.message || '').includes('published_profile_id')) {
+            console.warn('[public-api] moderation filter skipped:', moderationRes.error.message);
+          }
+        } else {
+          (moderationRes.data || []).forEach(function (row) {
+            if (!row || !row.published_profile_id) return;
+            if (!moderationByProfileId.has(row.published_profile_id)) {
+              moderationByProfileId.set(row.published_profile_id, row.status || null);
+            }
+          });
+        }
+      }
+
+      profileRows.forEach(function (p) {
+        var moderationStatus = moderationByProfileId.get(p.id);
+        if (moderationStatus && moderationStatus !== 'approved') {
+          return;
+        }
         pushUnique({
           id: p.id,
           name: [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(' '),
