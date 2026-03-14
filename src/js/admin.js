@@ -627,13 +627,39 @@ async function apiRequest(path, options = {}) {
 
             const submission = subRes.data;
             let publishedProfileId = submission.published_profile_id || null;
+            const lng = toFiniteNumber(submission.lng);
+            const lat = toFiniteNumber(submission.lat);
+            const ownerId = isUuid(submission.owner_id)
+                ? submission.owner_id
+                : (isUuid(approverUserId) ? approverUserId : null);
+
+            if (publishedProfileId && isUuid(publishedProfileId)) {
+                const existingProfileRes = await db
+                    .from('profiles')
+                    .select('id, owner_id')
+                    .eq('id', publishedProfileId)
+                    .maybeSingle();
+
+                throwIfError(existingProfileRes, 'Failed to sync existing published profile');
+
+                if (existingProfileRes.data) {
+                    const profilePatch = { visibility_status: 'private' };
+                    if (!existingProfileRes.data.owner_id && ownerId) {
+                        profilePatch.owner_id = ownerId;
+                    }
+
+                    const syncProfileRes = await db
+                        .from('profiles')
+                        .update(profilePatch)
+                        .eq('id', publishedProfileId);
+                    throwIfError(syncProfileRes, 'Failed to lock profile visibility');
+                } else {
+                    // Stale reference: recreate profile and relink submission.
+                    publishedProfileId = null;
+                }
+            }
 
             if (!publishedProfileId) {
-                const lng = toFiniteNumber(submission.lng);
-                const lat = toFiniteNumber(submission.lat);
-                const ownerId = isUuid(submission.owner_id)
-                    ? submission.owner_id
-                    : (isUuid(approverUserId) ? approverUserId : null);
 
                 const createRes = await db.from('profiles').insert([{
                     first_name: (submission.full_name || '').trim() || 'Unknown',
@@ -642,7 +668,7 @@ async function apiRequest(path, options = {}) {
                     birth_date: toSafeYearDate(submission.birth_year),
                     death_date: toSafeYearDate(submission.death_year),
                     biography: submission.description ? String(submission.description).trim() : null,
-                    visibility_status: 'public',
+                    visibility_status: 'private',
                     owner_id: ownerId,
                     cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
                     location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
@@ -1705,7 +1731,7 @@ async function updateStatus(type, id, status) {
             card.replaceWith(newCard);
         }
 
-        const approvedMsg = type === 'profiles' ? 'Одобрено и опубликовано' : 'Одобрено';
+        const approvedMsg = type === 'profiles' ? 'Одобрено и добавлено в кабинет (приватно)' : 'Одобрено';
         showToast(
             status === 'approved' ? approvedMsg : (status === 'pending' ? 'Возвращено на модерацию' : 'Заявка отклонена'),
             status === 'approved' ? 'success' : (status === 'pending' ? 'success' : 'error')

@@ -496,13 +496,40 @@ async function handleStatusPost(req, res) {
 
         const submission = subRes.data;
         let publishedProfileId = submission.published_profile_id || null;
+        const lat = toSafeNumber(submission.lat);
+        const lng = toSafeNumber(submission.lng);
+        const ownerId = isUuid(submission.owner_id)
+            ? submission.owner_id
+            : (isUuid(adminUser?.id) ? adminUser.id : null);
+
+        if (publishedProfileId && isUuid(publishedProfileId)) {
+            const existingProfile = await db
+                .from('profiles')
+                .select('id, owner_id')
+                .eq('id', publishedProfileId)
+                .maybeSingle();
+
+            if (existingProfile.error) throw existingProfile.error;
+
+            if (existingProfile.data) {
+                const profilePatch = { visibility_status: 'private' };
+                if (!existingProfile.data.owner_id && ownerId) {
+                    profilePatch.owner_id = ownerId;
+                }
+
+                const syncProfile = await db
+                    .from('profiles')
+                    .update(profilePatch)
+                    .eq('id', publishedProfileId);
+
+                if (syncProfile.error) throw syncProfile.error;
+            } else {
+                // Stale reference: recreate profile and relink submission.
+                publishedProfileId = null;
+            }
+        }
 
         if (!publishedProfileId) {
-            const lat = toSafeNumber(submission.lat);
-            const lng = toSafeNumber(submission.lng);
-            const ownerId = isUuid(submission.owner_id)
-                ? submission.owner_id
-                : (isUuid(adminUser?.id) ? adminUser.id : null);
             const profilePayload = {
                 first_name: toSafeString(submission.full_name, 100) || 'Unknown',
                 last_name: null,
@@ -510,7 +537,7 @@ async function handleStatusPost(req, res) {
                 birth_date: toSafeYearDate(submission.birth_year),
                 death_date: toSafeYearDate(submission.death_year),
                 biography: toSafeString(submission.description, 4000),
-                visibility_status: 'public',
+                visibility_status: 'private',
                 owner_id: ownerId,
                 cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
                 location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,

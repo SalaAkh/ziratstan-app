@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * localize_cemeteries.js
  * Batch-translates cemetery names from Russian to Kazakh (n_kk) using pattern-based rules.

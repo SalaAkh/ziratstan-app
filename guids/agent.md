@@ -544,15 +544,17 @@ Expected for admin scripts: `service_role` or non-JWT `sb_secret_*` key.
 ### Диагностированные причины немедленного SIGNED_OUT после SIGNED_IN
 
 Если в консоли видно:
-```
+
+```text
 onAuthStateChange → SIGNED_IN user@gmail.com
 onAuthStateChange → INITIAL_SESSION user@gmail.com
 onAuthStateChange → SIGNED_OUT (no user)
 ```
+
 — это серверная инвалидация сессии Supabase. Причины в порядке убывания вероятности:
 
 | # | Причина | Признак | Фикс |
-|---|---------|---------|------|
+| - | ------- | ------- | ---- |
 | 1 | **`Confirm email` включён** | В логах сервера: `/callback → /logout` через ~2с | Dashboard: `Auth → Sign In/Providers → Confirm email = OFF` |
 | 2 | **Implicit flow + refresh\_token rotation** | Логи: SIGNED\_IN → мгновенный SIGNED\_OUT | `flowType: 'pkce'` в `createClient()` |
 | 3 | **Двойной `setSession()` вызов** | Старый код `processOAuthRedirect` вызывал `setSession` вручную, SDK делал то же самое | Убран ручной `setSession` из `processOAuthRedirect` |
@@ -561,6 +563,7 @@ onAuthStateChange → SIGNED_OUT (no user)
 ### Текущее состояние auth-кода (2026-03-13)
 
 **`supabase-auth.js`:**
+
 - `getSupabase()` создаёт клиент с `{ auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true } }`
 - `processOAuthRedirect()` — только детектирует URL, НЕ вызывает `setSession()` или `exchangeCodeForSession()`. SDK делает это сам через `detectSessionInUrl: true`.
 - `initAuth()` — ждёт 1000ms после детектирования OAuth редиректа, потом проверяет сессию через `getSession()`
@@ -568,9 +571,11 @@ onAuthStateChange → SIGNED_OUT (no user)
 - `signInWithGoogle()` — `redirectTo: window.location.origin + '/'` (всегда на главную)
 
 **`supabase/client.js`:**
+
 - Также использует `flowType: 'pkce'` и переиспользует `window._sb` если клиент уже создан в `supabase-auth.js`
 
 **Supabase Dashboard (проект `atxqjzjerdvpiampxamk`):**
+
 - `Confirm email`: **OFF** ✅
 - `Allow new users to sign up`: **ON** ✅
 - Site URL: `https://ziratstan-app.web.app/` ✅
@@ -588,3 +593,17 @@ onAuthStateChange → SIGNED_OUT (no user)
 6. `initAuth` через 1000ms проверяет сессию → `cleanupOAuthRedirectUrl()` → UI обновляется
 
 **Важно:** `code_verifier` хранится в localStorage. Если localStorage очищен между п.1 и п.4 (разные браузеры, extensions, private mode без сохранения) — PKCE не сработает.
+
+---
+
+## Утилиты и Скрипты (Node.js)
+
+### `scripts/localize_cemeteries.js`
+
+**Суть:** Скрипт массовой локализации (перевода с русского на казахский) базы данных кладбищ (`data/cemeteries_data.js`). Добавляет поля `n_ru` и `n_kk` к каждому объекту.
+
+**Важный нюанс (ESLint):**
+При разработке Node.js утилит в корне проекта ESLint жестко ругается на использование `require()` (ошибка: `A require() style import is forbidden.`).
+
+- *Обычные директивы `eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs` не работают* и вызывают warning об unused directive (потому что правило кастомное или настроено иначе).
+- **Решение:** Для утилит, предназначенных только для backend/терминала (не идущих в frontend bundle), в начало файла добавляется глобальная директива `/* eslint-disable */`. Это полностью решает проблему линтера.
