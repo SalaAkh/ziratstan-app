@@ -25,6 +25,14 @@ let remoteSignOutInProgress = false;
 
 const AUTH_RETRY_DELAY_MS = 120;
 const AUTH_RETRY_MAX_ATTEMPTS = 3;
+const YEAR_INPUT_PATTERN = /^\d{4}$/;
+const HARD_DELETE_CONFIRM_PHRASE = 'УДАЛИТЬ';
+const PROFILE_VISIBILITY_VALUES = new Set(['public', 'private', 'family_only']);
+
+let cemeteryCatalog = [];
+let cemeteryCatalogLoaded = false;
+let cemeteryLabelToIdMap = new Map();
+let cemeteryIdToLabelMap = new Map();
 
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,6 +54,113 @@ function toSafeDomId(value) {
 
 function getCardDomId(value) {
     return `card-${toSafeDomId(value)}`;
+}
+
+function isUuidValue(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+}
+
+function toFiniteNumberOrNull(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) {
+        return null;
+    }
+    const number = Number(raw.replace(',', '.'));
+    return Number.isFinite(number) ? number : null;
+}
+
+function normalizeTextValue(value, maxLen = 4000) {
+    const normalized = String(value ?? '').trim();
+    if (!normalized) {
+        return null;
+    }
+    return normalized.length > maxLen ? normalized.slice(0, maxLen) : normalized;
+}
+
+function validateYearInput(value, label = 'Год') {
+    const raw = String(value ?? '').trim();
+    if (!raw) {
+        return null;
+    }
+    if (!YEAR_INPUT_PATTERN.test(raw)) {
+        throw new Error(`${label}: формат должен быть YYYY`);
+    }
+    return raw;
+}
+
+function yearToDateOrNull(value, label = 'Год') {
+    const year = validateYearInput(value, label);
+    return year ? `${year}-01-01` : null;
+}
+
+function parseCoordinate(value, label, min, max) {
+    const raw = String(value ?? '').trim();
+    if (!raw) {
+        return null;
+    }
+
+    const number = toFiniteNumberOrNull(raw);
+    if (number === null) {
+        throw new Error(`${label}: введите число`);
+    }
+
+    if (number < min || number > max) {
+        throw new Error(`${label}: значение вне диапазона ${min}..${max}`);
+    }
+
+    return Number(number.toFixed(7));
+}
+
+function parseLocationInput(latValue, lngValue) {
+    const lat = parseCoordinate(latValue, 'Широта (lat)', -90, 90);
+    const lng = parseCoordinate(lngValue, 'Долгота (lng)', -180, 180);
+
+    if ((lat === null && lng !== null) || (lat !== null && lng === null)) {
+        throw new Error('Заполните и lat, и lng, либо оставьте оба поля пустыми');
+    }
+
+    return {
+        lat,
+        lng,
+        point: (lat !== null && lng !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
+    };
+}
+
+function extractLocationPoint(locationValue) {
+    if (!locationValue) {
+        return { lat: null, lng: null };
+    }
+
+    if (typeof locationValue === 'object' && Array.isArray(locationValue.coordinates) && locationValue.coordinates.length >= 2) {
+        const lng = toFiniteNumberOrNull(locationValue.coordinates[0]);
+        const lat = toFiniteNumberOrNull(locationValue.coordinates[1]);
+        return {
+            lat: lat === null ? null : Number(lat),
+            lng: lng === null ? null : Number(lng),
+        };
+    }
+
+    if (typeof locationValue === 'string') {
+        const match = locationValue.match(/POINT\(\s*([-0-9.]+)\s+([-0-9.]+)\s*\)/i);
+        if (match) {
+            const lng = toFiniteNumberOrNull(match[1]);
+            const lat = toFiniteNumberOrNull(match[2]);
+            return {
+                lat: lat === null ? null : Number(lat),
+                lng: lng === null ? null : Number(lng),
+            };
+        }
+    }
+
+    return { lat: null, lng: null };
+}
+
+function getI18nText(key, fallback) {
+    if (window.i18n && typeof window.i18n.t === 'function') {
+        const translated = window.i18n.t(key);
+        return translated !== key ? translated : fallback;
+    }
+    return fallback;
 }
 
 function isSupabaseLockAbortError(error) {
@@ -545,16 +660,11 @@ async function apiRequest(path, options = {}) {
         }
     };
 
-    const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
-    const toSafeYearDate = (value) => {
+    const toSafeYearDateLoose = (value) => {
         const raw = value === null || value === undefined ? '' : String(value).trim();
         if (!raw) return null;
         const match = raw.match(/\d{4}/);
         return match ? `${match[0]}-01-01` : null;
-    };
-    const toFiniteNumber = (value) => {
-        const n = Number(value);
-        return Number.isFinite(n) ? n : null;
     };
 
     if (path === '/admin/bootstrap' && method === 'GET') {
@@ -578,34 +688,184 @@ async function apiRequest(path, options = {}) {
         };
     }
 
+    if (path === '/admin/cemeteries' && method === 'GET') {
+        const result = await db
+            .from('cemeteries')
+            .select('id, name, city, region')
+            .order('name', { ascending: true })
+            .limit(5000);
+
+        if (result?.error && isTableNotFoundError(result.error)) {
+            return { items: [] };
+        }
+
+        throwIfError(result, 'Failed to load cemeteries');
+        return { items: result.data || [] };
+    }
+
     if (path === '/admin/profiles' && method === 'GET') {
         const result = await db
             .from('profiles')
-            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, cemeteries(name)')
+            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
             .order('created_at', { ascending: false })
             .limit(300);
 
         throwIfError(result, 'Failed to load profiles');
-        return { items: result.data || [] };
+        const items = (result.data || []).map((item) => {
+            const point = extractLocationPoint(item.location);
+            return {
+                ...item,
+                lat: point.lat,
+                lng: point.lng,
+                cemetery_name: item.cemeteries?.name || null,
+                cemetery_city: item.cemeteries?.city || null,
+                cemetery_region: item.cemeteries?.region || null,
+            };
+        });
+
+        return { items };
     }
 
     if (path === '/admin/profiles' && method === 'POST') {
-        if (!body.first_name || !String(body.first_name).trim()) {
+        const firstName = normalizeTextValue(body.first_name, 100);
+        if (!firstName) {
             throw toError('first_name is required', 400);
         }
 
+        const locationPayload = parseLocationInput(body.lat, body.lng);
+        const cemeteryIdRaw = normalizeTextValue(body.cemetery_id, 80);
+        if (cemeteryIdRaw && !isUuidValue(cemeteryIdRaw)) {
+            throw toError('Invalid cemetery_id', 400);
+        }
+
         const payload = {
-            first_name: String(body.first_name).trim(),
-            last_name: body.last_name ? String(body.last_name).trim() : null,
-            birth_date: body.birth_year ? `${body.birth_year}-01-01` : null,
-            death_date: body.death_year ? `${body.death_year}-01-01` : null,
-            biography: body.biography ? String(body.biography).trim() : null,
+            first_name: firstName,
+            last_name: normalizeTextValue(body.last_name, 100),
+            birth_date: yearToDateOrNull(body.birth_year, 'Год рождения'),
+            death_date: yearToDateOrNull(body.death_year, 'Год смерти'),
+            biography: normalizeTextValue(body.biography, 6000),
+            cemetery_id: cemeteryIdRaw || null,
+            location: locationPayload.point,
             visibility_status: 'public',
+            owner_id: isUuidValue(approverUserId) ? approverUserId : null,
         };
 
         const result = await db.from('profiles').insert([payload]).select('id').single();
         throwIfError(result, 'Failed to create profile');
         return { item: result.data };
+    }
+
+    if (path === '/admin/profiles' && method === 'PATCH') {
+        const profileId = normalizeTextValue(body.id, 80);
+        if (!isUuidValue(profileId)) {
+            throw toError('Invalid profile id', 400);
+        }
+
+        const patch = {};
+
+        if (Object.prototype.hasOwnProperty.call(body, 'first_name')) {
+            const firstName = normalizeTextValue(body.first_name, 100);
+            if (!firstName) {
+                throw toError('first_name is required', 400);
+            }
+            patch.first_name = firstName;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'last_name')) {
+            patch.last_name = normalizeTextValue(body.last_name, 100);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'birth_year')) {
+            patch.birth_date = yearToDateOrNull(body.birth_year, 'Год рождения');
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'death_year')) {
+            patch.death_date = yearToDateOrNull(body.death_year, 'Год смерти');
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'biography')) {
+            patch.biography = normalizeTextValue(body.biography, 6000);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'visibility_status')) {
+            const visibilityStatus = normalizeTextValue(body.visibility_status, 40);
+            if (!visibilityStatus || !PROFILE_VISIBILITY_VALUES.has(visibilityStatus)) {
+                throw toError('Invalid visibility_status', 400);
+            }
+            patch.visibility_status = visibilityStatus;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'cemetery_id')) {
+            const cemeteryIdRaw = normalizeTextValue(body.cemetery_id, 80);
+            if (cemeteryIdRaw && !isUuidValue(cemeteryIdRaw)) {
+                throw toError('Invalid cemetery_id', 400);
+            }
+            patch.cemetery_id = cemeteryIdRaw || null;
+        }
+
+        const hasLat = Object.prototype.hasOwnProperty.call(body, 'lat');
+        const hasLng = Object.prototype.hasOwnProperty.call(body, 'lng');
+        if (hasLat || hasLng) {
+            const locationPayload = parseLocationInput(body.lat, body.lng);
+            patch.location = locationPayload.point;
+        }
+
+        if (!Object.keys(patch).length) {
+            throw toError('No fields to update', 400);
+        }
+
+        const result = await db
+            .from('profiles')
+            .update(patch)
+            .eq('id', profileId)
+            .select('id')
+            .maybeSingle();
+
+        throwIfError(result, 'Failed to update profile');
+        if (!result.data) {
+            throw toError('Profile not found', 404);
+        }
+
+        return { item: result.data };
+    }
+
+    if (path === '/admin/profiles' && method === 'DELETE') {
+        const profileId = normalizeTextValue(body.id, 80);
+        if (!isUuidValue(profileId)) {
+            throw toError('Invalid profile id', 400);
+        }
+
+        if (body.mode === 'soft') {
+            const result = await db
+                .from('profiles')
+                .update({ visibility_status: 'private' })
+                .eq('id', profileId)
+                .select('id')
+                .maybeSingle();
+
+            throwIfError(result, 'Failed to hide profile');
+            if (!result.data) {
+                throw toError('Profile not found', 404);
+            }
+            return { ok: true, mode: 'soft' };
+        }
+
+        if (body.mode === 'hard') {
+            const result = await db
+                .from('profiles')
+                .delete()
+                .eq('id', profileId)
+                .select('id')
+                .maybeSingle();
+
+            throwIfError(result, 'Failed to delete profile');
+            if (!result.data) {
+                throw toError('Profile not found', 404);
+            }
+            return { ok: true, mode: 'hard' };
+        }
+
+        throw toError('Invalid delete mode', 400);
     }
 
     if (path === '/admin/status' && method === 'POST') {
@@ -645,13 +905,13 @@ async function apiRequest(path, options = {}) {
 
             const submission = subRes.data;
             let publishedProfileId = submission.published_profile_id || null;
-            const lng = toFiniteNumber(submission.lng);
-            const lat = toFiniteNumber(submission.lat);
-            const ownerId = isUuid(submission.owner_id)
+            const lng = toFiniteNumberOrNull(submission.lng);
+            const lat = toFiniteNumberOrNull(submission.lat);
+            const ownerId = isUuidValue(submission.owner_id)
                 ? submission.owner_id
-                : (isUuid(approverUserId) ? approverUserId : null);
+                : (isUuidValue(approverUserId) ? approverUserId : null);
 
-            if (publishedProfileId && isUuid(publishedProfileId)) {
+            if (publishedProfileId && isUuidValue(publishedProfileId)) {
                 const existingProfileRes = await db
                     .from('profiles')
                     .select('id, owner_id')
@@ -683,12 +943,12 @@ async function apiRequest(path, options = {}) {
                     first_name: (submission.full_name || '').trim() || 'Unknown',
                     last_name: null,
                     patronymic: null,
-                    birth_date: toSafeYearDate(submission.birth_year),
-                    death_date: toSafeYearDate(submission.death_year),
+                    birth_date: toSafeYearDateLoose(submission.birth_year),
+                    death_date: toSafeYearDateLoose(submission.death_year),
                     biography: submission.description ? String(submission.description).trim() : null,
                     visibility_status: 'private',
                     owner_id: ownerId,
-                    cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
+                    cemetery_id: isUuidValue(submission.cemetery_id) ? submission.cemetery_id : null,
                     location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
                 }]).select('id').single();
 
@@ -1045,6 +1305,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         emailInput.value = savedEmail;
     }
 
+    setupManageBindings();
+    document.addEventListener('langchange', () => {
+        if (currentTab === 'manage') {
+            renderManageTab(allData.manage || []);
+        }
+    });
+
     db.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
             clearSessionTrackingState();
@@ -1227,6 +1494,208 @@ async function logout() {
     setLoginButtonState(false);
 }
 
+function formatCemeteryOptionLabel(item) {
+    const name = normalizeTextValue(item?.name, 200) || 'Без названия';
+    const city = normalizeTextValue(item?.city, 120);
+    const region = normalizeTextValue(item?.region, 120);
+    const parts = [name];
+    if (city) {
+        parts.push(city);
+    }
+    if (region) {
+        parts.push(region);
+    }
+    return parts.join(' — ');
+}
+
+function rebuildCemeteryMaps() {
+    cemeteryLabelToIdMap = new Map();
+    cemeteryIdToLabelMap = new Map();
+
+    const duplicateCounter = new Map();
+    cemeteryCatalog.forEach((item) => {
+        const base = formatCemeteryOptionLabel(item);
+        duplicateCounter.set(base, (duplicateCounter.get(base) || 0) + 1);
+    });
+
+    cemeteryCatalog.forEach((item) => {
+        const base = formatCemeteryOptionLabel(item);
+        const isDuplicate = (duplicateCounter.get(base) || 0) > 1;
+        const label = isDuplicate
+            ? `${base} · ${String(item.id || '').slice(0, 8)}`
+            : base;
+
+        if (isUuidValue(item.id)) {
+            cemeteryLabelToIdMap.set(label, item.id);
+            cemeteryIdToLabelMap.set(item.id, label);
+        }
+    });
+}
+
+function renderCemeteryDatalist(listId) {
+    const list = document.getElementById(listId);
+    if (!list) {
+        return;
+    }
+
+    list.innerHTML = '';
+    cemeteryCatalog.forEach((item) => {
+        const label = cemeteryIdToLabelMap.get(item.id);
+        if (!label) {
+            return;
+        }
+        const option = document.createElement('option');
+        option.value = label;
+        list.appendChild(option);
+    });
+}
+
+function syncCemeterySelection(prefix) {
+    const input = document.getElementById(`${prefix}_cemeteryInput`);
+    const hidden = document.getElementById(`${prefix}_cemeteryId`);
+    if (!input || !hidden) {
+        return;
+    }
+
+    const value = String(input.value || '').trim();
+    if (!value) {
+        hidden.value = '';
+        return;
+    }
+
+    hidden.value = cemeteryLabelToIdMap.get(value) || '';
+}
+
+function setCemeterySelection(prefix, cemeteryId, fallbackLabel = '') {
+    const input = document.getElementById(`${prefix}_cemeteryInput`);
+    const hidden = document.getElementById(`${prefix}_cemeteryId`);
+    if (!input || !hidden) {
+        return;
+    }
+
+    if (isUuidValue(cemeteryId) && cemeteryIdToLabelMap.has(cemeteryId)) {
+        input.value = cemeteryIdToLabelMap.get(cemeteryId);
+        hidden.value = cemeteryId;
+        return;
+    }
+
+    hidden.value = '';
+    input.value = fallbackLabel || '';
+}
+
+function getSelectedCemeteryId(prefix) {
+    const input = document.getElementById(`${prefix}_cemeteryInput`);
+    const hidden = document.getElementById(`${prefix}_cemeteryId`);
+    if (!input || !hidden) {
+        return null;
+    }
+
+    syncCemeterySelection(prefix);
+
+    const typedValue = String(input.value || '').trim();
+    const cemeteryId = String(hidden.value || '').trim();
+
+    if (!typedValue) {
+        return null;
+    }
+
+    if (!isUuidValue(cemeteryId)) {
+        throw new Error('Выберите место захоронения из списка');
+    }
+
+    return cemeteryId;
+}
+
+function bindCemeteryInput(prefix) {
+    const input = document.getElementById(`${prefix}_cemeteryInput`);
+    if (!input || input.dataset.bound === '1') {
+        return;
+    }
+
+    input.addEventListener('input', () => syncCemeterySelection(prefix));
+    input.addEventListener('change', () => syncCemeterySelection(prefix));
+    input.dataset.bound = '1';
+}
+
+async function ensureCemeteryCatalogLoaded(force = false) {
+    if (cemeteryCatalogLoaded && !force) {
+        return;
+    }
+
+    const response = await apiRequest('/admin/cemeteries');
+    cemeteryCatalog = (response.items || [])
+        .filter((item) => isUuidValue(item.id))
+        .sort((a, b) => formatCemeteryOptionLabel(a).localeCompare(formatCemeteryOptionLabel(b), 'ru'));
+    cemeteryCatalogLoaded = true;
+    rebuildCemeteryMaps();
+    renderCemeteryDatalist('cp_cemeteryOptions');
+    renderCemeteryDatalist('ep_cemeteryOptions');
+}
+
+function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
+    const firstName = normalizeTextValue(document.getElementById(`${prefix}_firstName`)?.value, 100);
+    if (!firstName) {
+        throw new Error('Имя обязательно');
+    }
+
+    const birthYear = validateYearInput(document.getElementById(`${prefix}_birthYear`)?.value, 'Год рождения');
+    const deathYear = validateYearInput(document.getElementById(`${prefix}_deathYear`)?.value, 'Год смерти');
+
+    const locationPayload = parseLocationInput(
+        document.getElementById(`${prefix}_lat`)?.value,
+        document.getElementById(`${prefix}_lng`)?.value
+    );
+
+    const payload = {
+        first_name: firstName,
+        last_name: normalizeTextValue(document.getElementById(`${prefix}_lastName`)?.value, 100),
+        birth_year: birthYear,
+        death_year: deathYear,
+        biography: normalizeTextValue(document.getElementById(`${prefix}_bio`)?.value, 6000),
+        cemetery_id: getSelectedCemeteryId(prefix),
+        lat: locationPayload.lat,
+        lng: locationPayload.lng,
+    };
+
+    if (includeId) {
+        const profileId = normalizeTextValue(document.getElementById(`${prefix}_id`)?.value, 80);
+        if (!isUuidValue(profileId)) {
+            throw new Error('Некорректный ID профиля');
+        }
+        payload.id = profileId;
+    }
+
+    return payload;
+}
+
+function resetProfileForm(prefix, formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        form.reset();
+    }
+    setCemeterySelection(prefix, null, '');
+}
+
+function getVisibilityLabel(status) {
+    if (status === 'private') {
+        return getI18nText('admin_vis_private', 'Скрыт');
+    }
+    if (status === 'family_only') {
+        return getI18nText('admin_vis_family', 'Семья');
+    }
+    return getI18nText('admin_vis_public', 'Публичный');
+}
+
+function getVisibilityClass(status) {
+    if (status === 'private') {
+        return 'visibility-private';
+    }
+    if (status === 'family_only') {
+        return 'visibility-family';
+    }
+    return 'visibility-public';
+}
+
 function switchTab(tab, btn) {
     currentTab = tab;
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
@@ -1253,9 +1722,24 @@ function switchTab(tab, btn) {
 
 async function loadManageProfiles() {
     const listContainer = document.getElementById('manage-profiles-list');
+    if (!listContainer) {
+        return;
+    }
+
     listContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
     try {
+        try {
+            await ensureCemeteryCatalogLoaded();
+        } catch (cemError) {
+            console.warn('Cemetery catalog is not available:', cemError);
+            cemeteryCatalog = [];
+            cemeteryCatalogLoaded = true;
+            rebuildCemeteryMaps();
+            renderCemeteryDatalist('cp_cemeteryOptions');
+            renderCemeteryDatalist('ep_cemeteryOptions');
+        }
+
         const payload = await apiRequest('/admin/profiles');
         allData.manage = payload.items || [];
         renderManageTab(allData.manage);
@@ -1268,6 +1752,10 @@ async function loadManageProfiles() {
 
 function renderManageTab(items) {
     const container = document.getElementById('manage-profiles-list');
+    if (!container) {
+        return;
+    }
+
     if (!items.length) {
         container.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Профилей пока нет</p></div>';
         return;
@@ -1280,12 +1768,22 @@ function renderManageTab(items) {
         div.className = 'card';
         div.style.gridTemplateColumns = '1fr auto';
 
-        const years = `${item.birth_date ? item.birth_date.substring(0, 4) : '?'} - ${item.death_date ? item.death_date.substring(0, 4) : '?'}`;
+        const years = `${item.birth_date ? String(item.birth_date).substring(0, 4) : '?'} - ${item.death_date ? String(item.death_date).substring(0, 4) : '?'}`;
         const name = `${item.last_name || ''} ${item.first_name || ''}`.trim();
+        const cemeteryLabel = item.cemetery_name || '-';
+        const locationLabel = (Number.isFinite(item.lat) && Number.isFinite(item.lng))
+            ? `${Number(item.lat).toFixed(6)}, ${Number(item.lng).toFixed(6)}`
+            : '-';
+        const visibilityStatus = item.visibility_status || 'public';
+        const isPrivate = visibilityStatus === 'private';
         const safeName = escapeHtml(name || 'Unknown');
         const safeYears = escapeHtml(years);
         const safeLegacySlug = escapeHtml(item.epitaph || '-');
         const safeUuid = escapeHtml(item.id || '-');
+        const safeCemetery = escapeHtml(cemeteryLabel);
+        const safeLocation = escapeHtml(locationLabel);
+        const safeVisibility = escapeHtml(getVisibilityLabel(visibilityStatus));
+        const visibilityClass = getVisibilityClass(visibilityStatus);
         const profileUrl = `profile.html?id=${encodeURIComponent(String(item.id || ''))}`;
 
         div.innerHTML = `
@@ -1296,12 +1794,31 @@ function renderManageTab(items) {
                 <div class="card-meta-item">Старый ID (slug): <span>${safeLegacySlug}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
+                <div class="card-meta-item">Место захоронения: <span>${safeCemetery}</span></div>
+                <div class="card-meta-item">Координаты: <span>${safeLocation}</span></div>
+            </div>
+            <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${safeUuid}</span></div>
+                <span class="visibility-chip ${visibilityClass}">${safeVisibility}</span>
             </div>
         </div>
         <div class="card-actions" style="justify-content:center;">
-            <a href="${profileUrl}" target="_blank" class="btn-approve" style="text-decoration:none; background:var(--gold-dim); color:var(--gold); border-color:rgba(212,175,55,0.3); padding:10px 16px;">Открыть профиль</a>
+            <a href="${profileUrl}" target="_blank" class="btn-approve" style="text-decoration:none; background:var(--gold-dim); color:var(--gold); border-color:rgba(212,175,55,0.3); padding:10px 16px;">${escapeHtml(getI18nText('admin_mp_open', 'Открыть профиль'))}</a>
+            <button type="button" class="btn-neutral btn-edit-profile">${escapeHtml(getI18nText('admin_mp_edit', 'Изменить'))}</button>
+            <button type="button" class="${isPrivate ? 'btn-approve' : 'btn-warning'} btn-toggle-visibility">${escapeHtml(isPrivate ? getI18nText('admin_mp_restore', 'Вернуть') : getI18nText('admin_mp_hide', 'Скрыть'))}</button>
+            <button type="button" class="btn-reject btn-hard-delete">${escapeHtml(getI18nText('admin_mp_delete_hard', 'Удалить навсегда'))}</button>
         </div>`;
+
+        div.querySelector('.btn-edit-profile')?.addEventListener('click', () => openEditProfileModal(item.id));
+        div.querySelector('.btn-toggle-visibility')?.addEventListener('click', () => {
+            if (isPrivate) {
+                restoreProfile(item.id);
+            } else {
+                softDeleteProfile(item.id);
+            }
+        });
+        div.querySelector('.btn-hard-delete')?.addEventListener('click', () => hardDeleteProfile(item.id));
+
         container.appendChild(div);
     });
 }
@@ -1459,32 +1976,194 @@ async function loadSessionActivity() {
     }
 }
 
+function setupManageBindings() {
+    bindCemeteryInput('cp');
+    bindCemeteryInput('ep');
+
+    const modal = document.getElementById('editProfileModal');
+    if (modal && modal.dataset.bound !== '1') {
+        modal.addEventListener('click', handleEditModalBackdrop);
+        modal.dataset.bound = '1';
+    }
+}
+
 async function handleCreateProfile(e) {
     e.preventDefault();
 
     const btn = document.getElementById('cp_submitBtn');
-    btn.disabled = true;
-    btn.textContent = 'Создание...';
+    const defaultLabel = getI18nText('admin_cp_submit', 'Создать профиль');
+    const loadingLabel = getI18nText('admin_cp_submit_loading', 'Создание...');
 
-    const payload = {
-        first_name: document.getElementById('cp_firstName').value,
-        last_name: document.getElementById('cp_lastName').value,
-        birth_year: document.getElementById('cp_birthYear').value,
-        death_year: document.getElementById('cp_deathYear').value,
-        biography: document.getElementById('cp_bio').value,
-    };
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = loadingLabel;
+    }
 
     try {
+        try {
+            await ensureCemeteryCatalogLoaded();
+        } catch (error) {
+            console.warn('Cemetery catalog failed before create:', error);
+        }
+        const payload = buildProfilePayloadFromForm('cp');
         await apiRequest('/admin/profiles', { method: 'POST', body: payload });
-        showToast('Профиль успешно создан', 'success');
-        document.getElementById('createProfileForm').reset();
-        loadManageProfiles();
+        showToast(getI18nText('admin_toast_created', 'Профиль успешно создан'), 'success');
+        resetProfileForm('cp', 'createProfileForm');
+        await loadManageProfiles();
     } catch (err) {
         console.error(err);
-        showToast(err.message || 'Ошибка при создании профиля', 'error');
+        showToast(err.message || getI18nText('admin_toast_create_err', 'Ошибка при создании профиля'), 'error');
     } finally {
-        btn.disabled = false;
-        btn.textContent = 'Создать профиль';
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = defaultLabel;
+        }
+    }
+}
+
+async function openEditProfileModal(profileId) {
+    const item = (allData.manage || []).find((entry) => entry.id === profileId);
+    if (!item) {
+        showToast('Профиль не найден', 'error');
+        return;
+    }
+
+    try {
+        await ensureCemeteryCatalogLoaded();
+    } catch (error) {
+        console.warn('Cemetery catalog failed before edit:', error);
+    }
+
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) {
+        return;
+    }
+
+    const firstNameInput = document.getElementById('ep_firstName');
+    const lastNameInput = document.getElementById('ep_lastName');
+    const birthYearInput = document.getElementById('ep_birthYear');
+    const deathYearInput = document.getElementById('ep_deathYear');
+    const bioInput = document.getElementById('ep_bio');
+    const latInput = document.getElementById('ep_lat');
+    const lngInput = document.getElementById('ep_lng');
+    const idInput = document.getElementById('ep_id');
+
+    if (idInput) idInput.value = item.id || '';
+    if (firstNameInput) firstNameInput.value = item.first_name || '';
+    if (lastNameInput) lastNameInput.value = item.last_name || '';
+    if (birthYearInput) birthYearInput.value = item.birth_date ? String(item.birth_date).substring(0, 4) : '';
+    if (deathYearInput) deathYearInput.value = item.death_date ? String(item.death_date).substring(0, 4) : '';
+    if (bioInput) bioInput.value = item.biography || '';
+    if (latInput) latInput.value = Number.isFinite(item.lat) ? String(item.lat) : '';
+    if (lngInput) lngInput.value = Number.isFinite(item.lng) ? String(item.lng) : '';
+
+    setCemeterySelection('ep', item.cemetery_id, item.cemetery_name || '');
+    modal.style.display = 'flex';
+}
+
+function closeEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) {
+        return;
+    }
+
+    modal.style.display = 'none';
+    resetProfileForm('ep', 'editProfileForm');
+}
+
+function handleEditModalBackdrop(event) {
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) {
+        return;
+    }
+    if (event.target === modal) {
+        closeEditProfileModal();
+    }
+}
+
+async function handleEditProfile(event) {
+    event.preventDefault();
+
+    const btn = document.getElementById('ep_submitBtn');
+    const defaultLabel = getI18nText('admin_ep_submit', 'Сохранить изменения');
+    const loadingLabel = getI18nText('admin_ep_submit_loading', 'Сохраняем...');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = loadingLabel;
+    }
+
+    try {
+        try {
+            await ensureCemeteryCatalogLoaded();
+        } catch (error) {
+            console.warn('Cemetery catalog failed before update:', error);
+        }
+        const payload = buildProfilePayloadFromForm('ep', { includeId: true });
+        await apiRequest('/admin/profiles', { method: 'PATCH', body: payload });
+        showToast(getI18nText('admin_toast_updated', 'Профиль обновлен'), 'success');
+        closeEditProfileModal();
+        await loadManageProfiles();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || getI18nText('admin_toast_update_err', 'Ошибка при обновлении профиля'), 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = defaultLabel;
+        }
+    }
+}
+
+async function softDeleteProfile(profileId) {
+    try {
+        await apiRequest('/admin/profiles', {
+            method: 'DELETE',
+            body: { id: profileId, mode: 'soft' },
+        });
+
+        showToast(getI18nText('admin_toast_hidden', 'Профиль скрыт'), 'success');
+        await loadManageProfiles();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || getI18nText('admin_toast_hide_err', 'Не удалось скрыть профиль'), 'error');
+    }
+}
+
+async function restoreProfile(profileId) {
+    try {
+        await apiRequest('/admin/profiles', {
+            method: 'PATCH',
+            body: { id: profileId, visibility_status: 'public' },
+        });
+
+        showToast(getI18nText('admin_toast_restored', 'Профиль снова публичный'), 'success');
+        await loadManageProfiles();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || getI18nText('admin_toast_restore_err', 'Не удалось вернуть профиль'), 'error');
+    }
+}
+
+async function hardDeleteProfile(profileId) {
+    const promptText = `${getI18nText('admin_mp_delete_confirm', 'Для удаления введите:')} ${HARD_DELETE_CONFIRM_PHRASE}`;
+    const confirmation = window.prompt(promptText, '');
+    if (confirmation !== HARD_DELETE_CONFIRM_PHRASE) {
+        showToast(getI18nText('admin_toast_delete_cancelled', 'Удаление отменено'), 'error');
+        return;
+    }
+
+    try {
+        await apiRequest('/admin/profiles', {
+            method: 'DELETE',
+            body: { id: profileId, mode: 'hard' },
+        });
+
+        showToast(getI18nText('admin_toast_deleted', 'Профиль удален навсегда'), 'success');
+        await loadManageProfiles();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || getI18nText('admin_toast_delete_err', 'Не удалось удалить профиль'), 'error');
     }
 }
 
