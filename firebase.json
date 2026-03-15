@@ -39,6 +39,7 @@
       "src/hooks/**",
       "src/lib/**",
       "src/utils/**",
+      "!src/js/**",
       "functions/**",
       "supabase/**",
       "testsprite_tests/**",
