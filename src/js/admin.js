@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 // ADMIN PANEL LOGIC - src/js/admin.js
 // ------------------------------------------------------------
 
@@ -28,6 +28,24 @@ const AUTH_RETRY_MAX_ATTEMPTS = 3;
 
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function toSafeDomId(value) {
+    const normalized = String(value ?? '').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    return normalized || 'item';
+}
+
+function getCardDomId(value) {
+    return `card-${toSafeDomId(value)}`;
 }
 
 function isSupabaseLockAbortError(error) {
@@ -1264,20 +1282,25 @@ function renderManageTab(items) {
 
         const years = `${item.birth_date ? item.birth_date.substring(0, 4) : '?'} - ${item.death_date ? item.death_date.substring(0, 4) : '?'}`;
         const name = `${item.last_name || ''} ${item.first_name || ''}`.trim();
+        const safeName = escapeHtml(name || 'Unknown');
+        const safeYears = escapeHtml(years);
+        const safeLegacySlug = escapeHtml(item.epitaph || '-');
+        const safeUuid = escapeHtml(item.id || '-');
+        const profileUrl = `profile.html?id=${encodeURIComponent(String(item.id || ''))}`;
 
         div.innerHTML = `
         <div>
-            <div class="card-title">${name}</div>
+            <div class="card-title">${safeName}</div>
             <div class="card-meta-row" style="margin-top:8px;">
-                <div class="card-meta-item">Годы: <span>${years}</span></div>
-                <div class="card-meta-item">Старый ID (slug): <span>${item.epitaph || '-'}</span></div>
+                <div class="card-meta-item">Годы: <span>${safeYears}</span></div>
+                <div class="card-meta-item">Старый ID (slug): <span>${safeLegacySlug}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
-                <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${item.id}</span></div>
+                <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${safeUuid}</span></div>
             </div>
         </div>
         <div class="card-actions" style="justify-content:center;">
-            <a href="profile.html?id=${item.id}" target="_blank" class="btn-approve" style="text-decoration:none; background:var(--gold-dim); color:var(--gold); border-color:rgba(212,175,55,0.3); padding:10px 16px;">Открыть профиль</a>
+            <a href="${profileUrl}" target="_blank" class="btn-approve" style="text-decoration:none; background:var(--gold-dim); color:var(--gold); border-color:rgba(212,175,55,0.3); padding:10px 16px;">Открыть профиль</a>
         </div>`;
         container.appendChild(div);
     });
@@ -1314,7 +1337,7 @@ function renderSessionList(containerId, items, emptyText) {
     }
 
     if (!items.length) {
-        container.innerHTML = `<div class="empty"><p>${emptyText}</p></div>`;
+        container.innerHTML = `<div class="empty"><p>${escapeHtml(emptyText)}</p></div>`;
         return;
     }
 
@@ -1328,18 +1351,25 @@ function renderSessionList(containerId, items, emptyText) {
         const endedLabel = item.ended_at
             ? `${formatDateTime(item.ended_at)} (${item.end_reason || 'reason not set'})`
             : '—';
+        const safeDeviceName = escapeHtml(item.device_name || 'Unknown device');
+        const safeActiveLabel = escapeHtml(activeLabel);
+        const safeEmail = escapeHtml(item.email || '-');
+        const safeStartedAt = escapeHtml(formatDateTime(item.started_at));
+        const safeLastSeen = escapeHtml(formatDateTime(item.last_seen_at));
+        const safeEndedLabel = escapeHtml(endedLabel);
+        const safeUserAgent = escapeHtml(item.user_agent || '-');
 
         div.innerHTML = `
-        <div class="card-title">${item.device_name || 'Unknown device'} — ${activeLabel}</div>
+        <div class="card-title">${safeDeviceName} — ${safeActiveLabel}</div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Email: <span>${item.email || '-'}</span></div>
-            <div class="card-meta-item">Start: <span>${formatDateTime(item.started_at)}</span></div>
+            <div class="card-meta-item">Email: <span>${safeEmail}</span></div>
+            <div class="card-meta-item">Start: <span>${safeStartedAt}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Last seen: <span>${formatDateTime(item.last_seen_at)}</span></div>
-            <div class="card-meta-item">End: <span>${endedLabel}</span></div>
+            <div class="card-meta-item">Last seen: <span>${safeLastSeen}</span></div>
+            <div class="card-meta-item">End: <span>${safeEndedLabel}</span></div>
         </div>
-        <div class="card-detail" style="margin-top:8px; word-break:break-word;">${item.user_agent || '-'}</div>
+        <div class="card-detail" style="margin-top:8px; word-break:break-word;">${safeUserAgent}</div>
         `;
         container.appendChild(div);
     });
@@ -1505,7 +1535,7 @@ function showLoading(tab) {
 }
 
 function showEmpty(tab, msg = 'Заявок нет') {
-    document.getElementById(`content-${tab}`).innerHTML = `<div class="empty"><div class="empty-icon">✓</div><p>${msg}</p></div>`;
+    document.getElementById(`content-${tab}`).innerHTML = `<div class="empty"><div class="empty-icon">✓</div><p>${escapeHtml(msg)}</p></div>`;
 }
 
 function renderTab(tab, items) {
@@ -1580,16 +1610,18 @@ function getAdminRegion(lat, lng) {
 function createCard(type, item) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.id = `card-${item.id}`;
+    div.id = getCardDomId(item.id);
 
     const submitted = item.submitted_at || item.created_at;
     const dateStr = submitted ? new Date(submitted).toLocaleString('ru-KZ') : '-';
-    const statusClass = item.status ? `status-${item.status}` : '';
-    const statusText = item.status === 'pending'
+    const safeDateStr = escapeHtml(dateStr);
+    const normalizedStatus = ['pending', 'approved', 'rejected'].includes(item.status) ? item.status : '';
+    const statusClass = normalizedStatus ? `status-${normalizedStatus}` : '';
+    const statusText = normalizedStatus === 'pending'
         ? 'На проверке'
-        : item.status === 'approved'
+        : normalizedStatus === 'approved'
             ? 'Одобрено'
-            : item.status === 'rejected' ? 'Отклонено' : '';
+            : normalizedStatus === 'rejected' ? 'Отклонено' : '';
 
     let content = '';
     let badgeClass = '';
@@ -1597,19 +1629,25 @@ function createCard(type, item) {
 
     if (type === 'names') {
         badgeClass = 'badge-names';
-        title = item.suggested_name;
-        const cardUid = `cem-${item.id}`;
+        title = item.suggested_name || '';
+        const cardUid = `cem-${toSafeDomId(item.id)}`;
+        const safeCurrentName = escapeHtml(item.current_name || '-');
+        const safeLat = escapeHtml(item.lat || '?');
+        const safeLng = escapeHtml(item.lng || '?');
+        const safeRegion = escapeHtml(getAdminRegion(item.lat, item.lng));
+        const safeComment = item.comment ? `<div class="card-detail" style="margin-top:8px;">${escapeHtml(item.comment)}</div>` : '';
+
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Текущее название: <span>${item.current_name || '-'}</span></div>
-            <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
+            <div class="card-meta-item">Текущее название: <span>${safeCurrentName}</span></div>
+            <div class="card-meta-item">Координаты: <span>${safeLat}, ${safeLng}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
+            <div class="card-meta-item">Область: <span style="color:var(--gold);">${safeRegion}</span></div>
             <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
         </div>
-        ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
-        // Async district fetch
+        ${safeComment}`;
+
         if (item.lat && item.lng) {
             setTimeout(async () => {
                 try {
@@ -1622,27 +1660,35 @@ function createCard(type, item) {
                         el.querySelector('span').textContent = district;
                         el.style.display = 'block';
                     }
-                } catch(e) {}
+                } catch (e) { }
             }, 200);
         }
     } else if (type === 'profiles') {
         badgeClass = 'badge-profiles';
-        title = item.full_name;
-        const cardUid = `prof-${item.id}`;
+        title = item.full_name || '';
+        const cardUid = `prof-${toSafeDomId(item.id)}`;
+        const safeBirthYear = escapeHtml(item.birth_year || '?');
+        const safeDeathYear = escapeHtml(item.death_year || '?');
+        const safeCemeteryName = escapeHtml(item.cemetery_name || '-');
+        const safeLat = escapeHtml(item.lat || '?');
+        const safeLng = escapeHtml(item.lng || '?');
+        const safeRegion = escapeHtml(getAdminRegion(item.lat, item.lng));
+        const safeDescription = item.description ? `<div class="card-detail" style="margin-top:8px;">${escapeHtml(item.description)}</div>` : '';
+
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Годы: <span>${item.birth_year || '?'} - ${item.death_year || '?'}</span></div>
-            <div class="card-meta-item">Кладбище: <span>${item.cemetery_name || '-'}</span></div>
+            <div class="card-meta-item">Годы: <span>${safeBirthYear} - ${safeDeathYear}</span></div>
+            <div class="card-meta-item">Кладбище: <span>${safeCemeteryName}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Координаты: <span>${item.lat || '?'}, ${item.lng || '?'}</span></div>
-            <div class="card-meta-item">Область: <span style="color:var(--gold);">${getAdminRegion(item.lat, item.lng)}</span></div>
+            <div class="card-meta-item">Координаты: <span>${safeLat}, ${safeLng}</span></div>
+            <div class="card-meta-item">Область: <span style="color:var(--gold);">${safeRegion}</span></div>
         </div>
         <div class="card-meta-row">
             <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
         </div>
-        ${item.description ? `<div class="card-detail" style="margin-top:8px;">${item.description}</div>` : ''}`;
-        // Async district fetch
+        ${safeDescription}`;
+
         if (item.lat && item.lng) {
             setTimeout(async () => {
                 try {
@@ -1655,58 +1701,89 @@ function createCard(type, item) {
                         el.querySelector('span').textContent = district;
                         el.style.display = 'block';
                     }
-                } catch(e) {}
+                } catch (e) { }
             }, 200);
         }
     } else if (type === 'bios') {
         badgeClass = 'badge-bios';
-        title = `Дополнение к профилю #${item.profile_id?.substring(0, 8) || '?'}`;
+        const shortProfileId = (item.profile_id || '').substring(0, 8) || '?';
+        title = `Дополнение к профилю #${shortProfileId}`;
+        const safeAuthor = item.author_name ? `<div class="card-detail" style="margin-bottom:6px;">От: <strong>${escapeHtml(item.author_name)}</strong></div>` : '';
+        const safeBioText = escapeHtml(item.bio_text || '');
         content = `
-        ${item.author_name ? `<div class="card-detail" style="margin-bottom:6px;">От: <strong>${item.author_name}</strong></div>` : ''}
-        <div class="card-detail" style="background:#18181b; border-radius:8px; padding:10px; margin-top:6px; line-height:1.6;">"${item.bio_text}"</div>`;
+        ${safeAuthor}
+        <div class="card-detail" style="background:#18181b; border-radius:8px; padding:10px; margin-top:6px; line-height:1.6;">"${safeBioText}"</div>`;
     } else if (type === 'leads') {
-        badgeClass = 'badge-profiles'; // Reuse profile color or custom
-        title = `Заказ: ${item.service_type}`;
+        badgeClass = 'badge-profiles';
+        title = `Заказ: ${item.service_type || ''}`;
+        const safeCustomerName = escapeHtml(item.customer_name || '-');
+        const safeCustomerPhone = escapeHtml(item.customer_phone || '-');
+        const safeProfileRef = escapeHtml(item.profile_ref || '-');
+        const safePrice = escapeHtml(item.price || '-');
+        const safeComment = item.comment ? `<div class="card-detail" style="margin-top:8px;">${escapeHtml(item.comment)}</div>` : '';
+
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Клиент: <span>${item.customer_name}</span></div>
-            <div class="card-meta-item">Телефон: <span>${item.customer_phone}</span></div>
+            <div class="card-meta-item">Клиент: <span>${safeCustomerName}</span></div>
+            <div class="card-meta-item">Телефон: <span>${safeCustomerPhone}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Профиль: <span>${item.profile_ref || '-'}</span></div>
-            <div class="card-meta-item">Цена: <span>${item.price || '-'} ₸</span></div>
+            <div class="card-meta-item">Профиль: <span>${safeProfileRef}</span></div>
+            <div class="card-meta-item">Цена: <span>${safePrice} ₸</span></div>
         </div>
-        ${item.comment ? `<div class="card-detail" style="margin-top:8px;">${item.comment}</div>` : ''}`;
+        ${safeComment}`;
     }
 
     const typeLabel = type === 'names' ? 'Название' : type === 'profiles' ? 'Личность' : type === 'bios' ? 'Биография' : 'Заказ';
+    const safeTitle = escapeHtml(title || '');
+
+    let actionsHtml = '';
+    if (normalizedStatus === 'pending') {
+        actionsHtml = `
+            <button class="btn-approve">Одобрить</button>
+            <button class="btn-reject">Отклонить</button>`;
+    } else if (normalizedStatus) {
+        actionsHtml = `
+            <span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>
+            <button class="btn-reject btn-reset-status" style="background:transparent; color:var(--muted); border-color:var(--border); margin-top:5px;">Отменить (Вернуть)</button>`;
+    }
 
     div.innerHTML = `
     <div>
-        <span class="card-type-badge ${badgeClass}">${typeLabel}</span>
-        <div class="card-title">${title}</div>
+        <span class="card-type-badge ${badgeClass}">${escapeHtml(typeLabel)}</span>
+        <div class="card-title">${safeTitle}</div>
         ${content}
         <div class="card-meta-row" style="margin-top:12px;">
-            <div class="card-meta-item">Время: <span>${dateStr}</span></div>
-            ${item.status ? `<span class="status-chip ${statusClass}">${statusText}</span>` : ''}
+            <div class="card-meta-item">Время: <span>${safeDateStr}</span></div>
+            ${normalizedStatus ? `<span class="status-chip ${statusClass}">${escapeHtml(statusText)}</span>` : ''}
         </div>
     </div>
     <div class="card-actions">
-        ${item.status === 'pending' ? `
-            <button class="btn-approve" onclick="updateStatus('${type}', '${item.id}', 'approved')">Одобрить</button>
-            <button class="btn-reject" onclick="updateStatus('${type}', '${item.id}', 'rejected')">Отклонить</button>
-        ` : item.status ? `
-            <span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>
-            <button class="btn-reject" style="background:transparent; color:var(--muted); border-color:var(--border); margin-top:5px;" onclick="updateStatus('${type}', '${item.id}', 'pending')">Отменить (Вернуть)</button>
-        ` : ''}
+        ${actionsHtml}
     </div>`;
+
+    const approveBtn = div.querySelector('.btn-approve');
+    if (approveBtn) {
+        approveBtn.addEventListener('click', () => updateStatus(type, item.id, 'approved'));
+    }
+
+    const rejectBtn = div.querySelector('.btn-reject');
+    if (rejectBtn && !rejectBtn.classList.contains('btn-reset-status')) {
+        rejectBtn.addEventListener('click', () => updateStatus(type, item.id, 'rejected'));
+    }
+
+    const resetBtn = div.querySelector('.btn-reset-status');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => updateStatus(type, item.id, 'pending'));
+    }
 
     return div;
 }
 
 async function updateStatus(type, id, status) {
-    const btnApprove = document.querySelector(`#card-${id} .btn-approve`);
-    const btnReject = document.querySelector(`#card-${id} .btn-reject`);
+    const cardDomId = getCardDomId(id);
+    const btnApprove = document.querySelector(`#${cardDomId} .btn-approve`);
+    const btnReject = document.querySelector(`#${cardDomId} .btn-reject`);
     
     // Disable all buttons in this card while loading
     if (btnApprove) { btnApprove.disabled = true; }
@@ -1725,7 +1802,7 @@ async function updateStatus(type, id, status) {
 
         updateCounts();
 
-        const card = document.getElementById(`card-${id}`);
+        const card = document.getElementById(cardDomId);
         if (card && item) {
             const newCard = createCard(type, item);
             card.replaceWith(newCard);
@@ -1741,7 +1818,7 @@ async function updateStatus(type, id, status) {
         showToast('Ошибка при обновлении статуса', 'error');
 
         // Restore buttons if failed
-        const card = document.getElementById(`card-${id}`);
+        const card = document.getElementById(cardDomId);
         if (card) {
             const item = allData[type].find((x) => x.id === id);
             if (item) {
@@ -1758,3 +1835,4 @@ function showToast(msg, type = 'success') {
     t.className = `toast toast-${type} show`;
     setTimeout(() => t.classList.remove('show'), 3000);
 }
+

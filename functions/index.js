@@ -338,10 +338,8 @@ async function handlePublicQrResolve(req, res) {
     if (error) throw error;
     if (!data) return sendJson(res, 404, { error: 'Not found' });
 
-    // Fire-and-forget increment.
-    db.from('qr_codes')
-        .update({ scan_count: (data.scan_count || 0) + 1 })
-        .eq('id', data.id)
+    // Fire-and-forget atomic increment via SQL function.
+    db.rpc('increment_qr_scan_count', { p_qr_id: data.id })
         .then(() => { })
         .catch(() => { });
 

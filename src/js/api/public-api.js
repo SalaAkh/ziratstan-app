@@ -208,12 +208,12 @@
         
       if (error || !data) return null;
       
-      // Fire-and-forget scan counter update (bypassing REST edge logic, handled natively via simple RPC if exists, or simple counter)
-      // If no RPC exists, use silent update.
-      sb.from('qr_codes')
-        .update({ scan_count: (data.scan_count || 0) + 1 })
-        .eq('id', data.id)
-        .then(() => {}).catch(() => {});
+      // Fire-and-forget atomic scan counter increment via SQL function.
+      sb.rpc('increment_qr_scan_count', { p_qr_id: data.id })
+        .then(() => {})
+        .catch((rpcError) => {
+          console.warn('[public-api] QR scan increment failed:', rpcError && rpcError.message ? rpcError.message : rpcError);
+        });
         
       return data;
     } catch(e) {
@@ -255,23 +255,15 @@
         return normalized.toLowerCase();
       }
 
-      // Try exact match first
+      // Keep client behavior aligned with server route /public/profile-id-by-slug.
+      var normalizedSlug = normalized.toUpperCase();
       var { data, error } = await sb
         .from('qr_codes')
         .select('profile_id, status')
-        .eq('slug', normalized)
+        .eq('slug', normalizedSlug)
         .maybeSingle();
 
       if (!error && data && data.status === 'active') return data.profile_id;
-
-      // Try lowercase match
-      var { data: dataLower, error: errorLower } = await sb
-        .from('qr_codes')
-        .select('profile_id, status')
-        .eq('slug', normalized.toLowerCase())
-        .maybeSingle();
-
-      if (!errorLower && dataLower && dataLower.status === 'active') return dataLower.profile_id;
 
       return null;
     } catch (e) {
