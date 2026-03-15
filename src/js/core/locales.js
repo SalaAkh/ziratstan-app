@@ -484,6 +484,24 @@ const TRANSLATIONS = {
         serv_success_desc_long: "Сіздің тапсырысыңыз қабылданды. Орындаушы сізбен 24 сағат ішінде хабарласады. Орындалғаннан кейін «Дейін/Кейін» фотоесебін аласыз.",
         serv_success_back: "Басты бетке",
 
+        // --- SUPPORT SECTION ---
+        support_badge: "💛 Қолдау",
+        support_title: "Жобаны қолдаңыз",
+        support_desc: "Зиратстан — коммерциялық емес, халыққа қызмет ететін жоба. Сіздің қолдауыңыз жобаның дамуына, серверлерді ұстауға және жаңа мүмкіндіктер қосуға жұмсалады.",
+        support_kaspi_label: "Kaspi.kz арқылы аудару",
+        support_kaspi_sublabel: "Картаға аударым · Каспи Банк",
+        support_copy_title: "Басып, көшіріп алыңыз",
+        support_copy_hint: "📋 Көшіру",
+        support_copied: "✅ Карта нөмірі көшірілді!",
+        support_note: "Кез-келген сомада аударым жасай аласыз — тіпті 500 ₸ да баға жетпес қолдау!",
+        support_btn: "Картаны Kaspi-ге ашу",
+        support_why_server_title: "Сервер шығындары",
+        support_why_server_desc: "Firebase, Supabase — ай сайын",
+        support_why_data_title: "Деректерді толтыру",
+        support_why_data_desc: "Жаңа тарихи тұлғаларды қосу",
+        support_why_features_title: "Жаңа мүмкіндіктер",
+        support_why_features_desc: "Мобильді қосымша және API",
+
         // --- QR REDIRECT PAGE ---
         qr_page_title: "Зиратстан — QR Мемориал",
         qr_meta_desc: "Құлпытастағы QR-кодты сканерлеу арқылы мемориалдық парақшаны ашыңыз.",
@@ -913,6 +931,24 @@ const TRANSLATIONS = {
         serv_success_desc: "Мы свяжемся с вами в течение 24 часов",
         serv_success_desc_long: "Ваш заказ принят. Исполнитель свяжется с вами в течение 24 часов. После выполнения вы получите фотоотчет «До/После».",
         serv_success_back: "На главную",
+
+        // --- SUPPORT SECTION ---
+        support_badge: "💛 Поддержка",
+        support_title: "Поддержите проект",
+        support_desc: "Зиратстан — некоммерческий проект для людей. Ваша поддержка идет на развитие проекта, оплату серверов и добавление новых возможностей.",
+        support_kaspi_label: "Перевод через Kaspi.kz",
+        support_kaspi_sublabel: "Перевод на карту · Kaspi Bank",
+        support_copy_title: "Нажмите, чтобы скопировать",
+        support_copy_hint: "📋 Скопировать",
+        support_copied: "✅ Номер карты скопирован!",
+        support_note: "Вы можете перевести любую сумму — даже 500 ₸ это ценная поддержка!",
+        support_btn: "Открыть карту в Kaspi",
+        support_why_server_title: "Расходы на серверы",
+        support_why_server_desc: "Firebase, Supabase — ежемесячно",
+        support_why_data_title: "Наполнение данных",
+        support_why_data_desc: "Добавление новых исторических личностей",
+        support_why_features_title: "Новые возможности",
+        support_why_features_desc: "Мобильное приложение и API",
 
         // --- QR REDIRECT PAGE ---
         qr_page_title: "Зиратстан — QR Мемориал",

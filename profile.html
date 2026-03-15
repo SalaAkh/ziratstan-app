@@ -966,6 +966,240 @@
         .donate-popup-btn-main:hover { opacity:0.9; transform:translateY(-1px); }
         .donate-popup-btn-later { flex:1; padding:0.7rem 1rem; background:transparent; color:#71717a; border:1px solid rgba(255,255,255,0.06); border-radius:10px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:color 0.15s,border-color 0.15s; }
         .donate-popup-btn-later:hover { color:#f4f4f5; border-color:rgba(255,255,255,0.15); }
+
+        /* SUPPORT BLOCK FIX */
+        #support.support-section {
+            padding: 4.5rem 1.25rem 5rem;
+            background:
+                radial-gradient(120% 120% at 100% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 56%),
+                linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, transparent 100%);
+            border-top: 1px solid var(--border);
+        }
+
+        #support .support-inner {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #support .support-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.95rem;
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--gold);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+
+        #support .support-title {
+            margin-bottom: 0.9rem;
+            font-size: clamp(1.75rem, 3.4vw, 2.35rem);
+            letter-spacing: -0.02em;
+        }
+
+        #support .support-desc {
+            margin: 0 auto 2rem;
+            max-width: 640px;
+            color: #c4c4cf;
+            line-height: 1.7;
+            font-size: 1rem;
+            text-wrap: balance;
+        }
+
+        #support .support-card {
+            margin: 0 auto 1.5rem;
+            width: min(560px, 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background:
+                linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(17, 17, 19, 0.95) 48%, rgba(212, 175, 55, 0.08) 100%);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.32);
+            padding: 1.4rem;
+            text-align: left;
+        }
+
+        #support .support-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        #support .kaspi-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            flex: 0 0 44px;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 8px 18px rgba(239, 68, 68, 0.32);
+        }
+
+        #support .kaspi-label {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #f3f4f6;
+            line-height: 1.25;
+        }
+
+        #support .kaspi-sublabel {
+            font-size: 0.76rem;
+            color: #a1a1aa;
+            margin-top: 0.2rem;
+        }
+
+        #support .kaspi-card-num {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.95rem 1.05rem;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, transform 0.12s;
+            user-select: all;
+        }
+
+        #support .kaspi-card-num:hover,
+        #support .kaspi-card-num:focus-visible {
+            border-color: rgba(212, 175, 55, 0.55);
+            background: rgba(212, 175, 55, 0.1);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        #support .kaspi-card-num-text {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.08em;
+            color: #f4f4f5;
+            white-space: nowrap;
+        }
+
+        #support .kaspi-copy-hint {
+            white-space: nowrap;
+            font-size: 0.78rem;
+            color: #d4d4d8;
+            font-weight: 600;
+        }
+
+        #support .kaspi-copied-msg {
+            min-height: 1.2rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.84rem;
+            color: #22c55e;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.25s, transform 0.25s;
+        }
+
+        #support .kaspi-copied-msg.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #support .support-card-note {
+            font-size: 0.84rem;
+            color: #d4d4d8;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        #support .btn-support-kaspi {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 0.82rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.28);
+            cursor: pointer;
+            transition: transform 0.12s, opacity 0.2s;
+        }
+
+        #support .btn-support-kaspi:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        #support .support-why {
+            margin-top: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+            text-align: left;
+        }
+
+        #support .support-why-item {
+            display: flex;
+            gap: 0.7rem;
+            align-items: flex-start;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0.85rem;
+        }
+
+        #support .support-why-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 30px;
+            font-size: 0.95rem;
+            background: rgba(212, 175, 55, 0.12);
+        }
+
+        #support .support-why-item strong {
+            display: block;
+            margin-bottom: 0.2rem;
+            font-size: 0.84rem;
+            line-height: 1.3;
+        }
+
+        #support .support-why-item p {
+            font-size: 0.78rem;
+            color: #b4b4c0;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            #support .support-card {
+                padding: 1.15rem;
+            }
+
+            #support .kaspi-card-num {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            #support .support-why {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -1133,9 +1367,9 @@
 
     <section class="support-section" id="support">
         <div class="support-inner">
-            <div class="support-badge">💛 Қолдау</div>
-            <h2 class="support-title">Жобаны қолдаңыз</h2>
-            <p class="support-desc">
+            <div class="support-badge" data-i18n="support_badge">💛 Қолдау</div>
+            <h2 class="support-title" data-i18n="support_title">Жобаны қолдаңыз</h2>
+            <p class="support-desc" data-i18n="support_desc">
                 Зиратстан — коммерциялық емес, халыққа қызмет ететін жоба. Сіздің қолдауыңыз жобаның дамуына,
                 серверлерді ұстауға және жаңа мүмкіндіктер қосуға жұмсалады.
             </p>
@@ -1144,20 +1378,23 @@
                 <div class="support-card-header">
                     <div class="kaspi-logo">К</div>
                     <div>
-                        <div class="kaspi-label">Kaspi.kz арқылы аудару</div>
-                        <div class="kaspi-sublabel">Картаға аударым · Каспи Банк</div>
+                        <div class="kaspi-label" data-i18n="support_kaspi_label">Kaspi.kz арқылы аудару</div>
+                        <div class="kaspi-sublabel" data-i18n="support_kaspi_sublabel">Картаға аударым · Каспи Банк</div>
                     </div>
                 </div>
-                <div class="kaspi-card-num" id="kaspiCardNum" onclick="copyKaspiCard()" title="Басып, көшіріп алыңыз">
-                    4400 4303 2098 5507
-                    <span class="kaspi-copy-hint">📋 Көшіру</span>
+                <div class="kaspi-card-num" id="kaspiCardNum" onclick="copyKaspiCard()"
+                    onkeydown="if(event.keyCode===13 || event.keyCode===32){event.preventDefault(); copyKaspiCard();}"
+                    role="button" tabindex="0" title="Басып, көшіріп алыңыз" data-i18n-title="support_copy_title">
+                    <span class="kaspi-card-num-text">4400 4303 2098 5507</span>
+                    <span class="kaspi-copy-hint" data-i18n="support_copy_hint">📋 Көшіру</span>
                 </div>
-                <div class="kaspi-copied-msg" id="kaspiCopied">✅ Карта нөмірі көшірілді!</div>
-                <p class="support-card-note">
+                <div class="kaspi-copied-msg" id="kaspiCopied" data-i18n="support_copied">✅ Карта нөмірі көшірілді!</div>
+                <p class="support-card-note" data-i18n="support_note">
                     Кез-келген сомада аударым жасай аласыз — тіпті 500 ₸ да баға жетпес қолдау!
                 </p>
                 <button class="btn-support-kaspi" onclick="copyKaspiCard()">
-                    <span>💳</span> Картаны Kaspi-ге ашу
+                    <span aria-hidden="true">💳</span>
+                    <span data-i18n="support_btn">Картаны Kaspi-ге ашу</span>
                 </button>
             </div>
 
@@ -1165,22 +1402,22 @@
                 <div class="support-why-item">
                     <div class="support-why-icon">🖥️</div>
                     <div>
-                        <strong>Сервер шығындары</strong>
-                        <p>Firebase, Supabase — ай сайын</p>
+                        <strong data-i18n="support_why_server_title">Сервер шығындары</strong>
+                        <p data-i18n="support_why_server_desc">Firebase, Supabase — ай сайын</p>
                     </div>
                 </div>
                 <div class="support-why-item">
                     <div class="support-why-icon">🗃️</div>
                     <div>
-                        <strong>Деректерді толтыру</strong>
-                        <p>Жаңа тарихи тұлғаларды қосу</p>
+                        <strong data-i18n="support_why_data_title">Деректерді толтыру</strong>
+                        <p data-i18n="support_why_data_desc">Жаңа тарихи тұлғаларды қосу</p>
                     </div>
                 </div>
                 <div class="support-why-item">
                     <div class="support-why-icon">📱</div>
                     <div>
-                        <strong>Жаңа мүмкіндіктер</strong>
-                        <p>Мобильді қосымша және API</p>
+                        <strong data-i18n="support_why_features_title">Жаңа мүмкіндіктер</strong>
+                        <p data-i18n="support_why_features_desc">Мобильді қосымша және API</p>
                     </div>
                 </div>
             </div>
