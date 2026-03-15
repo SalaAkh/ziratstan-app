@@ -209,10 +209,8 @@ function applyAuthSession(session, event) {
   }
 }
 
-function shouldHideDesktopLoginButton(loginBtn) {
-  if (!loginBtn) return false;
-  if (loginBtn.dataset.hideDesktop !== 'true') return false;
-  return window.matchMedia('(min-width: 769px)').matches;
+function shouldHideDesktopLoginButton() {
+  return false;
 }
 
 function ensureViewportListener() {
@@ -400,7 +398,7 @@ function updateAuthUI() {
       mobileAuthBtn.href = 'dashboard.html';
     }
   } else {
-    if (loginBtn) loginBtn.style.display = shouldHideDesktopLoginButton(loginBtn) ? 'none' : 'flex';
+    if (loginBtn) loginBtn.style.display = shouldHideDesktopLoginButton() ? 'none' : 'flex';
     if (userMenu) userMenu.style.display = 'none';
     if (mobileAuthBtn) {
       mobileAuthBtn.textContent = t('nav_login', '🔑 Кіру / Тіркелу');

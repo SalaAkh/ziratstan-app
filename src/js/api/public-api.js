@@ -12,7 +12,13 @@
     var SB_KEY = cfg.SUPABASE_ANON_KEY || '';
 
     if (global.supabase && SB_URL && SB_KEY) {
-      global._public_sb = global.supabase.createClient(SB_URL, SB_KEY);
+      global._public_sb = global.supabase.createClient(SB_URL, SB_KEY, {
+        auth: {
+          flowType: 'pkce',
+          detectSessionInUrl: true,
+          persistSession: true
+        }
+      });
       if (global.window) {
         global.window._sb = global._public_sb;
         global.window.supabaseClient = global._public_sb;
