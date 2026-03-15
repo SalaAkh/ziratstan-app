@@ -1187,17 +1187,68 @@
         }
 
         @media (max-width: 768px) {
+            #support.support-section {
+                padding: 3.25rem 1rem 3.75rem;
+            }
+
+            #support .support-inner {
+                width: 100%;
+            }
+
+            #support .support-title {
+                font-size: clamp(1.65rem, 8.6vw, 2rem);
+                line-height: 1.12;
+            }
+
+            #support .support-desc {
+                font-size: 0.96rem;
+                margin-bottom: 1.45rem;
+            }
+
             #support .support-card {
-                padding: 1.15rem;
+                padding: 1.05rem;
+                border-radius: 18px;
+            }
+
+            #support .support-card-header {
+                gap: 0.65rem;
+                margin-bottom: 0.85rem;
+            }
+
+            #support .kaspi-logo {
+                width: 40px;
+                height: 40px;
+                flex-basis: 40px;
+                border-radius: 10px;
+            }
+
+            #support .kaspi-label {
+                font-size: 0.86rem;
+            }
+
+            #support .kaspi-sublabel {
+                font-size: 0.72rem;
             }
 
             #support .kaspi-card-num {
                 flex-wrap: wrap;
                 justify-content: center;
+                padding: 0.85rem 0.8rem;
+            }
+
+            #support .kaspi-card-num-text {
+                width: 100%;
+                text-align: center;
+                letter-spacing: 0.06em;
             }
 
             #support .support-why {
                 grid-template-columns: 1fr;
+                gap: 0.7rem;
+            }
+
+            #support .support-why-item {
+                padding: 0.74rem 0.78rem;
             }
         }
     </style>
