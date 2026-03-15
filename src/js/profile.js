@@ -152,6 +152,16 @@ function renderBio(data) {
                 <span class="vip-summary-label">${t('prof_death') || 'Death'}</span>
                 <span class="vip-summary-value">${_currentProfile.death}</span>
             </div>
+            ${_currentProfile.zhuz ? `
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_zhuz') || 'Жүз'}</span>
+                <span class="vip-summary-value">${_currentProfile.zhuz}</span>
+            </div>` : ''}
+            ${_currentProfile.tribe ? `
+            <div class="vip-summary-item">
+                <span class="vip-summary-label">${t('prof_ru') || 'Ру / Тайпа'}</span>
+                <span class="vip-summary-value">${_currentProfile.tribe}</span>
+            </div>` : ''}
             ${_currentProfile.cemetery ? `
             <div class="vip-summary-item">
                 <span class="vip-summary-label">${t('prof_cemetery') || 'Burial Place'}</span>
