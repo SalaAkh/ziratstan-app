@@ -27,4 +27,4 @@ next-build*.log
 test-final-build.log
 
 # Repo-local Firebase CLI state (see scripts/fb)
-.firebase-config/
+.firebase-config*/
