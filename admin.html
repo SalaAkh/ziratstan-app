@@ -770,7 +770,7 @@
                         onkeydown="if(event.key==='Enter') verifyMfaCode()" />
                     <div class="gate-actions">
                         <button type="button" class="gate-btn" id="mfaVerifyBtn" onclick="verifyMfaCode()"><span data-i18n="admin_mfa_verify">Подтвердить код</span></button>
-                        <button type="button" class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()" data-i18n="admin_nav_logout" data-i18n="admin_nav_logout">Выйти</button>
+                        <button type="button" class="gate-btn gate-btn-secondary" id="mfaCancelBtn" onclick="cancelMfaStep()" data-i18n="admin_nav_logout">Выйти</button>
                     </div>
                 </div>
             </div>
@@ -782,10 +782,10 @@
         <nav>
             <div class="nav-logo"><span>З</span>иратстан <span
                     style="color:var(--muted); font-size:0.75rem; font-weight:400; font-family:Inter;">/
-                    Модерация</span></div>
+                    <span data-i18n="admin_nav_mode">Модерация</span></span></div>
             <div class="nav-right">
                 <span class="badge-pending" id="totalPendingBadge"><span data-i18n="admin_nav_pending">0 на проверке</span></span>
-                <button class="logout-btn" onclick="logout()">Выйти</button>
+                <button class="logout-btn" onclick="logout()" data-i18n="admin_nav_logout">Выйти</button>
             </div>
         </nav>
 
@@ -800,7 +800,7 @@
                         id="cnt-profiles">0</span></button>
                 <button class="tab" onclick="switchTab('bios', this)">📖 <span data-i18n="admin_tab_bios">Биографии</span> <span class="tab-count"
                         id="cnt-bios">0</span></button>
-                <button class="tab" onclick="switchTab('leads', this)">📋 <span data-i18n="admin_tab_leads">Тапсырыстар</span> <span class="tab-count"
+                <button class="tab" onclick="switchTab('leads', this)">📋 <span data-i18n="admin_tab_leads">Заявки</span> <span class="tab-count"
                         id="cnt-leads">0</span></button>
                 <button class="tab" onclick="switchTab('manage', this)">📇 <span data-i18n="admin_tab_manage">Управление профилями</span></button>
                 <button class="tab" onclick="switchTab('sessions', this)"><span data-i18n="admin_tab_sessions">Сессии</span></button>

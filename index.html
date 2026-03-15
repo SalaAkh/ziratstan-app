@@ -967,6 +967,12 @@
       transition: opacity 0.15s, transform 0.15s;
     }
 
+    @media (min-width: 769px) {
+      #nav-auth-btn[data-hide-desktop="true"] {
+        display: none;
+      }
+    }
+
     #nav-auth-btn:hover {
       opacity: 0.85;
       transform: translateY(-1px);
@@ -2213,7 +2219,7 @@
     </div>
     
     <div class="nav-controls">
-      <button id="nav-auth-btn" onclick="ZiratAuth.openAuthModal()" data-i18n="nav_login"></button>
+      <button id="nav-auth-btn" data-hide-desktop="true" onclick="ZiratAuth.openAuthModal()" data-i18n="nav_login"></button>
       <div id="nav-user-menu">
         <span id="nav-user-name"></span>
         <a href="dashboard.html" class="nav-dash-btn" data-i18n="user_manage">Басқару →</a>

@@ -26,7 +26,7 @@ let remoteSignOutInProgress = false;
 const AUTH_RETRY_DELAY_MS = 120;
 const AUTH_RETRY_MAX_ATTEMPTS = 3;
 const YEAR_INPUT_PATTERN = /^\d{4}$/;
-const HARD_DELETE_CONFIRM_PHRASE = 'УДАЛИТЬ';
+const HARD_DELETE_CONFIRM_PHRASE_FALLBACK = 'УДАЛИТЬ';
 const PROFILE_VISIBILITY_VALUES = new Set(['public', 'private', 'family_only']);
 
 let cemeteryCatalog = [];
@@ -77,23 +77,25 @@ function normalizeTextValue(value, maxLen = 4000) {
     return normalized.length > maxLen ? normalized.slice(0, maxLen) : normalized;
 }
 
-function validateYearInput(value, label = 'Год') {
+function validateYearInput(value, label = null) {
+    const safeLabel = label || getI18nText('admin_lbl_year', 'Год');
     const raw = String(value ?? '').trim();
     if (!raw) {
         return null;
     }
     if (!YEAR_INPUT_PATTERN.test(raw)) {
-        throw new Error(`${label}: формат должен быть YYYY`);
+        throw new Error(`${safeLabel}: ${getI18nText('admin_year_format_err', 'формат должен быть YYYY')}`);
     }
     return raw;
 }
 
-function yearToDateOrNull(value, label = 'Год') {
+function yearToDateOrNull(value, label = null) {
     const year = validateYearInput(value, label);
     return year ? `${year}-01-01` : null;
 }
 
 function parseCoordinate(value, label, min, max) {
+    const safeLabel = label || getI18nText('common_unknown', 'Поле');
     const raw = String(value ?? '').trim();
     if (!raw) {
         return null;
@@ -101,22 +103,22 @@ function parseCoordinate(value, label, min, max) {
 
     const number = toFiniteNumberOrNull(raw);
     if (number === null) {
-        throw new Error(`${label}: введите число`);
+        throw new Error(`${safeLabel}: ${getI18nText('admin_number_required', 'введите число')}`);
     }
 
     if (number < min || number > max) {
-        throw new Error(`${label}: значение вне диапазона ${min}..${max}`);
+        throw new Error(`${safeLabel}: ${getI18nText('admin_number_range_err_prefix', 'значение вне диапазона')} ${min}..${max}`);
     }
 
     return Number(number.toFixed(7));
 }
 
 function parseLocationInput(latValue, lngValue) {
-    const lat = parseCoordinate(latValue, 'Широта (lat)', -90, 90);
-    const lng = parseCoordinate(lngValue, 'Долгота (lng)', -180, 180);
+    const lat = parseCoordinate(latValue, getI18nText('admin_lbl_lat', 'Широта (lat)'), -90, 90);
+    const lng = parseCoordinate(lngValue, getI18nText('admin_lbl_lng', 'Долгота (lng)'), -180, 180);
 
     if ((lat === null && lng !== null) || (lat !== null && lng === null)) {
-        throw new Error('Заполните и lat, и lng, либо оставьте оба поля пустыми');
+        throw new Error(getI18nText('admin_lat_lng_pair_err', 'Заполните и lat, и lng, либо оставьте оба поля пустыми'));
     }
 
     return {
@@ -163,6 +165,17 @@ function getI18nText(key, fallback) {
     return fallback;
 }
 
+function getI18nLocale() {
+    const lang = window.i18n && typeof window.i18n.getLang === 'function'
+        ? window.i18n.getLang()
+        : 'ru';
+    return lang === 'kk' ? 'kk-KZ' : 'ru-KZ';
+}
+
+function getHardDeleteConfirmPhrase() {
+    return getI18nText('admin_delete_phrase', HARD_DELETE_CONFIRM_PHRASE_FALLBACK);
+}
+
 function isSupabaseLockAbortError(error) {
     const message = (error && error.message) ? String(error.message) : '';
     const name = (error && error.name) ? String(error.name) : '';
@@ -184,7 +197,10 @@ function isTransientNetworkAuthError(error) {
 
 function toAuthUiErrorMessage(error, fallbackMessage) {
     if (isTransientNetworkAuthError(error)) {
-        return 'Network connection to Supabase failed. Check VPN/proxy/antivirus and try again.';
+        return getI18nText(
+            'admin_err_network',
+            'Не удалось подключиться к Supabase. Проверьте VPN/proxy/антивирус и попробуйте снова.'
+        );
     }
 
     return (error && error.message) ? error.message : fallbackMessage;
@@ -380,7 +396,10 @@ function isRlsDeniedError(error) {
 }
 
 function createAdminRoleRequiredError() {
-    const error = new Error('Admin role is required for this account. Run scripts/register_admin_email.js and sign in again.');
+    const error = new Error(getI18nText(
+        'admin_role_required',
+        'Для этого аккаунта нужна роль администратора. Запустите scripts/register_admin_email.js и войдите снова.'
+    ));
     error.code = 'ADMIN_ROLE_REQUIRED';
     return error;
 }
@@ -448,8 +467,8 @@ async function forceSignOutForTerminatedSession() {
         clearSessionTrackingState();
         await withAuthRetry(() => db.auth.signOut());
         showGate();
-        showToast('Сессия завершена на другом устройстве.', 'error');
-        showGateMessage('error', 'Эта сессия была завершена с другого устройства.');
+        showToast(getI18nText('admin_session_terminated_toast', 'Сессия завершена на другом устройстве.'), 'error');
+        showGateMessage('error', getI18nText('admin_session_terminated_msg', 'Эта сессия была завершена с другого устройства.'));
     } finally {
         remoteSignOutInProgress = false;
     }
@@ -478,22 +497,22 @@ function scheduleSessionDeadline() {
 
     if (deadline <= now) {
         setTimeout(async () => {
-            showToast('Сессия истекла (15 минут). Выполнен выход.', 'error');
+            showToast(getI18nText('admin_session_expired_toast', 'Сессия истекла (15 минут). Выполнен выход.'), 'error');
             await closeAdminSession('session_expired');
             await withAuthRetry(() => db.auth.signOut());
             showGate();
-            showGateMessage('error', 'Сессия истекла. Войдите снова.');
+            showGateMessage('error', getI18nText('admin_session_expired_msg', 'Сессия истекла. Войдите снова.'));
         }, 0);
         return;
     }
 
     const msLeft = Math.max(0, deadline - now);
     sessionDeadlineTimer = setTimeout(async () => {
-        showToast('Сессия истекла (15 минут). Выполнен выход.', 'error');
+        showToast(getI18nText('admin_session_expired_toast', 'Сессия истекла (15 минут). Выполнен выход.'), 'error');
         await closeAdminSession('session_expired');
         await withAuthRetry(() => db.auth.signOut());
         showGate();
-        showGateMessage('error', 'Сессия истекла. Войдите снова.');
+        showGateMessage('error', getI18nText('admin_session_expired_msg', 'Сессия истекла. Войдите снова.'));
     }, msLeft);
 }
 
@@ -587,7 +606,9 @@ function setLoginButtonState(isLoading) {
     }
 
     loginBtn.disabled = isLoading;
-    loginBtn.textContent = isLoading ? 'Входим...' : 'Войти';
+    loginBtn.textContent = isLoading
+        ? getI18nText('admin_gate_login_loading', 'Входим...')
+        : getI18nText('admin_gate_login', 'Войти');
 }
 
 function setMagicLinkButtonState(isLoading) {
@@ -597,7 +618,9 @@ function setMagicLinkButtonState(isLoading) {
     }
 
     magicLinkBtn.disabled = isLoading;
-    magicLinkBtn.textContent = isLoading ? 'Отправляем...' : 'Отправить Magic Link';
+    magicLinkBtn.textContent = isLoading
+        ? getI18nText('admin_gate_magic_loading', 'Отправляем...')
+        : getI18nText('admin_gate_magic', 'Отправить Magic Link');
 }
 
 function setMfaButtonState(isLoading, label) {
@@ -606,7 +629,9 @@ function setMfaButtonState(isLoading, label) {
     if (mfaVerifyBtn) {
         mfaVerifyBtn.disabled = isLoading;
         if (label) {
-            mfaVerifyBtn.textContent = isLoading ? 'Проверяем...' : label;
+            mfaVerifyBtn.textContent = isLoading
+                ? getI18nText('admin_mfa_verify_loading', 'Проверяем...')
+                : label;
         }
     }
 
@@ -741,8 +766,8 @@ async function apiRequest(path, options = {}) {
         const payload = {
             first_name: firstName,
             last_name: normalizeTextValue(body.last_name, 100),
-            birth_date: yearToDateOrNull(body.birth_year, 'Год рождения'),
-            death_date: yearToDateOrNull(body.death_year, 'Год смерти'),
+            birth_date: yearToDateOrNull(body.birth_year, getI18nText('admin_lbl_birth_year', 'Год рождения')),
+            death_date: yearToDateOrNull(body.death_year, getI18nText('admin_lbl_death_year', 'Год смерти')),
             biography: normalizeTextValue(body.biography, 6000),
             cemetery_id: cemeteryIdRaw || null,
             location: locationPayload.point,
@@ -776,11 +801,11 @@ async function apiRequest(path, options = {}) {
         }
 
         if (Object.prototype.hasOwnProperty.call(body, 'birth_year')) {
-            patch.birth_date = yearToDateOrNull(body.birth_year, 'Год рождения');
+            patch.birth_date = yearToDateOrNull(body.birth_year, getI18nText('admin_lbl_birth_year', 'Год рождения'));
         }
 
         if (Object.prototype.hasOwnProperty.call(body, 'death_year')) {
-            patch.death_date = yearToDateOrNull(body.death_year, 'Год смерти');
+            patch.death_date = yearToDateOrNull(body.death_year, getI18nText('admin_lbl_death_year', 'Год смерти'));
         }
 
         if (Object.prototype.hasOwnProperty.call(body, 'biography')) {
@@ -940,7 +965,7 @@ async function apiRequest(path, options = {}) {
             if (!publishedProfileId) {
 
                 const createRes = await db.from('profiles').insert([{
-                    first_name: (submission.full_name || '').trim() || 'Unknown',
+                    first_name: (submission.full_name || '').trim() || getI18nText('common_unknown', 'Unknown'),
                     last_name: null,
                     patronymic: null,
                     birth_date: toSafeYearDateLoose(submission.birth_year),
@@ -1073,7 +1098,9 @@ function showMfaStep(config) {
 
     if (mfaQrImage) {
         mfaQrImage.src = config.qrCode || '';
-        mfaQrImage.alt = config.qrCode ? 'QR code for authenticator app' : '';
+        mfaQrImage.alt = config.qrCode
+            ? getI18nText('admin_mfa_qr_alt', 'QR-код для приложения-аутентификатора')
+            : '';
     }
 
     if (mfaSecretWrap) {
@@ -1085,11 +1112,11 @@ function showMfaStep(config) {
     }
 
     if (mfaVerifyBtn) {
-        mfaVerifyBtn.textContent = config.buttonLabel || 'Подтвердить код';
+        mfaVerifyBtn.textContent = config.buttonLabel || getI18nText('admin_mfa_verify', 'Подтвердить код');
     }
 
     if (mfaCancelBtn) {
-        mfaCancelBtn.textContent = config.cancelLabel || 'Выйти';
+        mfaCancelBtn.textContent = config.cancelLabel || getI18nText('admin_nav_logout', 'Выйти');
     }
 
     if (mfaCodeInput) {
@@ -1097,7 +1124,7 @@ function showMfaStep(config) {
         mfaCodeInput.focus();
     }
 
-    setMfaButtonState(false, config.buttonLabel || 'Подтвердить код');
+    setMfaButtonState(false, config.buttonLabel || getI18nText('admin_mfa_verify', 'Подтвердить код'));
 }
 
 function showGate() {
@@ -1182,16 +1209,16 @@ async function startTotpEnrollment() {
     pendingMfa = {
         mode: 'setup',
         factorId: data.id,
-        buttonLabel: 'Включить защиту',
+        buttonLabel: getI18nText('admin_mfa_setup_btn', 'Включить защиту'),
     };
 
     showMfaStep({
-        title: 'Подключите приложение-аутентификатор',
-        text: 'Отсканируйте QR-код в Google Authenticator или аналогичном приложении, затем введите 6-значный код.',
+        title: getI18nText('admin_mfa_setup_title', 'Подключите приложение-аутентификатор'),
+        text: getI18nText('admin_mfa_setup_text', 'Отсканируйте QR-код в Google Authenticator или аналогичном приложении, затем введите 6-значный код.'),
         qrCode: data.totp?.qr_code || '',
         secret: data.totp?.secret || '',
         buttonLabel: pendingMfa.buttonLabel,
-        cancelLabel: 'Выйти',
+        cancelLabel: getI18nText('admin_nav_logout', 'Выйти'),
     });
 }
 
@@ -1199,16 +1226,16 @@ async function promptForMfaVerification(factorId) {
     pendingMfa = {
         mode: 'verify',
         factorId,
-        buttonLabel: 'Подтвердить вход',
+        buttonLabel: getI18nText('admin_mfa_verify_login_btn', 'Подтвердить вход'),
     };
 
     showMfaStep({
-        title: 'Подтвердите вход',
-        text: 'Введите 6-значный код из Google Authenticator, чтобы открыть админку.',
+        title: getI18nText('admin_mfa_title', 'Подтвердите вход'),
+        text: getI18nText('admin_mfa_login_text', 'Введите 6-значный код из Google Authenticator, чтобы открыть админку.'),
         qrCode: '',
         secret: '',
         buttonLabel: pendingMfa.buttonLabel,
-        cancelLabel: 'Выйти',
+        cancelLabel: getI18nText('admin_nav_logout', 'Выйти'),
     });
 }
 
@@ -1249,12 +1276,12 @@ async function syncAuthUI(session) {
         }
 
         if (verifiedTotpFactor) {
-            showGateMessage('success', 'Пароль принят. Подтвердите вход кодом из приложения-аутентификатора.');
+            showGateMessage('success', getI18nText('admin_mfa_password_ok_verify', 'Пароль принят. Подтвердите вход кодом из приложения-аутентификатора.'));
             await promptForMfaVerification(verifiedTotpFactor.id);
             return;
         }
 
-        showGateMessage('success', 'Пароль принят. Теперь нужно один раз включить двухфакторную защиту.');
+        showGateMessage('success', getI18nText('admin_mfa_password_ok_setup', 'Пароль принят. Теперь нужно один раз включить двухфакторную защиту.'));
         await startTotpEnrollment();
     } catch (error) {
         if (error.isMfaBypass) {
@@ -1286,7 +1313,7 @@ async function syncAuthUI(session) {
 
         console.error(error);
         showGate();
-        showGateMessage('error', error.message || 'Не удалось подготовить двухфакторную проверку.');
+        showGateMessage('error', error.message || getI18nText('admin_mfa_prepare_failed', 'Не удалось подготовить двухфакторную проверку.'));
     }
 }
 
@@ -1294,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!window.db || !window.getSession) {
         console.error('[Admin] Supabase client is not initialized. Check src/js/config.public.js / src/js/config.js.');
         showGate();
-        showGateMessage('error', 'Supabase client is not configured. Check SUPABASE_URL and SUPABASE_ANON_KEY.');
+        showGateMessage('error', getI18nText('admin_supabase_not_configured', 'Supabase client не настроен. Проверьте SUPABASE_URL и SUPABASE_ANON_KEY.'));
         return;
     }
 
@@ -1324,15 +1351,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             if (isTransientNetworkAuthError(error)) {
-                showGateMessage('error', toAuthUiErrorMessage(error, 'Auth network error.'));
+                showGateMessage('error', toAuthUiErrorMessage(error, getI18nText('admin_auth_network_err', 'Сетевая ошибка авторизации.')));
                 return;
             }
             if (isSupabaseLockAbortError(error)) {
-                showGateMessage('error', 'Retry sign in. Parallel auth requests were detected.');
+                showGateMessage('error', getI18nText('admin_auth_parallel_err', 'Повторите вход. Обнаружены параллельные запросы авторизации.'));
                 return;
             }
 
-            showGateMessage('error', error.message || 'Auth error.');
+            showGateMessage('error', error.message || getI18nText('admin_auth_generic_err', 'Ошибка авторизации.'));
         });
     });
 
@@ -1346,12 +1373,12 @@ async function loginUser() {
     const password = passwordInput?.value || '';
 
     if (!email) {
-        showGateMessage('error', 'Введите admin email.');
+        showGateMessage('error', getI18nText('admin_gate_email_required', 'Введите admin email.'));
         return;
     }
 
     if (!password) {
-        showGateMessage('error', 'Введите пароль администратора.');
+        showGateMessage('error', getI18nText('admin_gate_pass_required', 'Введите пароль администратора.'));
         return;
     }
 
@@ -1364,7 +1391,7 @@ async function loginUser() {
     try {
         loginResult = await withAuthRetry(() => db.auth.signInWithPassword({ email, password }));
     } catch (error) {
-        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to sign in.'));
+        showGateMessage('error', toAuthUiErrorMessage(error, getI18nText('admin_gate_signin_failed', 'Не удалось выполнить вход.')));
         setLoginButtonState(false);
         setMagicLinkButtonState(false);
         return;
@@ -1374,8 +1401,8 @@ async function loginUser() {
 
     if (error) {
         const message = error.message === 'Invalid login credentials'
-            ? 'Неверный email или пароль.'
-            : (error.message || 'Не удалось выполнить вход.');
+            ? getI18nText('admin_gate_invalid_creds', 'Неверный email или пароль.')
+            : (error.message || getI18nText('admin_gate_signin_failed', 'Не удалось выполнить вход.'));
         showGateMessage('error', message);
         setLoginButtonState(false);
         setMagicLinkButtonState(false);
@@ -1391,7 +1418,7 @@ async function sendMagicLink() {
     const email = emailInput?.value.trim().toLowerCase();
 
     if (!email) {
-        showGateMessage('error', 'Введите admin email, на который нужно отправить Magic Link.');
+        showGateMessage('error', getI18nText('admin_gate_magic_email_required', 'Введите admin email, на который нужно отправить Magic Link.'));
         return;
     }
 
@@ -1410,7 +1437,7 @@ async function sendMagicLink() {
             },
         }));
     } catch (error) {
-        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to send magic link.'));
+        showGateMessage('error', toAuthUiErrorMessage(error, getI18nText('admin_gate_magic_failed', 'Не удалось отправить Magic Link.')));
         setLoginButtonState(false);
         setMagicLinkButtonState(false);
         return;
@@ -1420,28 +1447,28 @@ async function sendMagicLink() {
 
     if (error) {
         const message = error.message && error.message.includes('Signups not allowed for otp')
-            ? 'Этот email не зарегистрирован как администратор. Сначала добавьте его через scripts/register_admin_email.js.'
-            : (error.message || 'Не удалось отправить ссылку для входа.');
+            ? getI18nText('admin_gate_magic_not_admin', 'Этот email не зарегистрирован как администратор. Сначала добавьте его через scripts/register_admin_email.js.')
+            : (error.message || getI18nText('admin_gate_magic_failed', 'Не удалось отправить Magic Link.'));
         showGateMessage('error', message);
         setLoginButtonState(false);
         setMagicLinkButtonState(false);
         return;
     }
 
-    showGateMessage('success', 'Письмо отправлено. После перехода по ссылке админка всё равно попросит код из приложения-аутентификатора.');
+    showGateMessage('success', getI18nText('admin_gate_magic_sent', 'Письмо отправлено. После перехода по ссылке админка всё равно попросит код из приложения-аутентификатора.'));
     setLoginButtonState(false);
     setMagicLinkButtonState(false);
 }
 
 async function verifyMfaCode() {
     if (!pendingMfa?.factorId) {
-        showGateMessage('error', 'Сначала выполните вход по email и паролю.');
+        showGateMessage('error', getI18nText('admin_mfa_signin_first', 'Сначала выполните вход по email и паролю.'));
         return;
     }
 
     const code = getMfaCode();
     if (!/^\d{6}$/.test(code)) {
-        showGateMessage('error', 'Введите 6-значный код из приложения-аутентификатора.');
+        showGateMessage('error', getI18nText('admin_mfa_code_invalid', 'Введите 6-значный код из приложения-аутентификатора.'));
         return;
     }
 
@@ -1455,7 +1482,7 @@ async function verifyMfaCode() {
             code,
         }));
     } catch (error) {
-        showGateMessage('error', toAuthUiErrorMessage(error, 'Failed to verify code.'));
+        showGateMessage('error', toAuthUiErrorMessage(error, getI18nText('admin_mfa_verify_failed', 'Не удалось проверить код.')));
         setMfaButtonState(false, pendingMfa.buttonLabel);
         return;
     }
@@ -1464,15 +1491,15 @@ async function verifyMfaCode() {
 
     if (error) {
         let message = error.message === 'Invalid TOTP code entered'
-            ? 'Неверный или просроченный код. Попробуйте еще раз.'
-            : (error.message || 'Не удалось подтвердить код.');
+            ? getI18nText('admin_mfa_code_wrong', 'Неверный или просроченный код. Попробуйте еще раз.')
+            : (error.message || getI18nText('admin_mfa_code_failed', 'Не удалось подтвердить код.'));
         showGateMessage('error', message);
         setMfaButtonState(false, pendingMfa.buttonLabel);
         return;
     }
 
     pendingMfa = null;
-    showGateMessage('success', 'Вход подтверждён.');
+    showGateMessage('success', getI18nText('admin_mfa_signed_in', 'Вход подтверждён.'));
     setMfaButtonState(false);
     await queueAuthSync(await withAuthRetry(() => getSession()));
 }
@@ -1495,7 +1522,7 @@ async function logout() {
 }
 
 function formatCemeteryOptionLabel(item) {
-    const name = normalizeTextValue(item?.name, 200) || 'Без названия';
+    const name = normalizeTextValue(item?.name, 200) || getI18nText('admin_cemetery_unnamed', 'Без названия');
     const city = normalizeTextValue(item?.city, 120);
     const region = normalizeTextValue(item?.region, 120);
     const parts = [name];
@@ -1600,7 +1627,7 @@ function getSelectedCemeteryId(prefix) {
     }
 
     if (!isUuidValue(cemeteryId)) {
-        throw new Error('Выберите место захоронения из списка');
+        throw new Error(getI18nText('admin_cemetery_choose_from_list', 'Выберите место захоронения из списка'));
     }
 
     return cemeteryId;
@@ -1635,11 +1662,17 @@ async function ensureCemeteryCatalogLoaded(force = false) {
 function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
     const firstName = normalizeTextValue(document.getElementById(`${prefix}_firstName`)?.value, 100);
     if (!firstName) {
-        throw new Error('Имя обязательно');
+        throw new Error(getI18nText('admin_name_required', 'Имя обязательно'));
     }
 
-    const birthYear = validateYearInput(document.getElementById(`${prefix}_birthYear`)?.value, 'Год рождения');
-    const deathYear = validateYearInput(document.getElementById(`${prefix}_deathYear`)?.value, 'Год смерти');
+    const birthYear = validateYearInput(
+        document.getElementById(`${prefix}_birthYear`)?.value,
+        getI18nText('admin_lbl_birth_year', 'Год рождения')
+    );
+    const deathYear = validateYearInput(
+        document.getElementById(`${prefix}_deathYear`)?.value,
+        getI18nText('admin_lbl_death_year', 'Год смерти')
+    );
 
     const locationPayload = parseLocationInput(
         document.getElementById(`${prefix}_lat`)?.value,
@@ -1660,7 +1693,7 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
     if (includeId) {
         const profileId = normalizeTextValue(document.getElementById(`${prefix}_id`)?.value, 80);
         if (!isUuidValue(profileId)) {
-            throw new Error('Некорректный ID профиля');
+            throw new Error(getI18nText('admin_profile_id_invalid', 'Некорректный ID профиля'));
         }
         payload.id = profileId;
     }
@@ -1745,8 +1778,8 @@ async function loadManageProfiles() {
         renderManageTab(allData.manage);
     } catch (err) {
         console.error(err);
-        showToast(err.message || 'Ошибка загрузки базы профилей', 'error');
-        listContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки</p></div>';
+        showToast(err.message || getI18nText('admin_manage_load_err', 'Ошибка загрузки базы профилей'), 'error');
+        listContainer.innerHTML = `<div class="empty"><p>${escapeHtml(getI18nText('admin_load_error', 'Ошибка загрузки'))}</p></div>`;
     }
 }
 
@@ -1757,7 +1790,7 @@ function renderManageTab(items) {
     }
 
     if (!items.length) {
-        container.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Профилей пока нет</p></div>';
+        container.innerHTML = `<div class="empty"><div class="empty-icon">✓</div><p>${escapeHtml(getI18nText('admin_manage_empty', 'Профилей пока нет'))}</p></div>`;
         return;
     }
 
@@ -1776,7 +1809,7 @@ function renderManageTab(items) {
             : '-';
         const visibilityStatus = item.visibility_status || 'public';
         const isPrivate = visibilityStatus === 'private';
-        const safeName = escapeHtml(name || 'Unknown');
+        const safeName = escapeHtml(name || getI18nText('common_unknown', 'Unknown'));
         const safeYears = escapeHtml(years);
         const safeLegacySlug = escapeHtml(item.epitaph || '-');
         const safeUuid = escapeHtml(item.id || '-');
@@ -1790,12 +1823,12 @@ function renderManageTab(items) {
         <div>
             <div class="card-title">${safeName}</div>
             <div class="card-meta-row" style="margin-top:8px;">
-                <div class="card-meta-item">Годы: <span>${safeYears}</span></div>
-                <div class="card-meta-item">Старый ID (slug): <span>${safeLegacySlug}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_years', 'Годы'))}: <span>${safeYears}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_legacy_slug', 'Старый ID (slug)'))}: <span>${safeLegacySlug}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
-                <div class="card-meta-item">Место захоронения: <span>${safeCemetery}</span></div>
-                <div class="card-meta-item">Координаты: <span>${safeLocation}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Место захоронения'))}: <span>${safeCemetery}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLocation}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">UUID: <span style="font-family:monospace; font-size:0.75rem;">${safeUuid}</span></div>
@@ -1828,7 +1861,7 @@ function formatDateTime(value) {
         return '-';
     }
     try {
-        return new Date(value).toLocaleString('ru-KZ');
+        return new Date(value).toLocaleString(getI18nLocale());
     } catch (e) {
         return value;
     }
@@ -1864,11 +1897,13 @@ function renderSessionList(containerId, items, emptyText) {
         div.className = 'card';
         div.style.gridTemplateColumns = '1fr';
 
-        const activeLabel = isSessionActive(item) ? 'Активна' : 'Неактивна';
+        const activeLabel = isSessionActive(item)
+            ? getI18nText('admin_session_active', 'Активна')
+            : getI18nText('admin_session_inactive', 'Неактивна');
         const endedLabel = item.ended_at
-            ? `${formatDateTime(item.ended_at)} (${item.end_reason || 'reason not set'})`
+            ? `${formatDateTime(item.ended_at)} (${item.end_reason || getI18nText('admin_session_reason_not_set', 'причина не указана')})`
             : '—';
-        const safeDeviceName = escapeHtml(item.device_name || 'Unknown device');
+        const safeDeviceName = escapeHtml(item.device_name || getI18nText('admin_unknown_device', 'Неизвестное устройство'));
         const safeActiveLabel = escapeHtml(activeLabel);
         const safeEmail = escapeHtml(item.email || '-');
         const safeStartedAt = escapeHtml(formatDateTime(item.started_at));
@@ -1880,11 +1915,11 @@ function renderSessionList(containerId, items, emptyText) {
         <div class="card-title">${safeDeviceName} — ${safeActiveLabel}</div>
         <div class="card-meta-row">
             <div class="card-meta-item">Email: <span>${safeEmail}</span></div>
-            <div class="card-meta-item">Start: <span>${safeStartedAt}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_start', 'Начало'))}: <span>${safeStartedAt}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Last seen: <span>${safeLastSeen}</span></div>
-            <div class="card-meta-item">End: <span>${safeEndedLabel}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_last_seen', 'Последняя активность'))}: <span>${safeLastSeen}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_end', 'Завершена'))}: <span>${safeEndedLabel}</span></div>
         </div>
         <div class="card-detail" style="margin-top:8px; word-break:break-word;">${safeUserAgent}</div>
         `;
@@ -1896,7 +1931,7 @@ async function terminateOtherSessions() {
     try {
         const session = await withAuthRetry(() => getSession());
         if (!session?.user?.id) {
-            showToast('Сессия истекла. Войдите снова.', 'error');
+            showToast(getI18nText('admin_session_expired_msg', 'Сессия истекла. Войдите снова.'), 'error');
             return;
         }
 
@@ -1918,7 +1953,7 @@ async function terminateOtherSessions() {
             throw result.error;
         }
 
-        showToast('Все остальные сессии завершены.', 'success');
+        showToast(getI18nText('admin_sessions_terminated', 'Все остальные сессии завершены.'), 'success');
         await loadSessionActivity();
     } catch (error) {
         if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
@@ -1929,7 +1964,7 @@ async function terminateOtherSessions() {
             return;
         }
         console.error(error);
-        showToast('Не удалось завершить остальные сессии.', 'error');
+        showToast(getI18nText('admin_sessions_terminate_failed', 'Не удалось завершить остальные сессии.'), 'error');
     }
 }
 
@@ -1959,8 +1994,16 @@ async function loadSessionActivity() {
         allData.sessions = items;
 
         const active = items.filter((item) => isSessionActive(item));
-        renderSessionList('sessions-active-list', active, 'Сейчас нет активных устройств');
-        renderSessionList('sessions-history-list', items, 'История входов пока пуста');
+        renderSessionList(
+            'sessions-active-list',
+            active,
+            getI18nText('admin_sessions_active_empty', 'Сейчас нет активных устройств')
+        );
+        renderSessionList(
+            'sessions-history-list',
+            items,
+            getI18nText('admin_sessions_history_empty', 'История входов пока пуста')
+        );
     } catch (error) {
         if (isAdminRoleRequiredError(error) || isRlsDeniedError(error)) {
             const message = isAdminRoleRequiredError(error)
@@ -1970,9 +2013,9 @@ async function loadSessionActivity() {
             return;
         }
         console.error(error);
-        activeContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки активных устройств</p></div>';
-        historyContainer.innerHTML = '<div class="empty"><p>Ошибка загрузки истории</p></div>';
-        showToast('Не удалось загрузить сессии', 'error');
+        activeContainer.innerHTML = `<div class="empty"><p>${escapeHtml(getI18nText('admin_sessions_active_load_err', 'Ошибка загрузки активных устройств'))}</p></div>`;
+        historyContainer.innerHTML = `<div class="empty"><p>${escapeHtml(getI18nText('admin_sessions_history_load_err', 'Ошибка загрузки истории'))}</p></div>`;
+        showToast(getI18nText('admin_sessions_load_err', 'Не удалось загрузить сессии'), 'error');
     }
 }
 
@@ -2024,7 +2067,7 @@ async function handleCreateProfile(e) {
 async function openEditProfileModal(profileId) {
     const item = (allData.manage || []).find((entry) => entry.id === profileId);
     if (!item) {
-        showToast('Профиль не найден', 'error');
+        showToast(getI18nText('admin_profile_not_found', 'Профиль не найден'), 'error');
         return;
     }
 
@@ -2146,9 +2189,10 @@ async function restoreProfile(profileId) {
 }
 
 async function hardDeleteProfile(profileId) {
-    const promptText = `${getI18nText('admin_mp_delete_confirm', 'Для удаления введите:')} ${HARD_DELETE_CONFIRM_PHRASE}`;
+    const confirmPhrase = getHardDeleteConfirmPhrase();
+    const promptText = `${getI18nText('admin_mp_delete_confirm', 'Для удаления введите:')} ${confirmPhrase}`;
     const confirmation = window.prompt(promptText, '');
-    if (confirmation !== HARD_DELETE_CONFIRM_PHRASE) {
+    if (confirmation !== confirmPhrase) {
         showToast(getI18nText('admin_toast_delete_cancelled', 'Удаление отменено'), 'error');
         return;
     }
@@ -2188,10 +2232,10 @@ async function loadAllData() {
         updateCounts();
     } catch (err) {
         console.error('Error loading data:', err);
-        showToast('Ошибка загрузки данных из Supabase', 'error');
-        showEmpty('names', 'Ошибка подключения к базе данных');
-        showEmpty('profiles', 'Ошибка подключения к базе данных');
-        showEmpty('bios', 'Ошибка подключения к базе данных');
+        showToast(getI18nText('admin_data_load_err', 'Ошибка загрузки данных из Supabase'), 'error');
+        showEmpty('names', getI18nText('admin_data_connect_err', 'Ошибка подключения к базе данных'));
+        showEmpty('profiles', getI18nText('admin_data_connect_err', 'Ошибка подключения к базе данных'));
+        showEmpty('bios', getI18nText('admin_data_connect_err', 'Ошибка подключения к базе данных'));
     }
 }
 
@@ -2206,14 +2250,15 @@ function updateCounts() {
     document.getElementById('cnt-profiles').textContent = pendingP;
     document.getElementById('cnt-bios').textContent = pendingB;
     document.getElementById('cnt-leads').textContent = pendingL;
-    document.getElementById('totalPendingBadge').textContent = `${total} на проверке`;
+    const pendingSuffix = getI18nText('admin_nav_pending_suffix', 'на проверке');
+    document.getElementById('totalPendingBadge').textContent = `${total} ${pendingSuffix}`;
 }
 
 function showLoading(tab) {
     document.getElementById(`content-${tab}`).innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 }
 
-function showEmpty(tab, msg = 'Заявок нет') {
+function showEmpty(tab, msg = getI18nText('admin_empty_requests', 'Заявок нет')) {
     document.getElementById(`content-${tab}`).innerHTML = `<div class="empty"><div class="empty-icon">✓</div><p>${escapeHtml(msg)}</p></div>`;
 }
 
@@ -2255,7 +2300,7 @@ const ADMIN_KZ_REGIONS = [
 ];
 
 function getAdminRegion(lat, lng) {
-    if (!lat || !lng) return 'Неизвестно';
+    if (!lat || !lng) return getI18nText('common_unknown', 'Неизвестно');
     let bestR = null;
     
     // Bounds check first for explicit overriding (e.g. Ulytau)
@@ -2283,7 +2328,7 @@ function getAdminRegion(lat, lng) {
             if (d < minD) { minD = d; bestR = r; }
         });
     }
-    return bestR ? bestR.n_ru : 'Неизвестно';
+    return bestR ? bestR.n_ru : getI18nText('common_unknown', 'Неизвестно');
 }
 
 function createCard(type, item) {
@@ -2292,15 +2337,15 @@ function createCard(type, item) {
     div.id = getCardDomId(item.id);
 
     const submitted = item.submitted_at || item.created_at;
-    const dateStr = submitted ? new Date(submitted).toLocaleString('ru-KZ') : '-';
+    const dateStr = submitted ? new Date(submitted).toLocaleString(getI18nLocale()) : '-';
     const safeDateStr = escapeHtml(dateStr);
     const normalizedStatus = ['pending', 'approved', 'rejected'].includes(item.status) ? item.status : '';
     const statusClass = normalizedStatus ? `status-${normalizedStatus}` : '';
     const statusText = normalizedStatus === 'pending'
-        ? 'На проверке'
+        ? getI18nText('admin_status_pending', 'На проверке')
         : normalizedStatus === 'approved'
-            ? 'Одобрено'
-            : normalizedStatus === 'rejected' ? 'Отклонено' : '';
+            ? getI18nText('admin_status_approved', 'Одобрено')
+            : normalizedStatus === 'rejected' ? getI18nText('admin_status_rejected', 'Отклонено') : '';
 
     let content = '';
     let badgeClass = '';
@@ -2318,12 +2363,12 @@ function createCard(type, item) {
 
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Текущее название: <span>${safeCurrentName}</span></div>
-            <div class="card-meta-item">Координаты: <span>${safeLat}, ${safeLng}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_current_name', 'Текущее название'))}: <span>${safeCurrentName}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLat}, ${safeLng}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Область: <span style="color:var(--gold);">${safeRegion}</span></div>
-            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_region', 'Область'))}: <span style="color:var(--gold);">${safeRegion}</span></div>
+            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">${escapeHtml(getI18nText('admin_lbl_district', 'Район'))}: <span style="color:var(--muted);"></span></div>
         </div>
         ${safeComment}`;
 
@@ -2356,15 +2401,15 @@ function createCard(type, item) {
 
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Годы: <span>${safeBirthYear} - ${safeDeathYear}</span></div>
-            <div class="card-meta-item">Кладбище: <span>${safeCemeteryName}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_years', 'Годы'))}: <span>${safeBirthYear} - ${safeDeathYear}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Кладбище'))}: <span>${safeCemeteryName}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Координаты: <span>${safeLat}, ${safeLng}</span></div>
-            <div class="card-meta-item">Область: <span style="color:var(--gold);">${safeRegion}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLat}, ${safeLng}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_region', 'Область'))}: <span style="color:var(--gold);">${safeRegion}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">Аудан: <span style="color:var(--muted);"></span></div>
+            <div class="card-meta-item" id="${cardUid}-district" style="display:none;">${escapeHtml(getI18nText('admin_lbl_district', 'Район'))}: <span style="color:var(--muted);"></span></div>
         </div>
         ${safeDescription}`;
 
@@ -2386,15 +2431,15 @@ function createCard(type, item) {
     } else if (type === 'bios') {
         badgeClass = 'badge-bios';
         const shortProfileId = (item.profile_id || '').substring(0, 8) || '?';
-        title = `Дополнение к профилю #${shortProfileId}`;
-        const safeAuthor = item.author_name ? `<div class="card-detail" style="margin-bottom:6px;">От: <strong>${escapeHtml(item.author_name)}</strong></div>` : '';
+        title = `${getI18nText('admin_lbl_bio_addition', 'Дополнение к профилю')} #${shortProfileId}`;
+        const safeAuthor = item.author_name ? `<div class="card-detail" style="margin-bottom:6px;">${escapeHtml(getI18nText('admin_lbl_author', 'Автор'))}: <strong>${escapeHtml(item.author_name)}</strong></div>` : '';
         const safeBioText = escapeHtml(item.bio_text || '');
         content = `
         ${safeAuthor}
         <div class="card-detail" style="background:#18181b; border-radius:8px; padding:10px; margin-top:6px; line-height:1.6;">"${safeBioText}"</div>`;
     } else if (type === 'leads') {
         badgeClass = 'badge-profiles';
-        title = `Заказ: ${item.service_type || ''}`;
+        title = `${getI18nText('admin_lbl_order', 'Заказ')}: ${item.service_type || ''}`;
         const safeCustomerName = escapeHtml(item.customer_name || '-');
         const safeCustomerPhone = escapeHtml(item.customer_phone || '-');
         const safeProfileRef = escapeHtml(item.profile_ref || '-');
@@ -2403,28 +2448,34 @@ function createCard(type, item) {
 
         content = `
         <div class="card-meta-row">
-            <div class="card-meta-item">Клиент: <span>${safeCustomerName}</span></div>
-            <div class="card-meta-item">Телефон: <span>${safeCustomerPhone}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_customer', 'Клиент'))}: <span>${safeCustomerName}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_phone', 'Телефон'))}: <span>${safeCustomerPhone}</span></div>
         </div>
         <div class="card-meta-row">
-            <div class="card-meta-item">Профиль: <span>${safeProfileRef}</span></div>
-            <div class="card-meta-item">Цена: <span>${safePrice} ₸</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_profile', 'Профиль'))}: <span>${safeProfileRef}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_price', 'Цена'))}: <span>${safePrice} ₸</span></div>
         </div>
         ${safeComment}`;
     }
 
-    const typeLabel = type === 'names' ? 'Название' : type === 'profiles' ? 'Личность' : type === 'bios' ? 'Биография' : 'Заказ';
+    const typeLabel = type === 'names'
+        ? getI18nText('admin_type_name', 'Название')
+        : type === 'profiles'
+            ? getI18nText('admin_type_profile', 'Личность')
+            : type === 'bios'
+                ? getI18nText('admin_type_bio', 'Биография')
+                : getI18nText('admin_type_lead', 'Заказ');
     const safeTitle = escapeHtml(title || '');
 
     let actionsHtml = '';
     if (normalizedStatus === 'pending') {
         actionsHtml = `
-            <button class="btn-approve">Одобрить</button>
-            <button class="btn-reject">Отклонить</button>`;
+            <button class="btn-approve">${escapeHtml(getI18nText('admin_btn_approve', 'Одобрить'))}</button>
+            <button class="btn-reject">${escapeHtml(getI18nText('admin_btn_reject', 'Отклонить'))}</button>`;
     } else if (normalizedStatus) {
         actionsHtml = `
-            <span style="font-size:0.75rem; color:var(--muted); text-align:right;">Уже обработано</span>
-            <button class="btn-reject btn-reset-status" style="background:transparent; color:var(--muted); border-color:var(--border); margin-top:5px;">Отменить (Вернуть)</button>`;
+            <span style="font-size:0.75rem; color:var(--muted); text-align:right;">${escapeHtml(getI18nText('admin_status_already_processed', 'Уже обработано'))}</span>
+            <button class="btn-reject btn-reset-status" style="background:transparent; color:var(--muted); border-color:var(--border); margin-top:5px;">${escapeHtml(getI18nText('admin_btn_reset_status', 'Отменить (Вернуть)'))}</button>`;
     }
 
     div.innerHTML = `
@@ -2433,7 +2484,7 @@ function createCard(type, item) {
         <div class="card-title">${safeTitle}</div>
         ${content}
         <div class="card-meta-row" style="margin-top:12px;">
-            <div class="card-meta-item">Время: <span>${safeDateStr}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_time', 'Время'))}: <span>${safeDateStr}</span></div>
             ${normalizedStatus ? `<span class="status-chip ${statusClass}">${escapeHtml(statusText)}</span>` : ''}
         </div>
     </div>
@@ -2487,14 +2538,20 @@ async function updateStatus(type, id, status) {
             card.replaceWith(newCard);
         }
 
-        const approvedMsg = type === 'profiles' ? 'Одобрено и добавлено в кабинет (приватно)' : 'Одобрено';
+        const approvedMsg = type === 'profiles'
+            ? getI18nText('admin_status_approved_profile_private', 'Одобрено и добавлено в кабинет (приватно)')
+            : getI18nText('admin_status_approved_short', 'Одобрено');
         showToast(
-            status === 'approved' ? approvedMsg : (status === 'pending' ? 'Возвращено на модерацию' : 'Заявка отклонена'),
+            status === 'approved'
+                ? approvedMsg
+                : (status === 'pending'
+                    ? getI18nText('admin_status_returned', 'Возвращено на модерацию')
+                    : getI18nText('admin_status_rejected_short', 'Заявка отклонена')),
             status === 'approved' ? 'success' : (status === 'pending' ? 'success' : 'error')
         );
     } catch (err) {
         console.error('Error updating status:', err);
-        showToast('Ошибка при обновлении статуса', 'error');
+        showToast(getI18nText('admin_status_update_err', 'Ошибка при обновлении статуса'), 'error');
 
         // Restore buttons if failed
         const card = document.getElementById(cardDomId);

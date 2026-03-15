@@ -41,6 +41,15 @@ function getSupabase() {
 let currentUser = null;
 let authStateSubscription = null;
 let authInitPromise = null;
+let viewportListenerAttached = false;
+
+function t(key, fallback) {
+  if (window.i18n && typeof window.i18n.t === 'function') {
+    const translated = window.i18n.t(key);
+    return translated !== key ? translated : fallback;
+  }
+  return fallback;
+}
 
 function syncAuthProviderUI() {
   const googleButtons = document.querySelectorAll('.auth-google-btn');
@@ -49,7 +58,7 @@ function syncAuthProviderUI() {
     button.disabled = !GOOGLE_OAUTH_ENABLED;
     button.style.display = GOOGLE_OAUTH_ENABLED ? '' : 'none'; // Ensure CSS doesn't override hidden
     button.tabIndex = GOOGLE_OAUTH_ENABLED ? 0 : -1;
-    button.title = GOOGLE_OAUTH_ENABLED ? '' : 'Google login is currently unavailable';
+    button.title = GOOGLE_OAUTH_ENABLED ? '' : t('auth_google_unavailable', 'Google login is currently unavailable');
   });
 
   const dividers = document.querySelectorAll('.auth-divider');
@@ -169,7 +178,7 @@ async function processOAuthRedirect() {
 }
 
 async function getVerifiedSession(sb, withRetry) {
-  const attempts = withRetry ? 2 : 1;
+  const attempts = withRetry ? 3 : 1;
   let lastError = null;
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -200,6 +209,20 @@ function applyAuthSession(session, event) {
   }
 }
 
+function shouldHideDesktopLoginButton(loginBtn) {
+  if (!loginBtn) return false;
+  if (loginBtn.dataset.hideDesktop !== 'true') return false;
+  return window.matchMedia('(min-width: 769px)').matches;
+}
+
+function ensureViewportListener() {
+  if (viewportListenerAttached) return;
+  window.addEventListener('resize', () => {
+    updateAuthUI();
+  });
+  viewportListenerAttached = true;
+}
+
 function ensureAuthStateListener(sb) {
   if (authStateSubscription) return;
 
@@ -216,6 +239,7 @@ async function initAuth() {
 
   authInitPromise = (async () => {
     syncAuthProviderUI();
+    ensureViewportListener();
     const sb = getSupabase();
     if (!sb) return;
 
@@ -226,7 +250,7 @@ async function initAuth() {
 
     if (hadOAuthRedirect) {
       if (callbackError) {
-        showAuthInlineError(callbackError.message || 'Google login failed. Try again.');
+        showAuthInlineError(callbackError.message || t('auth_google_failed', 'Google login failed. Try again.'));
         openAuthModal('login');
       } else {
         // SDK (detectSessionInUrl:true) is auto-processing the hash/code token.
@@ -238,15 +262,20 @@ async function initAuth() {
           applyAuthSession(session, 'SIGNED_IN');
           console.log('[Auth] OAuth session confirmed and applied.');
         } else {
-          showAuthInlineError('Session could not be established. Please try again.');
+          showAuthInlineError(t('auth_session_failed', 'Session could not be established. Please try again.'));
           openAuthModal('login');
           console.warn('[Auth] OAuth redirect present but session null after 1000ms.');
         }
       }
     } else {
       // Normal page load — apply session immediately for instant UI
-      const { session } = await getVerifiedSession(sb, false);
+      const { session } = await getVerifiedSession(sb, true);
       applyAuthSession(session, 'INITIAL_SESSION');
+      if (!session) {
+        await sleep(700);
+        const { session: delayedSession } = await getVerifiedSession(sb, true);
+        if (delayedSession) applyAuthSession(delayedSession, 'INITIAL_SESSION');
+      }
     }
   })();
 
@@ -278,7 +307,7 @@ async function signIn({ email, password }) {
 
 async function signInWithGoogle() {
   if (!GOOGLE_OAUTH_ENABLED) {
-    showAuthInlineError('Google login is currently unavailable. Use email and password.');
+    showAuthInlineError(t('auth_google_unavailable_use_email', 'Google login is currently unavailable. Use email and password.'));
     switchAuthTab('login');
     const emailInput = document.getElementById('login-email');
     if (emailInput) emailInput.focus();
@@ -299,7 +328,7 @@ async function signInWithGoogle() {
   });
   
   if (error) {
-    const message = error.message || 'Google login failed.';
+    const message = error.message || t('auth_google_failed', 'Google login failed.');
     showAuthInlineError(message);
     switchAuthTab('login');
     const emailInput = document.getElementById('login-email');
@@ -361,7 +390,7 @@ function updateAuthUI() {
   if (currentUser) {
     const displayName = currentUser.user_metadata?.full_name
       || currentUser.email?.split('@')[0]
-      || 'Пайдаланушы';
+      || t('auth_user_fallback', 'Пайдаланушы');
 
     if (loginBtn) loginBtn.style.display = 'none';
     if (userMenu) userMenu.style.display = 'flex';
@@ -371,10 +400,10 @@ function updateAuthUI() {
       mobileAuthBtn.href = 'dashboard.html';
     }
   } else {
-    if (loginBtn) loginBtn.style.display = 'flex';
+    if (loginBtn) loginBtn.style.display = shouldHideDesktopLoginButton(loginBtn) ? 'none' : 'flex';
     if (userMenu) userMenu.style.display = 'none';
     if (mobileAuthBtn) {
-      mobileAuthBtn.textContent = '🔑 Кіру / Тіркелу';
+      mobileAuthBtn.textContent = t('nav_login', '🔑 Кіру / Тіркелу');
       mobileAuthBtn.href = '#';
       mobileAuthBtn.onclick = (e) => { e.preventDefault(); openAuthModal(); };
     }
@@ -423,7 +452,7 @@ function bindAuthForms() {
       const errorEl = loginForm.querySelector('.auth-error');
 
       btn.disabled = true;
-      btn.textContent = 'Жүктелуде...';
+      btn.textContent = t('auth_loading', 'Жүктелуде...');
       if (errorEl) errorEl.textContent = '';
 
       try {
@@ -432,7 +461,7 @@ function bindAuthForms() {
       } catch (err) {
         if (errorEl) errorEl.textContent = formatAuthError(err.message);
         btn.disabled = false;
-        btn.textContent = 'Кіру';
+        btn.textContent = t('auth_login_plain', 'Кіру');
       }
     });
   }
@@ -448,22 +477,22 @@ function bindAuthForms() {
       const successEl = registerForm.querySelector('.auth-success');
 
       if (password.length < 6) {
-        if (errorEl) errorEl.textContent = 'Пароль кемінде 6 символ болуы керек';
+        if (errorEl) errorEl.textContent = t('auth_password_short', 'Пароль кемінде 6 символ болуы керек');
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'Тіркелуде...';
+      btn.textContent = t('auth_register_loading', 'Тіркелуде...');
       if (errorEl) errorEl.textContent = '';
 
       try {
         await signUp({ email, password, fullName });
         btn.style.display = 'none';
-        if (successEl) successEl.textContent = '✅ Тіркелдіңіз! Email-ді тексеріңіз (растау хаты жіберілді).';
+        if (successEl) successEl.textContent = t('auth_register_success', '✅ Тіркелдіңіз! Email-ді тексеріңіз (растау хаты жіберілді).');
       } catch (err) {
         if (errorEl) errorEl.textContent = formatAuthError(err.message);
         btn.disabled = false;
-        btn.textContent = 'Тіркелу';
+        btn.textContent = t('auth_register_plain', 'Тіркелу');
       }
     });
   }
@@ -471,10 +500,10 @@ function bindAuthForms() {
 
 function formatAuthError(msg) {
   const map = {
-    'Invalid login credentials': 'Email немесе пароль қате',
-    'Email not confirmed': 'Email расталмаған. Почтаңызды тексеріңіз.',
-    'User already registered': 'Бұл email тіркелген',
-    'Password should be at least 6 characters': 'Пароль тым қысқа (мин. 6 символ)',
+    'Invalid login credentials': t('auth_err_invalid_credentials', 'Email немесе пароль қате'),
+    'Email not confirmed': t('auth_err_email_not_confirmed', 'Email расталмаған. Почтаңызды тексеріңіз.'),
+    'User already registered': t('auth_err_user_exists', 'Бұл email тіркелген'),
+    'Password should be at least 6 characters': t('auth_err_password_short', 'Пароль тым қысқа (мин. 6 символ)'),
   };
   return map[msg] || msg;
 }
