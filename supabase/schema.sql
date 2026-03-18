@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   epitaph TEXT,
   -- Эпитафия (надпись на памятнике)
   biography TEXT,
+  profile_category VARCHAR(60) DEFAULT 'shezhire',
   -- Полная биография
   -- Внешние ключи
   cemetery_id UUID REFERENCES cemeteries(id) ON DELETE
@@ -162,6 +163,7 @@ CREATE TABLE IF NOT EXISTS ugc_profile_submissions (
   birth_year VARCHAR(50),
   death_year VARCHAR(50),
   description TEXT,
+  profile_category VARCHAR(60) DEFAULT 'shezhire',
   published_profile_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

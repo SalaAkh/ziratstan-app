@@ -1078,10 +1078,12 @@
             window.currentAddCemetery = { id: cemeteryId, name: cemeteryName, lat, lng };
             const info = document.getElementById('addCemeteryInfo');
             if (info) info.innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName || ''}</strong><br>${t('map_coords_label')}: ${lat || ''}, ${lng || ''}`;
-            ['addFullName', 'addBirth', 'addDeath', 'addDescription'].forEach(id => {
+            ['addFullName', 'addBirth', 'addDeath', 'addDescription', 'addCategory'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            const category = document.getElementById('addCategory');
+            if (category) category.value = 'shezhire';
             const mod = document.getElementById('addProfileModal');
             if (mod) mod.style.display = 'flex';
         }
@@ -1108,7 +1110,8 @@
                 fullName: fullName,
                 birth: document.getElementById('addBirth').value.trim(),
                 death: document.getElementById('addDeath').value.trim(),
-                description: document.getElementById('addDescription').value.trim()
+                description: document.getElementById('addDescription').value.trim(),
+                profileCategory: document.getElementById('addCategory')?.value || 'shezhire'
             };
 
             try {

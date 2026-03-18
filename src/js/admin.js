@@ -28,6 +28,17 @@ const AUTH_RETRY_MAX_ATTEMPTS = 3;
 const YEAR_INPUT_PATTERN = /^\d{4}$/;
 const HARD_DELETE_CONFIRM_PHRASE_FALLBACK = 'УДАЛИТЬ';
 const PROFILE_VISIBILITY_VALUES = new Set(['public', 'private', 'family_only']);
+const DEFAULT_PROFILE_CATEGORY = 'shezhire';
+const PROFILE_CATEGORY_VALUES = new Set([
+    'shezhire',
+    'historical',
+    'military',
+    'religious',
+    'educator',
+    'culture',
+    'public_figure',
+    'other',
+]);
 
 let cemeteryCatalog = [];
 let cemeteryCatalogLoaded = false;
@@ -170,6 +181,60 @@ function getI18nLocale() {
         ? window.i18n.getLang()
         : 'ru';
     return lang === 'kk' ? 'kk-KZ' : 'ru-KZ';
+}
+
+function isMissingColumnError(error, columnName) {
+    const message = error?.message ? String(error.message) : '';
+    return Boolean(columnName) && (message.includes(columnName) || message.includes(`"${columnName}"`));
+}
+
+function normalizeProfileCategory(value, { allowNull = false, allowUnknown = false } = {}) {
+    const raw = normalizeTextValue(value, 60);
+    if (!raw) {
+        return allowNull ? null : DEFAULT_PROFILE_CATEGORY;
+    }
+
+    const normalized = String(raw).toLowerCase().trim().replace(/\s+/g, '_');
+    if (!PROFILE_CATEGORY_VALUES.has(normalized)) {
+        if (allowUnknown) {
+            return 'other';
+        }
+        throw new Error(getI18nText('admin_profile_category_invalid', 'Некорректная категория профиля'));
+    }
+
+    return normalized;
+}
+
+function getProfileCategoryLabel(value) {
+    const category = normalizeProfileCategory(value, { allowNull: true, allowUnknown: true }) || DEFAULT_PROFILE_CATEGORY;
+    switch (category) {
+    case 'shezhire':
+        return getI18nText('profile_cat_shezhire', 'Шежіре');
+    case 'historical':
+        return getI18nText('profile_cat_historical', 'Историческая личность');
+    case 'military':
+        return getI18nText('profile_cat_military', 'Военный/ветеран');
+    case 'religious':
+        return getI18nText('profile_cat_religious', 'Религиозный деятель');
+    case 'educator':
+        return getI18nText('profile_cat_educator', 'Просветитель/учёный');
+    case 'culture':
+        return getI18nText('profile_cat_culture', 'Культура/искусство');
+    case 'public_figure':
+        return getI18nText('profile_cat_public_figure', 'Общественный деятель');
+    default:
+        return getI18nText('profile_cat_other', 'Другое');
+    }
+}
+
+function setProfileCategorySelection(prefix, categoryValue = null) {
+    const input = document.getElementById(`${prefix}_category`);
+    if (!input) {
+        return;
+    }
+
+    const normalized = normalizeProfileCategory(categoryValue, { allowNull: true, allowUnknown: true });
+    input.value = normalized || DEFAULT_PROFILE_CATEGORY;
 }
 
 function getHardDeleteConfirmPhrase() {
@@ -694,10 +759,10 @@ async function apiRequest(path, options = {}) {
 
     if (path === '/admin/bootstrap' && method === 'GET') {
         const [namesRes, profilesRes, biosRes, leadsRes] = await Promise.all([
-            db.from('ugc_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-            db.from('ugc_profile_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-            db.from('ugc_bio_submissions').select('*').order('submitted_at', { ascending: false }).limit(100),
-            db.from('services_leads').select('*').order('submitted_at', { ascending: false }).limit(100),
+            db.from('ugc_submissions').select('*').order('submitted_at', { ascending: false, nullsFirst: false }).limit(100),
+            db.from('ugc_profile_submissions').select('*').order('submitted_at', { ascending: false, nullsFirst: false }).limit(100),
+            db.from('ugc_bio_submissions').select('*').order('submitted_at', { ascending: false, nullsFirst: false }).limit(100),
+            db.from('services_leads').select('*').order('submitted_at', { ascending: false, nullsFirst: false }).limit(100),
         ]);
 
         throwIfError(namesRes, 'Failed to load name submissions');
@@ -729,17 +794,26 @@ async function apiRequest(path, options = {}) {
     }
 
     if (path === '/admin/profiles' && method === 'GET') {
-        const result = await db
+        let result = await db
             .from('profiles')
-            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
+            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, profile_category, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
             .order('created_at', { ascending: false })
             .limit(300);
+
+        if (result?.error && isMissingColumnError(result.error, 'profile_category')) {
+            result = await db
+                .from('profiles')
+                .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
+                .order('created_at', { ascending: false })
+                .limit(300);
+        }
 
         throwIfError(result, 'Failed to load profiles');
         const items = (result.data || []).map((item) => {
             const point = extractLocationPoint(item.location);
             return {
                 ...item,
+                profile_category: normalizeProfileCategory(item.profile_category, { allowNull: true, allowUnknown: true }) || DEFAULT_PROFILE_CATEGORY,
                 lat: point.lat,
                 lng: point.lng,
                 cemetery_name: item.cemeteries?.name || null,
@@ -762,6 +836,7 @@ async function apiRequest(path, options = {}) {
         if (cemeteryIdRaw && !isUuidValue(cemeteryIdRaw)) {
             throw toError('Invalid cemetery_id', 400);
         }
+        const profileCategory = normalizeProfileCategory(body.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY;
 
         const payload = {
             first_name: firstName,
@@ -769,13 +844,19 @@ async function apiRequest(path, options = {}) {
             birth_date: yearToDateOrNull(body.birth_year, getI18nText('admin_lbl_birth_year', 'Год рождения')),
             death_date: yearToDateOrNull(body.death_year, getI18nText('admin_lbl_death_year', 'Год смерти')),
             biography: normalizeTextValue(body.biography, 6000),
+            profile_category: profileCategory,
             cemetery_id: cemeteryIdRaw || null,
             location: locationPayload.point,
             visibility_status: 'public',
             owner_id: isUuidValue(approverUserId) ? approverUserId : null,
         };
 
-        const result = await db.from('profiles').insert([payload]).select('id').single();
+        let result = await db.from('profiles').insert([payload]).select('id').single();
+        if (result?.error && isMissingColumnError(result.error, 'profile_category')) {
+            const fallbackPayload = { ...payload };
+            delete fallbackPayload.profile_category;
+            result = await db.from('profiles').insert([fallbackPayload]).select('id').single();
+        }
         throwIfError(result, 'Failed to create profile');
         return { item: result.data };
     }
@@ -812,6 +893,10 @@ async function apiRequest(path, options = {}) {
             patch.biography = normalizeTextValue(body.biography, 6000);
         }
 
+        if (Object.prototype.hasOwnProperty.call(body, 'profile_category')) {
+            patch.profile_category = normalizeProfileCategory(body.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY;
+        }
+
         if (Object.prototype.hasOwnProperty.call(body, 'visibility_status')) {
             const visibilityStatus = normalizeTextValue(body.visibility_status, 40);
             if (!visibilityStatus || !PROFILE_VISIBILITY_VALUES.has(visibilityStatus)) {
@@ -839,12 +924,26 @@ async function apiRequest(path, options = {}) {
             throw toError('No fields to update', 400);
         }
 
-        const result = await db
+        let result = await db
             .from('profiles')
             .update(patch)
             .eq('id', profileId)
             .select('id')
             .maybeSingle();
+
+        if (result?.error && isMissingColumnError(result.error, 'profile_category') && Object.prototype.hasOwnProperty.call(patch, 'profile_category')) {
+            const fallbackPatch = { ...patch };
+            delete fallbackPatch.profile_category;
+            if (!Object.keys(fallbackPatch).length) {
+                throw toError('profile_category column is missing', 500);
+            }
+            result = await db
+                .from('profiles')
+                .update(fallbackPatch)
+                .eq('id', profileId)
+                .select('id')
+                .maybeSingle();
+        }
 
         throwIfError(result, 'Failed to update profile');
         if (!result.data) {
@@ -907,20 +1006,37 @@ async function apiRequest(path, options = {}) {
         }
 
         if (body.type === 'profiles' && body.status === 'approved') {
-            let subRes = await db
+            const fetchSubmission = async (fields) => db
                 .from('ugc_profile_submissions')
-                .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id, published_profile_id')
+                .select(fields.join(', '))
                 .eq('id', body.id)
                 .maybeSingle();
-
+            let submissionFields = [
+                'id',
+                'full_name',
+                'birth_year',
+                'death_year',
+                'description',
+                'lat',
+                'lng',
+                'cemetery_id',
+                'owner_id',
+                'profile_category',
+                'published_profile_id',
+            ];
             let hasPublishedIdColumn = true;
-            if (subRes?.error && String(subRes.error.message || '').includes('published_profile_id')) {
+            let hasProfileCategoryColumn = true;
+            let subRes = await fetchSubmission(submissionFields);
+
+            if (subRes?.error && isMissingColumnError(subRes.error, 'published_profile_id')) {
                 hasPublishedIdColumn = false;
-                subRes = await db
-                    .from('ugc_profile_submissions')
-                    .select('id, full_name, birth_year, death_year, description, lat, lng, cemetery_id, owner_id')
-                    .eq('id', body.id)
-                    .maybeSingle();
+                submissionFields = submissionFields.filter((field) => field !== 'published_profile_id');
+                subRes = await fetchSubmission(submissionFields);
+            }
+            if (subRes?.error && isMissingColumnError(subRes.error, 'profile_category')) {
+                hasProfileCategoryColumn = false;
+                submissionFields = submissionFields.filter((field) => field !== 'profile_category');
+                subRes = await fetchSubmission(submissionFields);
             }
 
             throwIfError(subRes, 'Failed to load profile submission');
@@ -935,6 +1051,9 @@ async function apiRequest(path, options = {}) {
             const ownerId = isUuidValue(submission.owner_id)
                 ? submission.owner_id
                 : (isUuidValue(approverUserId) ? approverUserId : null);
+            const submissionProfileCategory = hasProfileCategoryColumn
+                ? (normalizeProfileCategory(submission.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY)
+                : DEFAULT_PROFILE_CATEGORY;
 
             if (publishedProfileId && isUuidValue(publishedProfileId)) {
                 const existingProfileRes = await db
@@ -964,18 +1083,25 @@ async function apiRequest(path, options = {}) {
 
             if (!publishedProfileId) {
 
-                const createRes = await db.from('profiles').insert([{
+                const profilePayload = {
                     first_name: (submission.full_name || '').trim() || getI18nText('common_unknown', 'Unknown'),
                     last_name: null,
                     patronymic: null,
                     birth_date: toSafeYearDateLoose(submission.birth_year),
                     death_date: toSafeYearDateLoose(submission.death_year),
                     biography: submission.description ? String(submission.description).trim() : null,
+                    profile_category: submissionProfileCategory,
                     visibility_status: 'private',
                     owner_id: ownerId,
                     cemetery_id: isUuidValue(submission.cemetery_id) ? submission.cemetery_id : null,
                     location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
-                }]).select('id').single();
+                };
+                let createRes = await db.from('profiles').insert([profilePayload]).select('id').single();
+                if (createRes?.error && isMissingColumnError(createRes.error, 'profile_category')) {
+                    const fallbackPayload = { ...profilePayload };
+                    delete fallbackPayload.profile_category;
+                    createRes = await db.from('profiles').insert([fallbackPayload]).select('id').single();
+                }
 
                 throwIfError(createRes, 'Failed to publish approved profile');
                 publishedProfileId = createRes.data?.id || null;
@@ -1664,6 +1790,10 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
     if (!firstName) {
         throw new Error(getI18nText('admin_name_required', 'Имя обязательно'));
     }
+    const profileCategory = normalizeProfileCategory(
+        document.getElementById(`${prefix}_category`)?.value,
+        { allowNull: true }
+    ) || DEFAULT_PROFILE_CATEGORY;
 
     const birthYear = validateYearInput(
         document.getElementById(`${prefix}_birthYear`)?.value,
@@ -1685,6 +1815,7 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
         birth_year: birthYear,
         death_year: deathYear,
         biography: normalizeTextValue(document.getElementById(`${prefix}_bio`)?.value, 6000),
+        profile_category: profileCategory,
         cemetery_id: getSelectedCemeteryId(prefix),
         lat: locationPayload.lat,
         lng: locationPayload.lng,
@@ -1706,6 +1837,7 @@ function resetProfileForm(prefix, formId) {
     if (form) {
         form.reset();
     }
+    setProfileCategorySelection(prefix, DEFAULT_PROFILE_CATEGORY);
     setCemeterySelection(prefix, null, '');
 }
 
@@ -1815,6 +1947,7 @@ function renderManageTab(items) {
         const safeUuid = escapeHtml(item.id || '-');
         const safeCemetery = escapeHtml(cemeteryLabel);
         const safeLocation = escapeHtml(locationLabel);
+        const safeCategory = escapeHtml(getProfileCategoryLabel(item.profile_category));
         const safeVisibility = escapeHtml(getVisibilityLabel(visibilityStatus));
         const visibilityClass = getVisibilityClass(visibilityStatus);
         const profileUrl = `profile.html?id=${encodeURIComponent(String(item.id || ''))}`;
@@ -1828,6 +1961,9 @@ function renderManageTab(items) {
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Место захоронения'))}: <span>${safeCemetery}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_category', 'Категория'))}: <span>${safeCategory}</span></div>
+            </div>
+            <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLocation}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
@@ -2022,6 +2158,8 @@ async function loadSessionActivity() {
 function setupManageBindings() {
     bindCemeteryInput('cp');
     bindCemeteryInput('ep');
+    setProfileCategorySelection('cp', DEFAULT_PROFILE_CATEGORY);
+    setProfileCategorySelection('ep', DEFAULT_PROFILE_CATEGORY);
 
     const modal = document.getElementById('editProfileModal');
     if (modal && modal.dataset.bound !== '1') {
@@ -2087,6 +2225,7 @@ async function openEditProfileModal(profileId) {
     const birthYearInput = document.getElementById('ep_birthYear');
     const deathYearInput = document.getElementById('ep_deathYear');
     const bioInput = document.getElementById('ep_bio');
+    const categoryInput = document.getElementById('ep_category');
     const latInput = document.getElementById('ep_lat');
     const lngInput = document.getElementById('ep_lng');
     const idInput = document.getElementById('ep_id');
@@ -2097,6 +2236,7 @@ async function openEditProfileModal(profileId) {
     if (birthYearInput) birthYearInput.value = item.birth_date ? String(item.birth_date).substring(0, 4) : '';
     if (deathYearInput) deathYearInput.value = item.death_date ? String(item.death_date).substring(0, 4) : '';
     if (bioInput) bioInput.value = item.biography || '';
+    if (categoryInput) setProfileCategorySelection('ep', item.profile_category);
     if (latInput) latInput.value = Number.isFinite(item.lat) ? String(item.lat) : '';
     if (lngInput) lngInput.value = Number.isFinite(item.lng) ? String(item.lng) : '';
 
@@ -2393,6 +2533,7 @@ function createCard(type, item) {
         const cardUid = `prof-${toSafeDomId(item.id)}`;
         const safeBirthYear = escapeHtml(item.birth_year || '?');
         const safeDeathYear = escapeHtml(item.death_year || '?');
+        const safeCategory = escapeHtml(getProfileCategoryLabel(item.profile_category));
         const safeCemeteryName = escapeHtml(item.cemetery_name || '-');
         const safeLat = escapeHtml(item.lat || '?');
         const safeLng = escapeHtml(item.lng || '?');
@@ -2402,10 +2543,13 @@ function createCard(type, item) {
         content = `
         <div class="card-meta-row">
             <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_years', 'Годы'))}: <span>${safeBirthYear} - ${safeDeathYear}</span></div>
-            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Кладбище'))}: <span>${safeCemeteryName}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_category', 'Категория'))}: <span>${safeCategory}</span></div>
         </div>
         <div class="card-meta-row">
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Кладбище'))}: <span>${safeCemeteryName}</span></div>
             <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLat}, ${safeLng}</span></div>
+        </div>
+        <div class="card-meta-row">
             <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_region', 'Область'))}: <span style="color:var(--gold);">${safeRegion}</span></div>
         </div>
         <div class="card-meta-row">

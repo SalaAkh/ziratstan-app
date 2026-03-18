@@ -40,7 +40,9 @@
       suggested_name: data.suggested_name || data.suggestedName || null,
       lat: data.lat || null,
       lng: data.lng || null,
-      comment: data.comment || null
+      comment: data.comment || null,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
     }]);
     if (error) throw error;
   }
@@ -54,7 +56,8 @@
       customer_phone: data.customer_phone || null,
       profile_ref: data.profile_ref || null,
       comment: data.comment || null,
-      price: data.price || null
+      price: data.price || null,
+      submitted_at: new Date().toISOString()
     }]);
     if (error) throw error;
   }
@@ -79,15 +82,26 @@
       birth_year: data.birth || null,
       death_year: data.death || null,
       description: data.description || null,
-      owner_id: ownerId
+      profile_category: data.profileCategory || data.profile_category || null,
+      owner_id: ownerId,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
     };
 
-    var { error } = await sb.from('ugc_profile_submissions').insert([payload]);
-    if (error && String(error.message || '').includes('owner_id')) {
-      // Backward compatibility: DB may not have owner_id column yet.
-      delete payload.owner_id;
-      var retry = await sb.from('ugc_profile_submissions').insert([payload]);
-      error = retry.error || null;
+    var removableColumns = ['owner_id', 'profile_category'];
+    var error = null;
+    for (var attempt = 0; attempt <= removableColumns.length; attempt += 1) {
+      var insertRes = await sb.from('ugc_profile_submissions').insert([payload]);
+      error = insertRes.error || null;
+      if (!error) break;
+
+      var errorMessage = String(error.message || '');
+      var missingColumn = removableColumns.find(function (columnName) {
+        return errorMessage.includes(columnName) && Object.prototype.hasOwnProperty.call(payload, columnName);
+      });
+
+      if (!missingColumn) break;
+      delete payload[missingColumn];
     }
     if (error) throw error;
   }
@@ -98,7 +112,9 @@
     var { error } = await sb.from('ugc_bio_submissions').insert([{
       profile_id: data.profileId || null,
       author_name: data.authorName || null,
-      bio_text: data.text || null
+      bio_text: data.text || null,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
     }]);
     if (error) throw error;
   }
@@ -293,13 +309,15 @@
       // Fetch names
       var namesPromise = sb.from('ugc_submissions')
                            .select('id, suggested_name, lat, lng, status')
-                           .eq('status', 'pending');
+                           .or('status.eq.pending,status.is.null')
+                           .order('submitted_at', { ascending: false, nullsFirst: false });
                            
       // Fetch profiles
       var profilesPromise = sb.from('ugc_profile_submissions')
                               .select('id, full_name, birth_year, death_year, cemetery_id, cemetery_name, lat, lng, status, owner_id')
-                              .eq('status', 'pending')
-                              .eq('owner_id', sessionData.session.user.id);
+                              .eq('owner_id', sessionData.session.user.id)
+                              .or('status.eq.pending,status.is.null')
+                              .order('submitted_at', { ascending: false, nullsFirst: false });
 
       var settled = await Promise.allSettled([namesPromise, profilesPromise]);
       var namesRes = settled[0].status === 'fulfilled' ? settled[0].value : { data: [] };
@@ -355,7 +373,7 @@
           .from('ugc_profile_submissions')
           .select('published_profile_id, status, submitted_at')
           .in('published_profile_id', profileIds)
-          .order('submitted_at', { ascending: false });
+          .order('submitted_at', { ascending: false, nullsFirst: false });
 
         if (moderationRes.error) {
           if (!String(moderationRes.error.message || '').includes('published_profile_id')) {
