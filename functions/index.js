@@ -88,25 +88,37 @@ function isUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 }
 
-const DEFAULT_PROFILE_CATEGORY = 'shezhire';
-const PROFILE_CATEGORY_VALUES = new Set([
-    'shezhire',
-    'historical',
-    'military',
-    'religious',
-    'educator',
-    'culture',
-    'public_figure',
-    'other',
-]);
-
-function toSafeProfileCategory(value, { allowNull = false } = {}) {
-    const raw = toSafeString(value, 60);
-    if (!raw) {
-        return allowNull ? null : DEFAULT_PROFILE_CATEGORY;
+function toSafeShezhireEntries(value) {
+    let source = value;
+    if (typeof source === 'string') {
+        const trimmed = source.trim();
+        if (!trimmed) {
+            return [];
+        }
+        try {
+            source = JSON.parse(trimmed);
+        } catch (_error) {
+            return [];
+        }
     }
-    const normalized = String(raw).toLowerCase().trim().replace(/\s+/g, '_');
-    return PROFILE_CATEGORY_VALUES.has(normalized) ? normalized : null;
+
+    if (!Array.isArray(source)) {
+        return [];
+    }
+
+    return source
+        .map((entry) => {
+            const label = toSafeString(entry?.label ?? entry?.field ?? entry?.title, 120);
+            const text = toSafeString(entry?.value ?? entry?.text ?? entry?.content, 2000);
+            if (!text) {
+                return null;
+            }
+            return {
+                label: label || 'Field',
+                value: text || '',
+            };
+        })
+        .filter(Boolean);
 }
 
 function isMissingColumnError(error, columnName) {
@@ -219,7 +231,7 @@ async function handlePublicUgcProfile(req, res) {
         birth_year: toSafeString(body.birth, 10),
         death_year: toSafeString(body.death, 10),
         description: toSafeString(body.description, 1000),
-        profile_category: toSafeProfileCategory(body.profile_category ?? body.profileCategory, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY,
+        shezhire_entries: toSafeShezhireEntries(body.shezhire_entries ?? body.shezhireEntries),
         owner_id: isUuid(ownerId) ? ownerId : null,
         status: 'pending',
         submitted_at: new Date().toISOString(),
@@ -230,8 +242,8 @@ async function handlePublicUgcProfile(req, res) {
     }
 
     let { error } = await db.from('ugc_profile_submissions').insert([payload]);
-    if (error && isMissingColumnError(error, 'profile_category')) {
-        delete payload.profile_category;
+    if (error && isMissingColumnError(error, 'shezhire_entries')) {
+        delete payload.shezhire_entries;
         const retry = await db.from('ugc_profile_submissions').insert([payload]);
         error = retry.error || null;
     }
@@ -449,11 +461,11 @@ async function handleProfilesGet(req, res) {
 
     let { data, error } = await db
         .from('profiles')
-        .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, profile_category, cemeteries(name)')
+        .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, shezhire_entries, cemeteries(name)')
         .order('created_at', { ascending: false })
         .limit(300);
 
-    if (error && isMissingColumnError(error, 'profile_category')) {
+    if (error && isMissingColumnError(error, 'shezhire_entries')) {
         const fallback = await db
             .from('profiles')
             .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, cemeteries(name)')
@@ -485,14 +497,14 @@ async function handleProfilesPost(req, res) {
         birth_date: body.birth_year ? `${body.birth_year}-01-01` : null,
         death_date: body.death_year ? `${body.death_year}-01-01` : null,
         biography: body.biography ? String(body.biography).trim() : null,
-        profile_category: toSafeProfileCategory(body.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY,
+        shezhire_entries: toSafeShezhireEntries(body.shezhire_entries),
         visibility_status: 'public',
     };
 
     let { data, error } = await db.from('profiles').insert([payload]).select('id').single();
-    if (error && isMissingColumnError(error, 'profile_category')) {
+    if (error && isMissingColumnError(error, 'shezhire_entries')) {
         const fallbackPayload = { ...payload };
-        delete fallbackPayload.profile_category;
+        delete fallbackPayload.shezhire_entries;
         const retry = await db.from('profiles').insert([fallbackPayload]).select('id').single();
         data = retry.data;
         error = retry.error;
@@ -538,20 +550,20 @@ async function handleStatusPost(req, res) {
             'lng',
             'cemetery_id',
             'owner_id',
-            'profile_category',
+            'shezhire_entries',
             'published_profile_id',
         ];
         let hasPublishedIdColumn = true;
-        let hasProfileCategoryColumn = true;
+        let hasShezhireEntriesColumn = true;
         let subRes = await fetchSubmission(submissionFields);
         if (subRes.error && isMissingColumnError(subRes.error, 'published_profile_id')) {
             hasPublishedIdColumn = false;
             submissionFields = submissionFields.filter((field) => field !== 'published_profile_id');
             subRes = await fetchSubmission(submissionFields);
         }
-        if (subRes.error && isMissingColumnError(subRes.error, 'profile_category')) {
-            hasProfileCategoryColumn = false;
-            submissionFields = submissionFields.filter((field) => field !== 'profile_category');
+        if (subRes.error && isMissingColumnError(subRes.error, 'shezhire_entries')) {
+            hasShezhireEntriesColumn = false;
+            submissionFields = submissionFields.filter((field) => field !== 'shezhire_entries');
             subRes = await fetchSubmission(submissionFields);
         }
 
@@ -565,9 +577,9 @@ async function handleStatusPost(req, res) {
         const ownerId = isUuid(submission.owner_id)
             ? submission.owner_id
             : (isUuid(adminUser?.id) ? adminUser.id : null);
-        const submissionProfileCategory = hasProfileCategoryColumn
-            ? (toSafeProfileCategory(submission.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY)
-            : DEFAULT_PROFILE_CATEGORY;
+        const submissionShezhireEntries = hasShezhireEntriesColumn
+            ? toSafeShezhireEntries(submission.shezhire_entries)
+            : [];
 
         if (publishedProfileId && isUuid(publishedProfileId)) {
             const existingProfile = await db
@@ -604,7 +616,7 @@ async function handleStatusPost(req, res) {
                 birth_date: toSafeYearDate(submission.birth_year),
                 death_date: toSafeYearDate(submission.death_year),
                 biography: toSafeString(submission.description, 4000),
-                profile_category: submissionProfileCategory,
+                shezhire_entries: submissionShezhireEntries,
                 visibility_status: 'private',
                 owner_id: ownerId,
                 cemetery_id: isUuid(submission.cemetery_id) ? submission.cemetery_id : null,
@@ -612,9 +624,9 @@ async function handleStatusPost(req, res) {
             };
 
             let created = await db.from('profiles').insert([profilePayload]).select('id').single();
-            if (created.error && isMissingColumnError(created.error, 'profile_category')) {
+            if (created.error && isMissingColumnError(created.error, 'shezhire_entries')) {
                 const fallbackPayload = { ...profilePayload };
-                delete fallbackPayload.profile_category;
+                delete fallbackPayload.shezhire_entries;
                 created = await db.from('profiles').insert([fallbackPayload]).select('id').single();
             }
             if (created.error) throw created.error;

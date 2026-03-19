@@ -97,6 +97,46 @@ function updateBadge(p) {
 }
 
 // ── LOAD ENRICHED BIO FROM JSON ──
+function normalizeProfileShezhireEntries(entries) {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+
+    return entries
+        .map(function (entry) {
+            const label = String((entry && (entry.label || entry.field || entry.title)) || '').trim();
+            const value = String((entry && (entry.value || entry.text || entry.content)) || '').trim();
+            if (!value) return null;
+            return {
+                label: label || t('common_field'),
+                value: value || ''
+            };
+        })
+        .filter(Boolean);
+}
+
+function renderShezhireInfo(entries) {
+    const section = document.getElementById('shezhireInfoSection');
+    const list = document.getElementById('shezhireInfoList');
+    if (!section || !list) return;
+
+    const normalized = normalizeProfileShezhireEntries(entries);
+    if (!normalized.length) {
+        section.style.display = 'none';
+        list.innerHTML = '';
+        return;
+    }
+
+    list.innerHTML = normalized.map(function (entry) {
+        return `
+            <div class="info-cell">
+                <div class="info-label">${escapeHtml(entry.label)}</div>
+                <div class="info-value">${escapeHtml(entry.value || '—')}</div>
+            </div>`;
+    }).join('');
+    section.style.display = '';
+}
+
 async function loadEnrichedBio(profileId) {
     try {
         const res = await fetch(`/public/data/profiles/${profileId}.json`);
@@ -493,6 +533,7 @@ async function initProfile() {
     document.getElementById('infoDeath').textContent = p.death;
     document.getElementById('infoCemetery').textContent = displayOrUnknown(p.cemetery);
     document.getElementById('infoCity').textContent = displayOrUnknown(p.city);
+    renderShezhireInfo(p.shezhireEntries || p.shezhire_entries);
 
     // Badge
     updateBadge(p);

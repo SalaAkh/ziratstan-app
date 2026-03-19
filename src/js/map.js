@@ -1078,12 +1078,11 @@
             window.currentAddCemetery = { id: cemeteryId, name: cemeteryName, lat, lng };
             const info = document.getElementById('addCemeteryInfo');
             if (info) info.innerHTML = `📍 <strong style="color:var(--text);">${cemeteryName || ''}</strong><br>${t('map_coords_label')}: ${lat || ''}, ${lng || ''}`;
-            ['addFullName', 'addBirth', 'addDeath', 'addDescription', 'addCategory'].forEach(id => {
+            ['addFullName', 'addBirth', 'addDeath', 'addDescription'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            const category = document.getElementById('addCategory');
-            if (category) category.value = 'shezhire';
+            renderMapShezhireEntries();
             const mod = document.getElementById('addProfileModal');
             if (mod) mod.style.display = 'flex';
         }
@@ -1091,6 +1090,76 @@
         function closeAddProfileModal() {
             const mod = document.getElementById('addProfileModal');
             if (mod) mod.style.display = 'none';
+        }
+
+        function getDefaultMapShezhireEntries() {
+            return [
+                { label: t('shezhire_default_ru'), value: '' },
+                { label: t('shezhire_default_shezhire'), value: '' }
+            ];
+        }
+
+        function normalizeMapShezhireEntries(entries) {
+            if (!Array.isArray(entries)) return [];
+            return entries
+                .map(entry => {
+                    const label = String(entry?.label || entry?.field || '').trim();
+                    const value = String(entry?.value || entry?.text || '').trim();
+                    if (!label && !value) return null;
+                    return {
+                        label: label || t('common_field'),
+                        value: value || ''
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function createMapShezhireRowHtml(entry = {}) {
+            const label = escapeHtml(entry.label || '');
+            const value = escapeHtml(entry.value || '');
+            return `
+                <div data-map-shezhire-row style="display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.3fr) auto; gap:8px; align-items:start;">
+                    <input type="text" list="mapShezhireFieldOptions" data-map-shezhire-label
+                        style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
+                        placeholder="${escapeHtml(t('shezhire_field_ph'))}" value="${label}">
+                    <textarea data-map-shezhire-value rows="2"
+                        style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
+                        placeholder="${escapeHtml(t('shezhire_value_ph'))}">${value}</textarea>
+                    <button type="button" onclick="removeMapShezhireRow(this)"
+                        style="padding:11px 12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit; align-self:stretch;" data-i18n="common_remove_row">${escapeHtml(t('common_remove_row'))}</button>
+                </div>`;
+        }
+
+        function renderMapShezhireEntries(entries = null) {
+            const list = document.getElementById('addShezhireList');
+            if (!list) return;
+            const normalized = normalizeMapShezhireEntries(entries);
+            const rows = normalized.length ? normalized : getDefaultMapShezhireEntries();
+            list.innerHTML = rows.map(entry => createMapShezhireRowHtml(entry)).join('');
+        }
+
+        function addMapShezhireRow(entry = null) {
+            const list = document.getElementById('addShezhireList');
+            if (!list) return;
+            list.insertAdjacentHTML('beforeend', createMapShezhireRowHtml(entry || { label: '', value: '' }));
+        }
+
+        function removeMapShezhireRow(trigger) {
+            const row = trigger?.closest?.('[data-map-shezhire-row]');
+            if (row) row.remove();
+        }
+
+        function collectMapShezhireEntries() {
+            const list = document.getElementById('addShezhireList');
+            if (!list) return [];
+            return Array.from(list.querySelectorAll('[data-map-shezhire-row]'))
+                .map(row => {
+                    const label = String(row.querySelector('[data-map-shezhire-label]')?.value || '').trim();
+                    const value = String(row.querySelector('[data-map-shezhire-value]')?.value || '').trim();
+                    if (!value) return null;
+                    return { label: label || t('common_field'), value };
+                })
+                .filter(Boolean);
         }
 
         async function submitAddProfile(event) {
@@ -1111,7 +1180,7 @@
                 birth: document.getElementById('addBirth').value.trim(),
                 death: document.getElementById('addDeath').value.trim(),
                 description: document.getElementById('addDescription').value.trim(),
-                profileCategory: document.getElementById('addCategory')?.value || 'shezhire'
+                shezhireEntries: collectMapShezhireEntries()
             };
 
             try {

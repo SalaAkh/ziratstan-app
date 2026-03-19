@@ -285,7 +285,7 @@ function collectShezhireEntries(prefix) {
             label: row.querySelector('[data-shezhire-label]')?.value,
             value: row.querySelector('[data-shezhire-value]')?.value,
         }))
-        .filter(Boolean);
+        .filter((entry) => entry && entry.value);
 }
 
 function formatShezhireSummary(entries, maxItems = 2) {
@@ -296,7 +296,12 @@ function formatShezhireSummary(entries, maxItems = 2) {
 
     return normalizedEntries
         .slice(0, maxItems)
-        .map((entry) => `${entry.label}: ${entry.value}`)
+        .map((entry) => {
+            const value = entry.value && entry.value.length > 80
+                ? `${entry.value.slice(0, 77)}...`
+                : entry.value;
+            return `${entry.label}: ${value}`;
+        })
         .join(' | ');
 }
 
@@ -1084,11 +1089,11 @@ async function apiRequest(path, options = {}) {
                 'lng',
                 'cemetery_id',
                 'owner_id',
-                'profile_category',
+                'shezhire_entries',
                 'published_profile_id',
             ];
             let hasPublishedIdColumn = true;
-            let hasProfileCategoryColumn = true;
+            let hasShezhireEntriesColumn = true;
             let subRes = await fetchSubmission(submissionFields);
 
             if (subRes?.error && isMissingColumnError(subRes.error, 'published_profile_id')) {
@@ -1096,9 +1101,9 @@ async function apiRequest(path, options = {}) {
                 submissionFields = submissionFields.filter((field) => field !== 'published_profile_id');
                 subRes = await fetchSubmission(submissionFields);
             }
-            if (subRes?.error && isMissingColumnError(subRes.error, 'profile_category')) {
-                hasProfileCategoryColumn = false;
-                submissionFields = submissionFields.filter((field) => field !== 'profile_category');
+            if (subRes?.error && isMissingColumnError(subRes.error, 'shezhire_entries')) {
+                hasShezhireEntriesColumn = false;
+                submissionFields = submissionFields.filter((field) => field !== 'shezhire_entries');
                 subRes = await fetchSubmission(submissionFields);
             }
 
@@ -1114,9 +1119,9 @@ async function apiRequest(path, options = {}) {
             const ownerId = isUuidValue(submission.owner_id)
                 ? submission.owner_id
                 : (isUuidValue(approverUserId) ? approverUserId : null);
-            const submissionProfileCategory = hasProfileCategoryColumn
-                ? (normalizeProfileCategory(submission.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY)
-                : DEFAULT_PROFILE_CATEGORY;
+            const submissionShezhireEntries = hasShezhireEntriesColumn
+                ? normalizeShezhireEntries(submission.shezhire_entries)
+                : [];
 
             if (publishedProfileId && isUuidValue(publishedProfileId)) {
                 const existingProfileRes = await db
@@ -1153,16 +1158,16 @@ async function apiRequest(path, options = {}) {
                     birth_date: toSafeYearDateLoose(submission.birth_year),
                     death_date: toSafeYearDateLoose(submission.death_year),
                     biography: submission.description ? String(submission.description).trim() : null,
-                    profile_category: submissionProfileCategory,
+                    shezhire_entries: submissionShezhireEntries,
                     visibility_status: 'private',
                     owner_id: ownerId,
                     cemetery_id: isUuidValue(submission.cemetery_id) ? submission.cemetery_id : null,
                     location: (lng !== null && lat !== null) ? `SRID=4326;POINT(${lng} ${lat})` : null,
                 };
                 let createRes = await db.from('profiles').insert([profilePayload]).select('id').single();
-                if (createRes?.error && isMissingColumnError(createRes.error, 'profile_category')) {
+                if (createRes?.error && isMissingColumnError(createRes.error, 'shezhire_entries')) {
                     const fallbackPayload = { ...profilePayload };
-                    delete fallbackPayload.profile_category;
+                    delete fallbackPayload.shezhire_entries;
                     createRes = await db.from('profiles').insert([fallbackPayload]).select('id').single();
                 }
 
@@ -1853,10 +1858,6 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
     if (!firstName) {
         throw new Error(getI18nText('admin_name_required', 'Имя обязательно'));
     }
-    const profileCategory = normalizeProfileCategory(
-        document.getElementById(`${prefix}_category`)?.value,
-        { allowNull: true }
-    ) || DEFAULT_PROFILE_CATEGORY;
 
     const birthYear = validateYearInput(
         document.getElementById(`${prefix}_birthYear`)?.value,
@@ -1878,7 +1879,7 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
         birth_year: birthYear,
         death_year: deathYear,
         biography: normalizeTextValue(document.getElementById(`${prefix}_bio`)?.value, 6000),
-        profile_category: profileCategory,
+        shezhire_entries: collectShezhireEntries(prefix),
         cemetery_id: getSelectedCemeteryId(prefix),
         lat: locationPayload.lat,
         lng: locationPayload.lng,
@@ -1900,7 +1901,7 @@ function resetProfileForm(prefix, formId) {
     if (form) {
         form.reset();
     }
-    setProfileCategorySelection(prefix, DEFAULT_PROFILE_CATEGORY);
+    renderShezhireEntryRows(prefix);
     setCemeterySelection(prefix, null, '');
 }
 
@@ -2010,7 +2011,8 @@ function renderManageTab(items) {
         const safeUuid = escapeHtml(item.id || '-');
         const safeCemetery = escapeHtml(cemeteryLabel);
         const safeLocation = escapeHtml(locationLabel);
-        const safeCategory = escapeHtml(getProfileCategoryLabel(item.profile_category));
+        const shezhireSummary = formatShezhireSummary(item.shezhire_entries);
+        const safeShezhire = escapeHtml(shezhireSummary || '-');
         const safeVisibility = escapeHtml(getVisibilityLabel(visibilityStatus));
         const visibilityClass = getVisibilityClass(visibilityStatus);
         const profileUrl = `profile.html?id=${encodeURIComponent(String(item.id || ''))}`;
@@ -2024,7 +2026,7 @@ function renderManageTab(items) {
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Место захоронения'))}: <span>${safeCemetery}</span></div>
-                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_category', 'Категория'))}: <span>${safeCategory}</span></div>
+                <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_shezhire', 'Шежіре / род'))}: <span>${safeShezhire}</span></div>
             </div>
             <div class="card-meta-row" style="margin-top:4px;">
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_coords', 'Координаты'))}: <span>${safeLocation}</span></div>
@@ -2221,8 +2223,8 @@ async function loadSessionActivity() {
 function setupManageBindings() {
     bindCemeteryInput('cp');
     bindCemeteryInput('ep');
-    setProfileCategorySelection('cp', DEFAULT_PROFILE_CATEGORY);
-    setProfileCategorySelection('ep', DEFAULT_PROFILE_CATEGORY);
+    renderShezhireEntryRows('cp');
+    renderShezhireEntryRows('ep');
 
     const modal = document.getElementById('editProfileModal');
     if (modal && modal.dataset.bound !== '1') {
@@ -2288,7 +2290,6 @@ async function openEditProfileModal(profileId) {
     const birthYearInput = document.getElementById('ep_birthYear');
     const deathYearInput = document.getElementById('ep_deathYear');
     const bioInput = document.getElementById('ep_bio');
-    const categoryInput = document.getElementById('ep_category');
     const latInput = document.getElementById('ep_lat');
     const lngInput = document.getElementById('ep_lng');
     const idInput = document.getElementById('ep_id');
@@ -2299,7 +2300,7 @@ async function openEditProfileModal(profileId) {
     if (birthYearInput) birthYearInput.value = item.birth_date ? String(item.birth_date).substring(0, 4) : '';
     if (deathYearInput) deathYearInput.value = item.death_date ? String(item.death_date).substring(0, 4) : '';
     if (bioInput) bioInput.value = item.biography || '';
-    if (categoryInput) setProfileCategorySelection('ep', item.profile_category);
+    renderShezhireEntryRows('ep', item.shezhire_entries);
     if (latInput) latInput.value = Number.isFinite(item.lat) ? String(item.lat) : '';
     if (lngInput) lngInput.value = Number.isFinite(item.lng) ? String(item.lng) : '';
 
@@ -2596,7 +2597,7 @@ function createCard(type, item) {
         const cardUid = `prof-${toSafeDomId(item.id)}`;
         const safeBirthYear = escapeHtml(item.birth_year || '?');
         const safeDeathYear = escapeHtml(item.death_year || '?');
-        const safeCategory = escapeHtml(getProfileCategoryLabel(item.profile_category));
+        const safeShezhire = escapeHtml(formatShezhireSummary(item.shezhire_entries) || '-');
         const safeCemeteryName = escapeHtml(item.cemetery_name || '-');
         const safeLat = escapeHtml(item.lat || '?');
         const safeLng = escapeHtml(item.lng || '?');
@@ -2606,7 +2607,7 @@ function createCard(type, item) {
         content = `
         <div class="card-meta-row">
             <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_years', 'Годы'))}: <span>${safeBirthYear} - ${safeDeathYear}</span></div>
-            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_category', 'Категория'))}: <span>${safeCategory}</span></div>
+            <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_shezhire', 'Шежіре / род'))}: <span>${safeShezhire}</span></div>
         </div>
         <div class="card-meta-row">
             <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_cemetery', 'Кладбище'))}: <span>${safeCemeteryName}</span></div>

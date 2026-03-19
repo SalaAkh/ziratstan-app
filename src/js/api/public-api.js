@@ -31,6 +31,28 @@
     return null;
   }
 
+  function normalizeShezhireEntries(entries) {
+    var source = entries;
+    if (typeof source === 'string') {
+      try {
+        source = JSON.parse(source);
+      } catch (_error) {
+        return [];
+      }
+    }
+    if (!Array.isArray(source)) return [];
+
+    return source.map(function (entry) {
+      var label = String((entry && (entry.label || entry.field || entry.title)) || '').trim();
+      var value = String((entry && (entry.value || entry.text || entry.content)) || '').trim();
+      if (!value) return null;
+      return {
+        label: label || 'Поле',
+        value: value || ''
+      };
+    }).filter(Boolean);
+  }
+
   async function submitUgcSuggestion(data) {
     var sb = getSb();
     if (!sb) throw new Error('API Client not initialized');
@@ -82,13 +104,13 @@
       birth_year: data.birth || null,
       death_year: data.death || null,
       description: data.description || null,
-      profile_category: data.profileCategory || data.profile_category || null,
+      shezhire_entries: normalizeShezhireEntries(data.shezhireEntries || data.shezhire_entries || []),
       owner_id: ownerId,
       status: 'pending',
       submitted_at: new Date().toISOString()
     };
 
-    var removableColumns = ['owner_id', 'profile_category'];
+    var removableColumns = ['owner_id', 'shezhire_entries'];
     var error = null;
     for (var attempt = 0; attempt <= removableColumns.length; attempt += 1) {
       var insertRes = await sb.from('ugc_profile_submissions').insert([payload]);
@@ -185,6 +207,7 @@
         city: data.cemetery?.city || '',
         photo: data.main_photo_url || '',
         bio: data.biography || '',
+        shezhireEntries: normalizeShezhireEntries(data.shezhire_entries),
         epitaph: data.epitaph || '',
         filter: 'historical'
       };
