@@ -819,16 +819,16 @@
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                         <input type="text" id="cp_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                        <select id="cp_category" class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" aria-label="Категория" data-i18n-aria="admin_lbl_category">
-                            <option value="shezhire" data-i18n="profile_cat_shezhire">Шежіре</option>
-                            <option value="historical" data-i18n="profile_cat_historical">Историческая личность</option>
-                            <option value="military" data-i18n="profile_cat_military">Военный/ветеран</option>
-                            <option value="religious" data-i18n="profile_cat_religious">Религиозный деятель</option>
-                            <option value="educator" data-i18n="profile_cat_educator">Просветитель/учёный</option>
-                            <option value="culture" data-i18n="profile_cat_culture">Культура/искусство</option>
-                            <option value="public_figure" data-i18n="profile_cat_public_figure">Общественный деятель</option>
-                            <option value="other" data-i18n="profile_cat_other">Другое</option>
-                        </select>
+                        <div style="border:1px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.02);">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                                <div>
+                                    <div style="font-size:0.85rem; font-weight:700; color:var(--text);" data-i18n="shezhire_block_title">Шежіре / ру ақпараты</div>
+                                    <div class="field-hint" style="margin-top:4px;"><span data-i18n="shezhire_block_desc">Ру/племя, шежіре және басқа жолдарды қалағаныңызша қоса аласыз.</span></div>
+                                </div>
+                                <button type="button" class="gate-btn gate-btn-secondary" style="width:auto; padding:8px 12px;" onclick="addShezhireEntryRow('cp')"><span data-i18n="common_add_row">Жол қосу</span></button>
+                            </div>
+                            <div id="cp_shezhireList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+                        </div>
                         <input type="text" id="cp_cemeteryInput" list="cp_cemeteryOptions"
                             placeholder="Место захоронения (выберите из списка)" data-i18n-ph="admin_cp_cemeteryPh"
                             class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;"
@@ -856,6 +856,17 @@
                             style="width: auto; align-self: flex-start; padding: 10px 24px;"><span data-i18n="admin_cp_submit">Создать профиль</span></button>
                     </form>
                 </div>
+
+                <datalist id="shezhireFieldOptions">
+                    <option value="Ру / племя"></option>
+                    <option value="Шежіре"></option>
+                    <option value="Жүз"></option>
+                    <option value="Тайпа"></option>
+                    <option value="Ата"></option>
+                    <option value="Жеті ата"></option>
+                    <option value="Ұран"></option>
+                    <option value="Таңба"></option>
+                </datalist>
 
                 <div class="card-title" style="margin-bottom: 12px; margin-top: 12px; font-size:1.1rem;">📋 <span data-i18n="admin_mp_title">База профилей</span></div>
                 <div id="manage-profiles-list" class="cards-list"></div>
@@ -888,16 +899,16 @@
                     style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                 <input type="text" id="ep_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                <select id="ep_category" class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" aria-label="Категория" data-i18n-aria="admin_lbl_category">
-                    <option value="shezhire" data-i18n="profile_cat_shezhire">Шежіре</option>
-                    <option value="historical" data-i18n="profile_cat_historical">Историческая личность</option>
-                    <option value="military" data-i18n="profile_cat_military">Военный/ветеран</option>
-                    <option value="religious" data-i18n="profile_cat_religious">Религиозный деятель</option>
-                    <option value="educator" data-i18n="profile_cat_educator">Просветитель/учёный</option>
-                    <option value="culture" data-i18n="profile_cat_culture">Культура/искусство</option>
-                    <option value="public_figure" data-i18n="profile_cat_public_figure">Общественный деятель</option>
-                    <option value="other" data-i18n="profile_cat_other">Другое</option>
-                </select>
+                <div style="border:1px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.02);">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div>
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--text);" data-i18n="shezhire_block_title">Шежіре / ру ақпараты</div>
+                            <div class="field-hint" style="margin-top:4px;"><span data-i18n="shezhire_block_desc">Ру/племя, шежіре және басқа жолдарды қалағаныңызша қоса аласыз.</span></div>
+                        </div>
+                        <button type="button" class="gate-btn gate-btn-secondary" style="width:auto; padding:8px 12px;" onclick="addShezhireEntryRow('ep')"><span data-i18n="common_add_row">Жол қосу</span></button>
+                    </div>
+                    <div id="ep_shezhireList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+                </div>
                 <input type="text" id="ep_cemeteryInput" list="ep_cemeteryOptions"
                     placeholder="Место захоронения (выберите из списка)" data-i18n-ph="admin_cp_cemeteryPh"
                     class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;"

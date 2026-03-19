@@ -28,17 +28,8 @@ const AUTH_RETRY_MAX_ATTEMPTS = 3;
 const YEAR_INPUT_PATTERN = /^\d{4}$/;
 const HARD_DELETE_CONFIRM_PHRASE_FALLBACK = 'УДАЛИТЬ';
 const PROFILE_VISIBILITY_VALUES = new Set(['public', 'private', 'family_only']);
-const DEFAULT_PROFILE_CATEGORY = 'shezhire';
-const PROFILE_CATEGORY_VALUES = new Set([
-    'shezhire',
-    'historical',
-    'military',
-    'religious',
-    'educator',
-    'culture',
-    'public_figure',
-    'other',
-]);
+const SHEZHIRE_FIELD_MAX_LENGTH = 120;
+const SHEZHIRE_VALUE_MAX_LENGTH = 2000;
 
 let cemeteryCatalog = [];
 let cemeteryCatalogLoaded = false;
@@ -188,53 +179,125 @@ function isMissingColumnError(error, columnName) {
     return Boolean(columnName) && (message.includes(columnName) || message.includes(`"${columnName}"`));
 }
 
-function normalizeProfileCategory(value, { allowNull = false, allowUnknown = false } = {}) {
-    const raw = normalizeTextValue(value, 60);
-    if (!raw) {
-        return allowNull ? null : DEFAULT_PROFILE_CATEGORY;
+function getDefaultShezhireEntries() {
+    return [
+        { label: getI18nText('shezhire_default_ru', 'Ру / племя'), value: '' },
+        { label: getI18nText('shezhire_default_shezhire', 'Шежіре'), value: '' },
+    ];
+}
+
+function normalizeShezhireEntry(entry) {
+    const source = (entry && typeof entry === 'object') ? entry : {};
+    const label = normalizeTextValue(
+        source.label ?? source.field ?? source.title ?? source.name,
+        SHEZHIRE_FIELD_MAX_LENGTH
+    );
+    const value = normalizeTextValue(
+        source.value ?? source.text ?? source.content ?? source.description,
+        SHEZHIRE_VALUE_MAX_LENGTH
+    );
+
+    if (!label && !value) {
+        return null;
     }
 
-    const normalized = String(raw).toLowerCase().trim().replace(/\s+/g, '_');
-    if (!PROFILE_CATEGORY_VALUES.has(normalized)) {
-        if (allowUnknown) {
-            return 'other';
+    return {
+        label: label || getI18nText('common_field', 'Поле'),
+        value: value || '',
+    };
+}
+
+function normalizeShezhireEntries(value) {
+    let source = value;
+    if (typeof source === 'string') {
+        const trimmed = source.trim();
+        if (!trimmed) {
+            return [];
         }
-        throw new Error(getI18nText('admin_profile_category_invalid', 'Некорректная категория профиля'));
+        try {
+            source = JSON.parse(trimmed);
+        } catch (_error) {
+            return [];
+        }
     }
 
-    return normalized;
-}
-
-function getProfileCategoryLabel(value) {
-    const category = normalizeProfileCategory(value, { allowNull: true, allowUnknown: true }) || DEFAULT_PROFILE_CATEGORY;
-    switch (category) {
-    case 'shezhire':
-        return getI18nText('profile_cat_shezhire', 'Шежіре');
-    case 'historical':
-        return getI18nText('profile_cat_historical', 'Историческая личность');
-    case 'military':
-        return getI18nText('profile_cat_military', 'Военный/ветеран');
-    case 'religious':
-        return getI18nText('profile_cat_religious', 'Религиозный деятель');
-    case 'educator':
-        return getI18nText('profile_cat_educator', 'Просветитель/учёный');
-    case 'culture':
-        return getI18nText('profile_cat_culture', 'Культура/искусство');
-    case 'public_figure':
-        return getI18nText('profile_cat_public_figure', 'Общественный деятель');
-    default:
-        return getI18nText('profile_cat_other', 'Другое');
+    if (!Array.isArray(source)) {
+        return [];
     }
+
+    return source
+        .map((entry) => normalizeShezhireEntry(entry))
+        .filter(Boolean);
 }
 
-function setProfileCategorySelection(prefix, categoryValue = null) {
-    const input = document.getElementById(`${prefix}_category`);
-    if (!input) {
+function createShezhireRowMarkup(entry = {}) {
+    const safeEntry = normalizeShezhireEntry(entry) || { label: '', value: '' };
+    return `
+        <div data-shezhire-row style="display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.3fr) auto; gap:8px; align-items:start;">
+            <input type="text" list="shezhireFieldOptions" class="gate-input" data-shezhire-label
+                placeholder="${escapeHtml(getI18nText('shezhire_field_ph', 'Напр. Ру / племя'))}"
+                value="${escapeHtml(safeEntry.label)}"
+                style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
+            <textarea class="gate-input" data-shezhire-value rows="2"
+                placeholder="${escapeHtml(getI18nText('shezhire_value_ph', 'Введите значение'))}"
+                style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;">${escapeHtml(safeEntry.value)}</textarea>
+            <button type="button" class="gate-btn gate-btn-secondary" onclick="removeShezhireEntryRow(this)"
+                style="width:auto; padding:10px 12px; align-self:stretch;"><span data-i18n="common_remove_row">${escapeHtml(getI18nText('common_remove_row', 'Удалить'))}</span></button>
+        </div>`;
+}
+
+function renderShezhireEntryRows(prefix, entries = null) {
+    const container = document.getElementById(`${prefix}_shezhireList`);
+    if (!container) {
         return;
     }
 
-    const normalized = normalizeProfileCategory(categoryValue, { allowNull: true, allowUnknown: true });
-    input.value = normalized || DEFAULT_PROFILE_CATEGORY;
+    const normalizedEntries = normalizeShezhireEntries(entries);
+    const rows = normalizedEntries.length ? normalizedEntries : getDefaultShezhireEntries();
+    container.innerHTML = rows.map((entry) => createShezhireRowMarkup(entry)).join('');
+}
+
+function addShezhireEntryRow(prefix, entry = null) {
+    const container = document.getElementById(`${prefix}_shezhireList`);
+    if (!container) {
+        return;
+    }
+
+    container.insertAdjacentHTML('beforeend', createShezhireRowMarkup(entry || { label: '', value: '' }));
+}
+
+function removeShezhireEntryRow(trigger) {
+    const row = trigger?.closest?.('[data-shezhire-row]');
+    if (!row) {
+        return;
+    }
+    row.remove();
+}
+
+function collectShezhireEntries(prefix) {
+    const container = document.getElementById(`${prefix}_shezhireList`);
+    if (!container) {
+        return [];
+    }
+
+    return Array.from(container.querySelectorAll('[data-shezhire-row]'))
+        .map((row) => normalizeShezhireEntry({
+            label: row.querySelector('[data-shezhire-label]')?.value,
+            value: row.querySelector('[data-shezhire-value]')?.value,
+        }))
+        .filter(Boolean);
+}
+
+function formatShezhireSummary(entries, maxItems = 2) {
+    const normalizedEntries = normalizeShezhireEntries(entries);
+    if (!normalizedEntries.length) {
+        return '';
+    }
+
+    return normalizedEntries
+        .slice(0, maxItems)
+        .map((entry) => `${entry.label}: ${entry.value}`)
+        .join(' | ');
 }
 
 function getHardDeleteConfirmPhrase() {
@@ -796,11 +859,11 @@ async function apiRequest(path, options = {}) {
     if (path === '/admin/profiles' && method === 'GET') {
         let result = await db
             .from('profiles')
-            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, profile_category, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
+            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, shezhire_entries, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
             .order('created_at', { ascending: false })
             .limit(300);
 
-        if (result?.error && isMissingColumnError(result.error, 'profile_category')) {
+        if (result?.error && isMissingColumnError(result.error, 'shezhire_entries')) {
             result = await db
                 .from('profiles')
                 .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
@@ -813,7 +876,7 @@ async function apiRequest(path, options = {}) {
             const point = extractLocationPoint(item.location);
             return {
                 ...item,
-                profile_category: normalizeProfileCategory(item.profile_category, { allowNull: true, allowUnknown: true }) || DEFAULT_PROFILE_CATEGORY,
+                shezhire_entries: normalizeShezhireEntries(item.shezhire_entries),
                 lat: point.lat,
                 lng: point.lng,
                 cemetery_name: item.cemeteries?.name || null,
@@ -836,7 +899,7 @@ async function apiRequest(path, options = {}) {
         if (cemeteryIdRaw && !isUuidValue(cemeteryIdRaw)) {
             throw toError('Invalid cemetery_id', 400);
         }
-        const profileCategory = normalizeProfileCategory(body.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY;
+        const shezhireEntries = normalizeShezhireEntries(body.shezhire_entries);
 
         const payload = {
             first_name: firstName,
@@ -844,7 +907,7 @@ async function apiRequest(path, options = {}) {
             birth_date: yearToDateOrNull(body.birth_year, getI18nText('admin_lbl_birth_year', 'Год рождения')),
             death_date: yearToDateOrNull(body.death_year, getI18nText('admin_lbl_death_year', 'Год смерти')),
             biography: normalizeTextValue(body.biography, 6000),
-            profile_category: profileCategory,
+            shezhire_entries: shezhireEntries,
             cemetery_id: cemeteryIdRaw || null,
             location: locationPayload.point,
             visibility_status: 'public',
@@ -852,9 +915,9 @@ async function apiRequest(path, options = {}) {
         };
 
         let result = await db.from('profiles').insert([payload]).select('id').single();
-        if (result?.error && isMissingColumnError(result.error, 'profile_category')) {
+        if (result?.error && isMissingColumnError(result.error, 'shezhire_entries')) {
             const fallbackPayload = { ...payload };
-            delete fallbackPayload.profile_category;
+            delete fallbackPayload.shezhire_entries;
             result = await db.from('profiles').insert([fallbackPayload]).select('id').single();
         }
         throwIfError(result, 'Failed to create profile');
@@ -893,8 +956,8 @@ async function apiRequest(path, options = {}) {
             patch.biography = normalizeTextValue(body.biography, 6000);
         }
 
-        if (Object.prototype.hasOwnProperty.call(body, 'profile_category')) {
-            patch.profile_category = normalizeProfileCategory(body.profile_category, { allowNull: true }) || DEFAULT_PROFILE_CATEGORY;
+        if (Object.prototype.hasOwnProperty.call(body, 'shezhire_entries')) {
+            patch.shezhire_entries = normalizeShezhireEntries(body.shezhire_entries);
         }
 
         if (Object.prototype.hasOwnProperty.call(body, 'visibility_status')) {
@@ -931,11 +994,11 @@ async function apiRequest(path, options = {}) {
             .select('id')
             .maybeSingle();
 
-        if (result?.error && isMissingColumnError(result.error, 'profile_category') && Object.prototype.hasOwnProperty.call(patch, 'profile_category')) {
+        if (result?.error && isMissingColumnError(result.error, 'shezhire_entries') && Object.prototype.hasOwnProperty.call(patch, 'shezhire_entries')) {
             const fallbackPatch = { ...patch };
-            delete fallbackPatch.profile_category;
+            delete fallbackPatch.shezhire_entries;
             if (!Object.keys(fallbackPatch).length) {
-                throw toError('profile_category column is missing', 500);
+                throw toError('shezhire_entries column is missing', 500);
             }
             result = await db
                 .from('profiles')

@@ -1366,21 +1366,27 @@
                         placeholder="2005" />
                 </div>
             </div>
-            <div style="margin-bottom:14px;">
-                <label for="addCategory"
-                    style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_category">Санат</label>
-                <select id="addCategory"
-                    style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
-                    aria-label="Санат" data-i18n-aria="map_ugc_category">
-                    <option value="shezhire" data-i18n="profile_cat_shezhire">Шежіре</option>
-                    <option value="historical" data-i18n="profile_cat_historical">Тарихи тұлға</option>
-                    <option value="military" data-i18n="profile_cat_military">Әскери/ардагер</option>
-                    <option value="religious" data-i18n="profile_cat_religious">Діни тұлға</option>
-                    <option value="educator" data-i18n="profile_cat_educator">Ұстаз/ғалым</option>
-                    <option value="culture" data-i18n="profile_cat_culture">Өнер/мәдениет</option>
-                    <option value="public_figure" data-i18n="profile_cat_public_figure">Қоғам қайраткері</option>
-                    <option value="other" data-i18n="profile_cat_other">Басқа</option>
-                </select>
+            <div style="margin-bottom:14px; border:1px solid var(--border); border-radius:12px; padding:12px; background:#131316;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                    <div>
+                        <label
+                            style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;" data-i18n="shezhire_block_title">Шежіре / ру ақпараты</label>
+                        <div style="font-size:0.78rem; color:var(--muted); line-height:1.5;" data-i18n="shezhire_block_desc">Ру/племя, шежіре және басқа жолдарды қалағаныңызша қоса аласыз.</div>
+                    </div>
+                    <button type="button" onclick="addMapShezhireRow()"
+                        style="padding:9px 12px; background:transparent; color:var(--gold); border:1px solid rgba(212,175,55,0.25); border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" data-i18n="common_add_row">Жол қосу</button>
+                </div>
+                <div id="addShezhireList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+                <datalist id="mapShezhireFieldOptions">
+                    <option value="Ру / племя"></option>
+                    <option value="Шежіре"></option>
+                    <option value="Жүз"></option>
+                    <option value="Тайпа"></option>
+                    <option value="Ата"></option>
+                    <option value="Жеті ата"></option>
+                    <option value="Ұран"></option>
+                    <option value="Таңба"></option>
+                </datalist>
             </div>
             <div style="margin-bottom:14px;">
                 <label for="addDescription"
