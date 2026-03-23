@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // БАЗОВОЕ ПРАВИЛО ВЫЖИВАНИЯ И БЕЗОПАСНОСТИ (DENY BY DEFAULT)
+    // Доступ закрыт ко всем документам, если нет явного разрешения ниже
+    match /{document=**} {
+      allow read, write: if false; 
+    }
+    
+    // -------------------------------------------------------------
+    // РАЗДЕЛЕНИЕ АРХИТЕКТУРЫ (Geo Data vs Personal Data)
+    // -------------------------------------------------------------
+    
+    // Публичная обезличенная геометрия (Только координаты могил)
+    // Связана с ПДн только через UUID, сами данные здесь нельзя хранить
+    match /public_geo/{geoId} {
+      // Любой пользователь может читать пустые координаты
+      allow read: if true; 
+      
+      // Писать гео-данные может только авторизованный админ
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ВАЖНО: Коллекция public_profiles/private_profiles здесь ОТСУТСТВУЕТ
+    // Вся валидация по профилям умерших теперь на бэкенд-БД (Repository Pattern / Supabase)
+  }
+}
