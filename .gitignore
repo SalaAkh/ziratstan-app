@@ -28,3 +28,26 @@ test-final-build.log
 
 # Repo-local Firebase CLI state (see scripts/fb)
 .firebase-config*/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Supabase local config
+supabase/.temp/
+supabase/.branches/
+supabase/restore.sql
+
+# Test and coverage reporting
+coverage/

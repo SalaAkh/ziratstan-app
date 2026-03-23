@@ -656,3 +656,29 @@ onAuthStateChange → SIGNED_OUT (no user)
    ```
 
 **Действия:** Если ошибка всё еще висит в дашборде, просто выполните скрипт из миграции `20260315_move_postgis.sql` в SQL Editor'е, и безопасность будет восстановлена.
+
+---
+
+## Security Compliance & Data Architecture (Updated 2026-03-23)
+
+В рамках соответствия Конституции РК (ст. 21) и Цифровому кодексу 2026 года, архитектура проекта была переработана для обеспечения изоляции персональных данных и защиты от утечек.
+
+### 1. Offline-First Security (Secure Storage)
+
+Реализован `SecureStorageAdapter` (`src/lib/secureStorage.ts`), использующий Web Crypto API (AES-GCM). Теперь все критичные кэшированные данные PWA шифруются на клиенте, исключая доступ в plain-text через DevTools.
+
+### 2. Защита от Bruteforce (Rate Limiting)
+
+В `src/middleware.ts` реализован Token Bucket Rate Limiter в памяти Edge/Node. Защищает эндпоинты `/api/profile/verify-pin` и `/api/auth` от подбора паролей. Действует жестко (настроено на ~5 попыток на IP в окно времени).
+
+### 3. Data Residency & Abstraction (DAL)
+
+Для подготовки к переносу персональных данных строго на сервера внутри РК реализован паттерн "Репозиторий".
+
+- **Интерфейс:** `IProfileRepository` (`src/lib/dal/ProfileRepository.ts`)
+- **Реализации:** `SupabaseProfileRepository` (облако) и `KZPostgresProfileRepository` (локальная БД).
+- **Переключение:** Через переменную окружения `DATA_RESIDENCY_MODE` (установите `LOCAL_KZ` для перехода на локальную базу). Вся бизнес-логика теперь должна обращаться к `dbFactory.getProfileRepository()`, минуя прямые вызовы Supabase SDK для таблиц профилей.
+
+### 4. Deny-by-Default (RLS)
+
+И база Supabase, и Firebase Firestore (через `firestore.rules`) по умолчанию блокируют все операции. Все PWA клиенты обращаются к защищенным данным только через Next.js Route Handlers. Supabase RLS разрешает чтение/запись персональных профилей **только владельцам** (owner_id).

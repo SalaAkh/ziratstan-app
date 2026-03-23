@@ -34,6 +34,9 @@ guids/**
 scripts/**
 resources/**
 
-# Суpabase backend (только client.js нужен)
-supabase/migrations/**
-supabase/seed.sql
+# Суpabase backend и база данных
+supabase/**
+
+# IDEs
+.vscode/**
+.idea/**
