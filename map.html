@@ -1213,7 +1213,7 @@
                 <div class="search-wrap">
                     <span class="search-icon">🔍</span>
                     <label for="searchInput" style="display:none;">Іздеу</label>
-                    <input type="text" id="searchInput" class="search-input"
+                    <input name="searchInput" type="text" id="searchInput" class="search-input"
                         placeholder="Іздеу..." data-i18n-ph="map_search_ph" />
                 </div>
                 <button class="geo-btn" onclick="geolocate()" id="geoBtn">
@@ -1222,7 +1222,7 @@
                 <div class="geo-status" id="geoStatus"></div>
 
                 <!-- Выбор области -->
-                <select id="regionSelect" class="region-select" onchange="handleRegionSelect(this.value)">
+                <select name="regionSelect" id="regionSelect" class="region-select" onchange="handleRegionSelect(this.value)">
                     <option value="" data-i18n="map_region_all">🗺️ Қазақстанның барлық облыстары</option>
                 </select>
             </div>
@@ -1310,7 +1310,7 @@
                 <label for="ugcNameInput"
                     style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:8px;" data-i18n="map_name_modal_label">Зираттың нақты
                     атауы:</label>
-                <input type="text" id="ugcNameInput"
+                <input name="ugcNameInput" type="text" id="ugcNameInput"
                     style="width:100%; padding:12px; background:#18181b; border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:Inter; box-sizing:border-box;"
                     required />
             </div>
@@ -1344,7 +1344,7 @@
                 <label for="addFullName"
                     style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_name">АЖТ
                     (толық аты-жөні)</label>
-                <input type="text" id="addFullName"
+                <input name="addFullName" type="text" id="addFullName"
                     style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
                     placeholder="Ибрагимов Амантай Жарылқапұлы" data-i18n-ph="map_profile_fullname_ph" required />
             </div>
@@ -1353,7 +1353,7 @@
                     <label for="addBirth"
                         style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_birth">Туған
                         жылы</label>
-                    <input type="text" id="addBirth"
+                    <input name="addBirth" type="text" id="addBirth"
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
                         placeholder="1940" />
                 </div>
@@ -1361,7 +1361,7 @@
                     <label for="addDeath"
                         style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_death">Қайтыс
                         болған жылы</label>
-                    <input type="text" id="addDeath"
+                    <input name="addDeath" type="text" id="addDeath"
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
                         placeholder="2005" />
                 </div>
@@ -1392,7 +1392,7 @@
                 <label for="addDescription"
                     style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:7px;" data-i18n="map_ugc_notes">Қысқаша
                     сипаттама / Өмірбаян</label>
-                <textarea id="addDescription" rows="4"
+                <textarea name="addDescription" id="addDescription" rows="4"
                     style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
                     placeholder="Ұлы Отан соғысының ардагері, мұғалім, ру ақсақалы..." data-i18n-ph="map_profile_notes_ph"></textarea>
             </div>
@@ -1430,11 +1430,11 @@
             <form class="auth-form" id="auth-login-form">
                 <div class="auth-field">
                     <label for="login-email" data-i18n="auth_email">Email</label>
-                    <input type="email" id="login-email" placeholder="example@mail.com" required autocomplete="email" />
+                    <input name="login-email" type="email" id="login-email" placeholder="example@mail.com" required autocomplete="email" />
                 </div>
                 <div class="auth-field">
                     <label for="login-password" data-i18n="auth_password">Пароль</label>
-                    <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+                    <input name="login-password" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
                 </div>
                 <div class="auth-error" id="login-error"></div>
                 <button type="submit" class="auth-submit" data-i18n="auth_login_submit">Кіру →</button>
@@ -1447,15 +1447,15 @@
             <form class="auth-form" id="auth-register-form" style="display:none;">
                 <div class="auth-field">
                     <label for="reg-name" data-i18n="auth_name">Аты-жөні</label>
-                    <input type="text" id="reg-name" placeholder="Сіздің атыңыз" autocomplete="name" />
+                    <input name="reg-name" type="text" id="reg-name" placeholder="Сіздің атыңыз" autocomplete="name" />
                 </div>
                 <div class="auth-field">
                     <label for="reg-email">Email</label>
-                    <input type="email" id="reg-email" placeholder="example@mail.com" required autocomplete="email" />
+                    <input name="reg-email" type="email" id="reg-email" placeholder="example@mail.com" required autocomplete="email" />
                 </div>
                 <div class="auth-field">
                     <label for="reg-password" data-i18n="auth_password_min">Пароль (мин. 6 символ)</label>
-                    <input type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
+                    <input name="reg-password" type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
                 </div>
                 <div class="auth-error" id="reg-error"></div>
                 <div class="auth-success" id="reg-success" style="display:none;"></div>

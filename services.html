@@ -914,16 +914,16 @@
         <div class="form-selected" id="formSelected"></div>
         <div>
             <label for="nameInput" data-i18n="serv_form_name">Атыңыз</label>
-            <input type="text" id="nameInput" placeholder="Ахмед Сейтқали" data-i18n-ph="serv_form_name_ph" />
+            <input name="nameInput" type="text" id="nameInput" placeholder="Ахмед Сейтқали" data-i18n-ph="serv_form_name_ph" />
             <label for="phoneInput" data-i18n="serv_form_phone">Телефон нөмірі</label>
-            <input type="tel" id="phoneInput" placeholder="+7 707 000 00 00" data-i18n-ph="serv_form_phone_ph" />
+            <input name="phoneInput" type="tel" id="phoneInput" placeholder="+7 707 000 00 00" data-i18n-ph="serv_form_phone_ph" />
             <label for="profileInput" data-i18n-html="serv_form_profile_ref">Марқұмның профиль ID-і <span class="optional">(міндетті емес)</span></label>
-            <input type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" data-i18n-ph="serv_form_profile_ref_ph" />
-            <textarea rows="3" id="commentInput" placeholder="Қосымша тілектер..." data-i18n-ph="serv_form_notes_ph"></textarea>
+            <input name="profileInput" type="text" id="profileInput" placeholder="ZRT-1234 немесе профильге сілтеме" data-i18n-ph="serv_form_profile_ref_ph" />
+            <textarea name="commentInput" rows="3" id="commentInput" placeholder="Қосымша тілектер..." data-i18n-ph="serv_form_notes_ph"></textarea>
 
             <!-- Honeypot field (P2.1) -->
             <div style="display:none !important;" aria-hidden="true">
-                <input type="text" id="website_honeypot" tabindex="-1" autocomplete="off" />
+                <input name="website_honeypot" type="text" id="website_honeypot" tabindex="-1" autocomplete="off" />
             </div>
         </div>
         <div class="form-btns">

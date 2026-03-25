@@ -1403,11 +1403,11 @@
             <form onsubmit="submitBio(event)">
                 <div class="form-group">
                     <label for="bioAuthorName" data-i18n="prof_ugc_author_label">Сіздің АЖТ (міндетті емес)</label>
-                    <input type="text" id="bioAuthorName" placeholder="Мысалы: Нұрлан Ахметов" data-i18n-ph="prof_ugc_author_ph" />
+                    <input name="bioAuthorName" type="text" id="bioAuthorName" placeholder="Мысалы: Нұрлан Ахметов" data-i18n-ph="prof_ugc_author_ph" />
                 </div>
                 <div class="form-group">
                     <label for="bioText" data-i18n="prof_ugc_bio_label">Өмірбаяндық мәліметтер / Естеліктер</label>
-                    <textarea id="bioText" rows="5"
+                    <textarea name="bioText" id="bioText" rows="5"
                         placeholder="Осы тұлға туралы білетініңіздің бәрін жазыңыз. Күндер, фактілер, естеліктер..."
                         data-i18n-ph="prof_ugc_text_ph"
                         required></textarea>

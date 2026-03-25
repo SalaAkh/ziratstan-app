@@ -741,10 +741,10 @@
             <form onsubmit="event.preventDefault(); loginUser();">
                 <label for="emailInput" style="display:none;"><span data-i18n="admin_gate_emailLbl">Электронная почта</span></label>
                 <div id="loginStep">
-                    <input type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
+                    <input name="emailInput" type="email" class="gate-input" id="emailInput" placeholder="admin@ziratstan.kz"
                         autocomplete="email" />
                     <label for="passwordInput" style="display:none;"><span data-i18n="admin_gate_passLbl">Пароль</span></label>
-                    <input type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль" data-i18n-ph="admin_gate_passPh"
+                    <input name="passwordInput" type="password" class="gate-input" id="passwordInput" placeholder="Введите пароль" data-i18n-ph="admin_gate_passPh"
                         autocomplete="current-password" />
                 </div>
                 <div class="gate-actions">
@@ -765,7 +765,7 @@
                         <div class="mfa-secret-label"><span data-i18n="admin_mfa_secretLbl">Секрет для ручного добавления</span></div>
                         <div class="mfa-secret" id="mfaSecret"></div>
                     </div>
-                    <input type="text" class="gate-input" id="mfaCodeInput" placeholder="6-значный код" data-i18n-ph="admin_mfa_codePh"
+                    <input name="mfaCodeInput" type="text" class="gate-input" id="mfaCodeInput" placeholder="6-значный код" data-i18n-ph="admin_mfa_codePh"
                         inputmode="numeric" autocomplete="one-time-code"
                         onkeydown="if(event.key==='Enter') verifyMfaCode()" />
                     <div class="gate-actions">
@@ -815,9 +815,9 @@
                     <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ <span data-i18n="admin_cp_title">Создать новый профиль</span></div>
                     <form id="createProfileForm" onsubmit="handleCreateProfile(event)"
                         style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="text" id="cp_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
+                        <input name="cp_firstName" type="text" id="cp_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                        <input type="text" id="cp_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
+                        <input name="cp_lastName" type="text" id="cp_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                         <div style="border:1px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.02);">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
@@ -829,28 +829,28 @@
                             </div>
                             <div id="cp_shezhireList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
                         </div>
-                        <input type="text" id="cp_cemeteryInput" list="cp_cemeteryOptions"
+                        <input name="cp_cemeteryInput" type="text" id="cp_cemeteryInput" list="cp_cemeteryOptions"
                             placeholder="Место захоронения (выберите из списка)" data-i18n-ph="admin_cp_cemeteryPh"
                             class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;"
                             autocomplete="off" />
-                        <input type="hidden" id="cp_cemeteryId" />
+                        <input name="cp_cemeteryId" type="hidden" id="cp_cemeteryId" />
                         <datalist id="cp_cemeteryOptions"></datalist>
                         <div style="display:flex; gap:12px;">
-                            <input type="number" id="cp_birthYear" placeholder="Год рождения (напр. 1850)" data-i18n-ph="admin_cp_by"
+                            <input name="cp_birthYear" type="number" id="cp_birthYear" placeholder="Год рождения (напр. 1850)" data-i18n-ph="admin_cp_by"
                                 class="gate-input"
                                 style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
-                            <input type="number" id="cp_deathYear" placeholder="Год смерти (напр. 1930)" data-i18n-ph="admin_cp_dy"
+                            <input name="cp_deathYear" type="number" id="cp_deathYear" placeholder="Год смерти (напр. 1930)" data-i18n-ph="admin_cp_dy"
                                 class="gate-input"
                                 style="margin-bottom:0; text-align:left; letter-spacing:normal; flex:1;" />
                         </div>
                         <div class="form-grid-two">
-                            <input type="text" id="cp_lat" placeholder="Широта (lat, напр. 43.2567)" data-i18n-ph="admin_cp_latPh"
+                            <input name="cp_lat" type="text" id="cp_lat" placeholder="Широта (lat, напр. 43.2567)" data-i18n-ph="admin_cp_latPh"
                                 class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" inputmode="decimal" />
-                            <input type="text" id="cp_lng" placeholder="Долгота (lng, напр. 76.9286)" data-i18n-ph="admin_cp_lngPh"
+                            <input name="cp_lng" type="text" id="cp_lng" placeholder="Долгота (lng, напр. 76.9286)" data-i18n-ph="admin_cp_lngPh"
                                 class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" inputmode="decimal" />
                         </div>
                         <div class="field-hint"><span data-i18n="admin_cp_locHint">lat/lng необязательны, но должны заполняться вместе.</span></div>
-                        <textarea id="cp_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="3" class="gate-input"
+                        <textarea name="cp_bio" id="cp_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="3" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
                         <button type="submit" class="gate-btn" id="cp_submitBtn"
                             style="width: auto; align-self: flex-start; padding: 10px 24px;"><span data-i18n="admin_cp_submit">Создать профиль</span></button>
@@ -894,10 +894,10 @@
                 <button type="button" class="modal-close" onclick="closeEditProfileModal()"><span data-i18n="common_close">Закрыть</span></button>
             </div>
             <form id="editProfileForm" onsubmit="handleEditProfile(event)" style="display:flex; flex-direction:column; gap:12px;">
-                <input type="hidden" id="ep_id" />
-                <input type="text" id="ep_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
+                <input name="ep_id" type="hidden" id="ep_id" />
+                <input name="ep_firstName" type="text" id="ep_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                <input type="text" id="ep_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
+                <input name="ep_lastName" type="text" id="ep_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                 <div style="border:1px solid var(--border); border-radius:12px; padding:12px; background:rgba(255,255,255,0.02);">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
@@ -909,26 +909,26 @@
                     </div>
                     <div id="ep_shezhireList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
                 </div>
-                <input type="text" id="ep_cemeteryInput" list="ep_cemeteryOptions"
+                <input name="ep_cemeteryInput" type="text" id="ep_cemeteryInput" list="ep_cemeteryOptions"
                     placeholder="Место захоронения (выберите из списка)" data-i18n-ph="admin_cp_cemeteryPh"
                     class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;"
                     autocomplete="off" />
-                <input type="hidden" id="ep_cemeteryId" />
+                <input name="ep_cemeteryId" type="hidden" id="ep_cemeteryId" />
                 <datalist id="ep_cemeteryOptions"></datalist>
                 <div class="form-grid-two">
-                    <input type="number" id="ep_birthYear" placeholder="Год рождения (напр. 1850)" data-i18n-ph="admin_cp_by"
+                    <input name="ep_birthYear" type="number" id="ep_birthYear" placeholder="Год рождения (напр. 1850)" data-i18n-ph="admin_cp_by"
                         class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-                    <input type="number" id="ep_deathYear" placeholder="Год смерти (напр. 1930)" data-i18n-ph="admin_cp_dy"
+                    <input name="ep_deathYear" type="number" id="ep_deathYear" placeholder="Год смерти (напр. 1930)" data-i18n-ph="admin_cp_dy"
                         class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                 </div>
                 <div class="form-grid-two">
-                    <input type="text" id="ep_lat" placeholder="Широта (lat, напр. 43.2567)" data-i18n-ph="admin_cp_latPh"
+                    <input name="ep_lat" type="text" id="ep_lat" placeholder="Широта (lat, напр. 43.2567)" data-i18n-ph="admin_cp_latPh"
                         class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" inputmode="decimal" />
-                    <input type="text" id="ep_lng" placeholder="Долгота (lng, напр. 76.9286)" data-i18n-ph="admin_cp_lngPh"
+                    <input name="ep_lng" type="text" id="ep_lng" placeholder="Долгота (lng, напр. 76.9286)" data-i18n-ph="admin_cp_lngPh"
                         class="gate-input" style="margin-bottom:0; text-align:left; letter-spacing:normal;" inputmode="decimal" />
                 </div>
                 <div class="field-hint"><span data-i18n="admin_cp_locHint">lat/lng необязательны, но должны заполняться вместе.</span></div>
-                <textarea id="ep_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="4" class="gate-input"
+                <textarea name="ep_bio" id="ep_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="4" class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
                 <div class="form-actions-row">
                     <button type="button" class="gate-btn gate-btn-secondary" style="width:auto; padding:10px 20px;" onclick="closeEditProfileModal()"><span data-i18n="admin_cancel">Отмена</span></button>
