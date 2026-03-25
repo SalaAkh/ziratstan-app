@@ -191,7 +191,6 @@
         .from('profiles')
         .select('*, cemetery:cemeteries(name, city)')
         .eq('id', id)
-        .eq('visibility_status', 'public')
         .maybeSingle();
 
       if (error || !data) return null;
