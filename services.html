@@ -877,8 +877,7 @@
 
     <!-- Step 1: Select -->
     <div class="container" id="selectStep">
-        <div class="services-grid">
-            <div class="service-card" data-id="cleaning" data-price="5000" data-icon="🧹" onclick="selectService(this)">
+        <div class="services-grid">            <div class="service-card" data-id="cleaning" data-price="5000" data-icon="🧹" onclick="selectService(this)">
                 <div class="service-icon">🧹</div>
                 <h3 data-i18n="serv_clean_title">Бейітті тазалау</h3>
                 <p class="desc" data-i18n="serv_clean_desc">Аумақты кәсіби тазалау, арамшөптерді жұлу, сыпыру, ескерткішті жуу.</p>
@@ -887,27 +886,24 @@
                     <span class="price-time" data-i18n="serv_clean_time">1–2 сағат</span>
                 </div>
             </div>
-            <div class="service-card" data-id="painting" data-price="12000" data-icon="🎨"
-                onclick="selectService(this)">
+            <div class="service-card" data-id="painting" data-price="12000" data-icon="🎨" onclick="selectService(this)">
                 <div class="service-icon">🎨</div>
                 <h3 data-i18n="serv_paint_title">Қоршауды бояу</h3>
-                <p class="desc" data-i18n="serv_paint_desc">Металл қоршауды бояу, ескерткіш түсін жаңарту, қорғаныш лак жағу.
-                </p>
+                <p class="desc" data-i18n="serv_paint_desc">Металл қоршауды бояу, ескерткіш түсін жаңарту, қорғаныш лак жағу.</p>
                 <div class="service-price">
                     <span class="price-val">12 000 ₸</span>
                     <span class="price-time" data-i18n="serv_paint_time">2–4 сағат</span>
                 </div>
             </div>
-            <div class="service-card" data-id="quran" data-price="8000" data-icon="📖" onclick="selectService(this)">
-                <div class="service-icon">📖</div>
-                <h3 data-i18n="serv_quran_title">Құран оқыту</h3>
-                <p class="desc" data-i18n="serv_quran_desc">Бейіт басында Құран мен дұға оқу үшін имам шақыру (видео растаумен).</p>
+            <div class="service-card" data-id="quran" data-price="0" data-icon="🤲" onclick="selectService(this)">
+                <div class="service-icon">🤲</div>
+                <h3 data-i18n="serv_quran_title">Садақа (Қайырымдылық)</h3>
+                <p class="desc" data-i18n="serv_quran_desc">Мешітке немесе мұқтаж жандарға өз еркіңізбен садақа беру (делдалсыз, Алла ризалығы үшін).</p>
                 <div class="service-price">
-                    <span class="price-val">8 000 ₸</span>
-                    <span class="price-time" data-i18n="serv_quran_time">30–60 минут</span>
+                    <span class="price-val">🤍</span>
+                    <span class="price-time" data-i18n="serv_quran_time">Кез келген сома</span>
                 </div>
             </div>
-        </div>
         <div class="next-btn">
             <button class="btn btn-primary" id="nextBtn" disabled onclick="goToForm()" data-i18n="serv_next">Келесі →</button>
         </div>
