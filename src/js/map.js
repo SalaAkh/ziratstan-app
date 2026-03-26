@@ -1085,11 +1085,19 @@
             renderMapShezhireEntries();
             const mod = document.getElementById('addProfileModal');
             if (mod) mod.style.display = 'flex';
+
+            if (window.PhotoPicker) {
+                window.PhotoPicker.init('ugc-photo-picker-mount', { maxPhotos: 10 });
+            }
         }
 
         function closeAddProfileModal() {
             const mod = document.getElementById('addProfileModal');
             if (mod) mod.style.display = 'none';
+
+            if (window.PhotoPicker) {
+                window.PhotoPicker.reset('ugc-photo-picker-mount');
+            }
         }
 
         function getDefaultMapShezhireEntries() {
@@ -1206,6 +1214,30 @@
                     });
                     if (typeof updateMapLayers === 'function') {
                         updateMapLayers();
+                    }
+                }
+
+                // Photo Upload process
+                if (window.PhotoPicker && typeof db !== 'undefined' && window.ZiratAuth) {
+                    const session = ZiratAuth.getSession();
+                    if (session?.user?.id) {
+                        try {
+                            // If submitUgcProfile returns the created profile ID, use it.
+                            // Currently it doesn't return the ID explicitly in the client, but we use 'pending' queue
+                            // Here we just attach to a generic 'ugc_pending' folder for now.
+                            const photoRows = await window.PhotoPicker.uploadAllForContainer(
+                                'ugc-photo-picker-mount', 
+                                db, 
+                                session.user.id, 
+                                null // profileId is null for pure UGC without server return ID, handled by admin later
+                            );
+                            if (photoRows && photoRows.length > 0) {
+                                await window.PhotoPicker.saveToDatabase(db, photoRows);
+                            }
+                        } catch (err) {
+                            console.error('[UGC Photo Upload Error]', err);
+                            // non-blocking, continue to success screen
+                        }
                     }
                 }
 

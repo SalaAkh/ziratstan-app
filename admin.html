@@ -852,6 +852,9 @@
                         <div class="field-hint"><span data-i18n="admin_cp_locHint">lat/lng необязательны, но должны заполняться вместе.</span></div>
                         <textarea name="cp_bio" id="cp_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="3" class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
+                        
+                        <div id="cp-photo-picker-mount"></div>
+
                         <button type="submit" class="gate-btn" id="cp_submitBtn"
                             style="width: auto; align-self: flex-start; padding: 10px 24px;"><span data-i18n="admin_cp_submit">Создать профиль</span></button>
                     </form>
@@ -930,6 +933,9 @@
                 <div class="field-hint"><span data-i18n="admin_cp_locHint">lat/lng необязательны, но должны заполняться вместе.</span></div>
                 <textarea name="ep_bio" id="ep_bio" placeholder="Биография" data-i18n-ph="admin_cp_bioPh" rows="4" class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
+                
+                <div id="ep-photo-picker-mount"></div>
+
                 <div class="form-actions-row">
                     <button type="button" class="gate-btn gate-btn-secondary" style="width:auto; padding:10px 20px;" onclick="closeEditProfileModal()"><span data-i18n="admin_cancel">Отмена</span></button>
                     <button type="submit" class="gate-btn" id="ep_submitBtn" style="width:auto; padding:10px 20px;"><span data-i18n="admin_ep_submit">Сохранить изменения</span></button>
@@ -945,11 +951,11 @@
     <script src="src/js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="src/js/supabase-admin-client.js"></script>
+    <script src="src/js/core/locales.js"></script>
+    <script src="src/js/core/i18n.js"></script>
+    <script src="src/js/photo-picker.js"></script>
     <script src="src/js/admin.js"></script>
     
-
-  <script src="src/js/core/locales.js"></script>
-  <script src="src/js/core/i18n.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function() { if(window.applyTranslations) applyTranslations(); }); document.addEventListener("langchange", function() { if(window.applyTranslations) applyTranslations(); });</script>
 </body>
 

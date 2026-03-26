@@ -18,6 +18,7 @@ let _lastQrProfileId = null;
 let _lastQrHasSession = false;
 let _lastQrMode = null; // 'display' | 'create' | 'admin' | 'supabase_only' | 'mock' | 'public_fallback'
 let _galleryPhotos = [];
+let _dbPhotos = []; // from profile_photos
 let _currentPhotoIndex = 0;
 
 function t(key) {
@@ -284,15 +285,14 @@ function renderBio(data) {
         </div>
     ` : '';
 
-    const galleryHTML = data.photos && data.photos.length > 0 ? `
+    const galleryHTML = (_galleryPhotos && _galleryPhotos.length > 0) ? `
         <div style="margin-top:2rem;">
             <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> ${t('prof_gallery_title')}</h3>
-            <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin;">
-                ${data.photos.map((url, idx) => `<img src="${url}" onclick="openLightbox(${idx})" style="height:160px;min-width:120px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">`).join('')}
+            <div class="photo-gallery">
+                ${_galleryPhotos.map((url, idx) => `<div class="gallery-item"><img src="${url}" onclick="openLightbox(${idx})" alt="Gallery Image"></div>`).join('')}
             </div>
         </div>
     ` : '';
-    _galleryPhotos = data.photos || [];
 
     const galleryContainer = document.getElementById('galleryContainer');
     if (galleryHTML) {
@@ -514,11 +514,31 @@ async function initProfile() {
     updateSeo(p);
 
     // Hero section
-    if (p.photo) {
-        document.getElementById('heroImg').src = p.photo;
+    let heroPhotoUrl = p.photo || p.main_photo_url;
+    
+    // Fetch profile_photos table
+    _dbPhotos = [];
+    _galleryPhotos = [];
+    if (realProfileId) {
+        const fetchedPhotos = await fetchProfilePhotos(realProfileId);
+        _dbPhotos = fetchedPhotos;
+        // Map to URLs for the gallery
+        _galleryPhotos = fetchedPhotos.map(ph => ph.url);
+        
+        // If there's a main photo, use it for the hero
+        if (fetchedPhotos.length > 0) {
+            heroPhotoUrl = fetchedPhotos[0].url; // first is main due to sorting
+        }
+    }
+
+    if (heroPhotoUrl) {
+        document.getElementById('heroImg').src = heroPhotoUrl;
         document.getElementById('heroImg').alt = p.fullName;
         document.getElementById('heroImg').style.display = 'block';
         document.getElementById('heroPlaceholder').style.display = 'none';
+        
+        // Update p.photo for SEO correctly
+        p.photo = heroPhotoUrl;
     } else {
         document.getElementById('heroImg').style.display = 'none';
         document.getElementById('heroPlaceholder').style.display = 'flex';
@@ -550,9 +570,23 @@ async function initProfile() {
     const enriched = await loadEnrichedBio(p.id);
     if (enriched && (enriched.bio_kk || enriched.bio_ru)) {
         _enrichedData = enriched;
+        // The renderBio function handles _galleryPhotos now as a fallback if _dbPhotos are absent
+        if (_dbPhotos.length === 0 && enriched.photos) {
+            _galleryPhotos = enriched.photos;
+        }
         renderBio(enriched);
     } else {
         _enrichedData = null;
+        if (_dbPhotos.length === 0 && p.photos) {
+             _galleryPhotos = p.photos;
+        }
+        
+        // Pass dummy data so gallery/video renders
+        renderBio({ 
+            bio_kk: null, bio_ru: null, 
+            video_link: null, photos: _galleryPhotos 
+        });
+
         // Fallback biography placeholder
         const bioSection = document.getElementById('bioSection');
         if (bioSection) {
@@ -574,6 +608,24 @@ async function initProfile() {
 
     // Load QR Code
     loadQrSection(realProfileId);
+}
+
+async function fetchProfilePhotos(profileId) {
+    if (!window.supabase) return [];
+    try {
+        const { data, error } = await supabase
+            .from('profile_photos')
+            .select('*')
+            .eq('profile_id', profileId)
+            .order('is_main', { ascending: false })
+            .order('sort_order', { ascending: true });
+        
+        if (error) throw error;
+        return data || [];
+    } catch(err) {
+        console.error('[Ziratstan] Error fetching profile_photos:', err);
+        return [];
+    }
 }
 
 async function loadFamilyTree(profileId, currentProfile) {

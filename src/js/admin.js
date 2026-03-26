@@ -2231,6 +2231,11 @@ function setupManageBindings() {
         modal.addEventListener('click', handleEditModalBackdrop);
         modal.dataset.bound = '1';
     }
+
+    if (window.PhotoPicker) {
+        window.PhotoPicker.init('cp-photo-picker-mount', { maxPhotos: 10 });
+        // 'ep-photo-picker-mount' is initialized when openEditProfileModal is called
+    }
 }
 
 async function handleCreateProfile(e) {
@@ -2252,9 +2257,28 @@ async function handleCreateProfile(e) {
             console.warn('Cemetery catalog failed before create:', error);
         }
         const payload = buildProfilePayloadFromForm('cp');
-        await apiRequest('/admin/profiles', { method: 'POST', body: payload });
+        const { data: createdProfile } = await apiRequest('/admin/profiles', { method: 'POST', body: payload });
+        
+        // Upload Photos if any
+        if (window.PhotoPicker && createdProfile?.id) {
+            try {
+                const session = await db.auth.getSession();
+                const userId = session?.data?.session?.user?.id;
+                if (userId) {
+                    const photoRows = await window.PhotoPicker.uploadAllForContainer('cp-photo-picker-mount', db, userId, createdProfile.id);
+                    await window.PhotoPicker.saveAndUpdateProfile(db, createdProfile.id, userId, photoRows);
+                }
+            } catch (err) {
+                console.error('[Admin Photo Upload Error]', err);
+                showToast('Профиль создан, но возникла ошибка при загрузке фото', 'warning');
+            }
+        }
+
         showToast(getI18nText('admin_toast_created', 'Профиль успешно создан'), 'success');
         resetProfileForm('cp', 'createProfileForm');
+        if (window.PhotoPicker) {
+            window.PhotoPicker.reset('cp-photo-picker-mount');
+        }
         await loadManageProfiles();
     } catch (err) {
         console.error(err);
@@ -2278,6 +2302,25 @@ async function openEditProfileModal(profileId) {
         await ensureCemeteryCatalogLoaded();
     } catch (error) {
         console.warn('Cemetery catalog failed before edit:', error);
+    }
+
+    if (window.PhotoPicker) {
+        // Load existing photos from DB
+        try {
+            const { data: existingPhotos } = await db
+                .from('profile_photos')
+                .select('*')
+                .eq('profile_id', profileId)
+                .order('sort_order', { ascending: true });
+            
+            window.PhotoPicker.init('ep-photo-picker-mount', { 
+                maxPhotos: 10,
+                existingPhotos: existingPhotos || []
+            });
+        } catch (err) {
+            console.error('Failed to load photos for edit:', err);
+            window.PhotoPicker.init('ep-photo-picker-mount', { maxPhotos: 10 });
+        }
     }
 
     const modal = document.getElementById('editProfileModal');
@@ -2316,6 +2359,9 @@ function closeEditProfileModal() {
 
     modal.style.display = 'none';
     resetProfileForm('ep', 'editProfileForm');
+    if (window.PhotoPicker) {
+        window.PhotoPicker.reset('ep-photo-picker-mount');
+    }
 }
 
 function handleEditModalBackdrop(event) {
@@ -2348,6 +2394,26 @@ async function handleEditProfile(event) {
         }
         const payload = buildProfilePayloadFromForm('ep', { includeId: true });
         await apiRequest('/admin/profiles', { method: 'PATCH', body: payload });
+
+        // Handle Photo edits
+        if (window.PhotoPicker) {
+            try {
+                const session = await db.auth.getSession();
+                const userId = session?.data?.session?.user?.id;
+                if (userId && payload.id) {
+                    const photoRows = await window.PhotoPicker.uploadAllForContainer('ep-photo-picker-mount', db, userId, payload.id);
+                    
+                    // Delete old photos from DB to recreate them
+                    await db.from('profile_photos').delete().eq('profile_id', payload.id);
+                    
+                    await window.PhotoPicker.saveAndUpdateProfile(db, payload.id, userId, photoRows);
+                }
+            } catch (err) {
+                console.error('[Admin Photo Edit Error]', err);
+                showToast('Данные сохранены, но ошибка при обновлении фото', 'warning');
+            }
+        }
+
         showToast(getI18nText('admin_toast_updated', 'Профиль обновлен'), 'success');
         closeEditProfileModal();
         await loadManageProfiles();

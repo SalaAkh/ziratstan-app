@@ -235,6 +235,19 @@ const TRANSLATIONS = {
         'dash_settings_saved': 'Сақталды!',
         'dash_delete_confirm': '⚠️ Аккаунтты жойғыңыз келетініне сенімді ме? Барлық деректер жойылады!',
         'dash_delete_contact': 'Аккаунтты жою үшін қолдау қызметіне хабарласыңыз: salaahlion@gmail.com',
+
+        // --- PHOTOS ---
+        photo_upload_title: "Фотосуреттер",
+        photo_drop_hint: "Фотосуретті басыңыз немесе сүйреңіз",
+        photo_upload_desc: "JPEG, PNG, WebP · макс. 8 МБ · дейін",
+        photo_upload_unit: "фото",
+        photo_main_badge: "★ Негізгі",
+        photo_set_main: "Негізгі қылу",
+        photo_remove: "Жою",
+        photo_max_err: "Максимум фотосуреттер:",
+        photo_type_err: "Тек JPEG, PNG, WebP қолданылады",
+        photo_size_err: "Файл тым үлкен",
+
         // --- COMMON ---
         common_unknown: "Белгісіз",
         common_close: "Жабу",
