@@ -171,8 +171,10 @@ export default function ServicesPage() {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Ваше имя</label>
+                                <label htmlFor="service-name" className="block text-sm font-medium mb-2">Ваше имя</label>
                                 <input
+                                    id="service-name"
+                                    name="service-name"
                                     type="text"
                                     placeholder="Алихан Серикулы"
                                     value={form.name}
@@ -181,8 +183,10 @@ export default function ServicesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">Телефон</label>
+                                <label htmlFor="service-phone" className="block text-sm font-medium mb-2">Телефон</label>
                                 <input
+                                    id="service-phone"
+                                    name="service-phone"
                                     type="tel"
                                     placeholder="+7 707 000 00 00"
                                     value={form.phone}
@@ -191,8 +195,10 @@ export default function ServicesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">Email для кабинета</label>
+                                <label htmlFor="service-email" className="block text-sm font-medium mb-2">Email для кабинета</label>
                                 <input
+                                    id="service-email"
+                                    name="service-email"
                                     type="email"
                                     placeholder="you@example.com"
                                     value={form.email}
@@ -201,8 +207,10 @@ export default function ServicesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">UUID профиля или QR slug</label>
+                                <label htmlFor="service-uuid" className="block text-sm font-medium mb-2">UUID профиля или QR slug</label>
                                 <input
+                                    id="service-uuid"
+                                    name="service-uuid"
                                     type="text"
                                     placeholder="UUID или ZRT-XXXXXX"
                                     value={form.profileId}
@@ -211,8 +219,10 @@ export default function ServicesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">Комментарий</label>
+                                <label htmlFor="service-comment" className="block text-sm font-medium mb-2">Комментарий</label>
                                 <textarea
+                                    id="service-comment"
+                                    name="service-comment"
                                     placeholder="Дополнительные пожелания исполнителю..."
                                     rows={3}
                                     value={form.comment}

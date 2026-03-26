@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 // ADMIN PANEL LOGIC - src/js/admin.js
 // ------------------------------------------------------------
 
@@ -234,11 +234,11 @@ function createShezhireRowMarkup(entry = {}) {
     const safeEntry = normalizeShezhireEntry(entry) || { label: '', value: '' };
     return `
         <div data-shezhire-row style="display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.3fr) auto; gap:8px; align-items:start;">
-            <input type="text" list="shezhireFieldOptions" class="gate-input" data-shezhire-label
+            <input name="shezhire_label_input" aria-label="Поле шежире" type="text" list="shezhireFieldOptions" class="gate-input" data-shezhire-label
                 placeholder="${escapeHtml(getI18nText('shezhire_field_ph', 'Напр. Ру / племя'))}"
                 value="${escapeHtml(safeEntry.label)}"
                 style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
-            <textarea class="gate-input" data-shezhire-value rows="2"
+            <textarea name="shezhire_value_input" aria-label="Значение шежире" class="gate-input" data-shezhire-value rows="2"
                 placeholder="${escapeHtml(getI18nText('shezhire_value_ph', 'Введите значение'))}"
                 style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;">${escapeHtml(safeEntry.value)}</textarea>
             <button type="button" class="gate-btn gate-btn-secondary" onclick="removeShezhireEntryRow(this)"

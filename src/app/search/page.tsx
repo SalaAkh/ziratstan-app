@@ -39,6 +39,8 @@ export default async function SearchPage({
                 <div className="relative flex items-center">
                     <Search className="absolute left-4 text-[#71717a]" size={20} />
                     <input
+                        id="global-search-input"
+                        aria-label="Поиск"
                         type="text"
                         name="q"
                         defaultValue={query}

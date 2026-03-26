@@ -122,6 +122,9 @@ export default function MapPage() {
                     <div className="flex-1 flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-xl px-4">
                         <Search className="w-4 h-4 text-accent flex-shrink-0" />
                         <input
+                            id="map-search-input"
+                            name="map-search"
+                            aria-label="Поиск по карте"
                             type="text"
                             placeholder="Поиск по имени или фамилии..."
                             value={searchQuery}

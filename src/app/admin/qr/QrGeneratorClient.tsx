@@ -45,8 +45,10 @@ export default function QrGeneratorClient({ initialProfiles }: { initialProfiles
             </div>
 
             <div className="w-full bg-[#111113] border border-white/5 rounded-2xl p-6 mb-8 print:hidden shadow-xl">
-                <label className="block text-sm font-medium text-[#71717a] mb-2">Выберите профиль из базы</label>
+                <label htmlFor="qr-profile-select" className="block text-sm font-medium text-[#71717a] mb-2">Выберите профиль из базы</label>
                 <select
+                    id="qr-profile-select"
+                    name="qr-profile-select"
                     value={profileId}
                     onChange={e => setProfileId(e.target.value)}
                     className="w-full bg-[#09090b] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all text-[#f4f4f5] appearance-none"
@@ -60,8 +62,10 @@ export default function QrGeneratorClient({ initialProfiles }: { initialProfiles
                 </select>
 
                 <div className="mt-4 pt-4 border-t border-white/5">
-                    <label className="block text-sm font-medium text-[#71717a] mb-2">Или введите ID вручную</label>
+                    <label htmlFor="manual-profile-uuid" className="block text-sm font-medium text-[#71717a] mb-2">Или введите ID вручную</label>
                     <input
+                        id="manual-profile-uuid"
+                        name="manual-profile-uuid"
                         type="text"
                         value={profileId}
                         onChange={e => setProfileId(e.target.value)}

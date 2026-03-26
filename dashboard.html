@@ -193,6 +193,56 @@
     .toast.show { transform: translateY(0); opacity: 1; }
     .toast.success { border-color: rgba(34,197,94,0.4); color: var(--success); }
     .toast.error { border-color: rgba(239,68,68,0.4); color: var(--danger); }
+
+    /* ─── EDIT MODAL ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--gold-border);
+      border-radius: 20px; padding: 2rem;
+      width: 100%; max-width: 580px;
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(24px) scale(0.97); transition: transform 0.25s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; color: var(--muted); font-size: 1.3rem;
+      cursor: pointer; line-height: 1; padding: 0.2rem 0.4rem;
+      border-radius: 6px; transition: color 0.2s, background 0.2s;
+    }
+    .modal-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .modal .form-group select {
+      width: 100%; padding: 0.75rem 1rem; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 0.9rem; font-family: inherit;
+      transition: border-color 0.2s; cursor: pointer;
+    }
+    .modal .form-group select:focus { outline: none; border-color: var(--gold-border); }
+    .modal .form-group textarea {
+      width: 100%; padding: 0.75rem 1rem; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 0.9rem; font-family: inherit;
+      transition: border-color 0.2s; resize: vertical; min-height: 80px;
+    }
+    .modal .form-group textarea:focus { outline: none; border-color: var(--gold-border); }
+    .modal-footer {
+      display: flex; gap: 0.75rem; flex-wrap: wrap;
+      margin-top: 1.5rem; padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .profile-actions .btn-edit { color: var(--gold); border-color: var(--gold-border); }
+    .profile-actions .btn-edit:hover { background: var(--gold-dim); }
   </style>
 </head>
 
@@ -312,6 +362,70 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="edit-modal-overlay" onclick="closeEditModal(event)">
+    <div class="modal" id="edit-modal">
+      <div class="modal-header">
+        <h3>✏️ <span id="edit-modal-title">Профильді өңдеу</span></h3>
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <form id="edit-form" autocomplete="off">
+        <input type="hidden" id="edit-profile-id" />
+        <!-- Name fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-last-name">Тегі (Фамилия)</label>
+            <input type="text" id="edit-last-name" name="edit-last-name" placeholder="Иванов" autocomplete="family-name" />
+          </div>
+          <div class="form-group">
+            <label for="edit-first-name">Аты (Имя)</label>
+            <input type="text" id="edit-first-name" name="edit-first-name" placeholder="Иван" autocomplete="given-name" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-patronymic">Әкесінің аты (Отчество)</label>
+          <input type="text" id="edit-patronymic" name="edit-patronymic" placeholder="Иванович" autocomplete="additional-name" />
+        </div>
+        <!-- Dates -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-birth-date">Туған күні</label>
+            <input type="date" id="edit-birth-date" name="edit-birth-date" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="edit-death-date">Қайтыс болған күні</label>
+            <input type="date" id="edit-death-date" name="edit-death-date" autocomplete="off" />
+          </div>
+        </div>
+        <!-- Photo URL -->
+        <div class="form-group">
+          <label for="edit-photo-url">Фото URL</label>
+          <input type="url" id="edit-photo-url" name="edit-photo-url" placeholder="https://..." autocomplete="off" />
+        </div>
+        <!-- Visibility -->
+        <div class="form-group">
+          <label for="edit-visibility">Көрінушілік</label>
+          <select id="edit-visibility" name="edit-visibility">
+            <option value="public">🌐 Барлығына ашық</option>
+            <option value="family">👨‍👩‍👧 Тек отбасы</option>
+            <option value="private">🔒 Жабық / Жеке</option>
+          </select>
+        </div>
+        <!-- Biography -->
+        <div class="form-group">
+          <label for="edit-bio">Өмірбаян / Описание</label>
+          <textarea id="edit-bio" name="edit-bio" placeholder="Қысқаша өмірбаян..."></textarea>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-gold" onclick="saveProfileEdits()" id="edit-save-btn">💾 Сақтау</button>
+        <button class="btn btn-outline" onclick="closeEditModal()">Болдырмау</button>
+        <button class="btn btn-danger" onclick="deleteProfile()" style="margin-left:auto">🗑️ Жою</button>
+      </div>
+      <div id="edit-msg" style="margin-top:0.75rem; font-size:0.85rem;"></div>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -492,9 +606,9 @@
             <div class="location">${cemetery ? '📍 ' + cemetery : ''}</div>
           </div>
         </div>
-        <div class="profile-actions">
+        <div class="profile-actions" style="flex-wrap:wrap;">
           <a href="profile.html?id=${profile.id}" class="btn btn-outline">👁️ ${t('dash_btn_view', 'Көру')}</a>
-          <a href="map.html#${profile.id}" class="btn btn-outline">🗺️ ${t('dash_btn_map', 'Карта')}</a>
+          <button class="btn btn-outline btn-edit" onclick="openEditModal('${profile.id}')">✏️ Өңдеу</button>
           <button class="btn btn-outline" ${lockedByAdmin ? `disabled style="opacity:0.55; cursor:not-allowed;" title="${t('dash_btn_admin_locked_title', 'Статус зафиксирован администратором')}"` : ''} onclick="toggleVisibility('${profile.id}', '${visibility}', '${moderationStatus}')">
             ${lockedByAdmin
               ? t('dash_btn_admin_locked', '🛡️ Решение админа')
@@ -600,6 +714,126 @@
     function openAddDeceasedModal() {
       // Redirect to map with "add mode" — actual add form handled in map.html
       window.location.href = 'map.html?action=add';
+    }
+
+    // ─── Edit Modal ─────────────────────────────────────────────
+    let _editingProfileId = null;
+
+    function openEditModal(profileId) {
+      const profile = myProfiles.find(p => p.id === profileId);
+      if (!profile) return;
+      _editingProfileId = profileId;
+
+      document.getElementById('edit-profile-id').value = profileId;
+      document.getElementById('edit-last-name').value = profile.last_name || '';
+      document.getElementById('edit-first-name').value = profile.first_name || '';
+      document.getElementById('edit-patronymic').value = profile.patronymic || '';
+      document.getElementById('edit-birth-date').value = profile.birth_date ? profile.birth_date.substring(0, 10) : '';
+      document.getElementById('edit-death-date').value = profile.death_date ? profile.death_date.substring(0, 10) : '';
+      document.getElementById('edit-photo-url').value = profile.main_photo_url || '';
+      document.getElementById('edit-visibility').value = profile.visibility_status || 'public';
+      document.getElementById('edit-bio').value = profile.biography || profile.bio || '';
+      document.getElementById('edit-msg').textContent = '';
+
+      document.getElementById('edit-modal-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditModal(event) {
+      if (event && event.target !== document.getElementById('edit-modal-overlay')) return;
+      document.getElementById('edit-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      _editingProfileId = null;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('edit-modal-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+        _editingProfileId = null;
+      }
+    });
+
+    async function saveProfileEdits() {
+      const id = _editingProfileId;
+      if (!id) return;
+
+      const msgEl = document.getElementById('edit-msg');
+      const saveBtn = document.getElementById('edit-save-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Сақталуда...';
+      msgEl.textContent = '';
+
+      const updates = {
+        last_name: document.getElementById('edit-last-name').value.trim() || null,
+        first_name: document.getElementById('edit-first-name').value.trim() || null,
+        patronymic: document.getElementById('edit-patronymic').value.trim() || null,
+        birth_date: document.getElementById('edit-birth-date').value || null,
+        death_date: document.getElementById('edit-death-date').value || null,
+        main_photo_url: document.getElementById('edit-photo-url').value.trim() || null,
+        visibility_status: document.getElementById('edit-visibility').value,
+        biography: document.getElementById('edit-bio').value.trim() || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await sb
+        .from('profiles')
+        .update(updates)
+        .eq('id', id)
+        .eq('owner_id', currentUser.id);
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Сақтау';
+
+      if (error) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = `❌ Қате: ${error.message}`;
+        return;
+      }
+
+      showToast('✅ Профиль жаңартылды!', 'success');
+      document.getElementById('edit-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      _editingProfileId = null;
+      await loadMyProfiles();
+    }
+
+    // ─── Delete Profile ─────────────────────────────────────────
+    async function deleteProfile() {
+      const id = _editingProfileId;
+      if (!id) return;
+
+      const profile = myProfiles.find(p => p.id === id);
+      const displayName = profile
+        ? [profile.last_name, profile.first_name, profile.patronymic].filter(Boolean).join(' ') || 'Профиль'
+        : 'Профиль';
+
+      const confirmed = confirm(`⚠️ "${displayName}" профилін жойғыңыз келе ме?\n\nБұл әрекетті кері қайтару мүмкін емес!`);
+      if (!confirmed) return;
+
+      const doubleCheck = confirm(`🗑️ Соңғы растау: "${displayName}" мәңгілікке жойылады. Жалғастыру керек пе?`);
+      if (!doubleCheck) return;
+
+      const msgEl = document.getElementById('edit-msg');
+      msgEl.style.color = 'var(--danger)';
+      msgEl.textContent = '⏳ Жойылуда...';
+
+      const { error } = await sb
+        .from('profiles')
+        .delete()
+        .eq('id', id)
+        .eq('owner_id', currentUser.id);
+
+      if (error) {
+        msgEl.textContent = `❌ Қате: ${error.message}`;
+        return;
+      }
+
+      showToast('🗑️ Профиль жойылды', 'error');
+      document.getElementById('edit-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      _editingProfileId = null;
+      await loadMyProfiles();
     }
 
     // ─── Toast ─────────────────────────────────────────────────

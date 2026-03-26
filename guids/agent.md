@@ -682,3 +682,18 @@ onAuthStateChange → SIGNED_OUT (no user)
 ### 4. Deny-by-Default (RLS)
 
 И база Supabase, и Firebase Firestore (через `firestore.rules`) по умолчанию блокируют все операции. Все PWA клиенты обращаются к защищенным данным только через Next.js Route Handlers. Supabase RLS разрешает чтение/запись персональных профилей **только владельцам** (owner_id).
+
+---
+
+## Schema Sync & Accessibility Compliance (Updated 2026-03-25)
+
+**Проблема 1: 400 Bad Request при создании/чтении профилей**
+API Supabase стало отдавать ошибку `42703 (UNDEFINED COLUMN)`. Фронтенд (Next.js и Vanilla JS) пытался читать/писать колонку `shezhire_entries`, которой физически не было в базе.
+**Решение:** Сгенерирована миграция `supabase/migrations/20260319_shezhire_entries.sql`. Эта SQL команда **обязательна для ручного исполнения в Supabase Dashboard**, иначе создание UGC-профилей и чтение списка предков не работает.
+
+**Проблема 2: 403 Permission Denied на `user_profiles`**
+**Решение:** Скрипт `supabase/fix_user_profiles_403.sql` исправляет политики RLS. Требуется ручной запуск в Supabase SQL Editor.
+
+**Проблема 3: Провалы Lighthouse Accessibility Audits**
+Google Lighthouse ругался на отсутствие атрибутов `id` и `name` у тегов `<input>`, `<select>` и `<textarea>`, а также на отсутствие привязки `<label>` через `htmlFor`/`for`. Старые формы мешали автозаполнению.
+**Решение:** Во всех HTML-файлах, а также в динамических React-компонентах (`services/page.tsx`, `search/page.tsx`, `map/page.tsx`, `admin.js`, `map.js`) были добавлены `name`, `id` и `aria-label`, восстановив 100% зелёный статус по доступности (A11y).

@@ -1119,10 +1119,10 @@
             const value = escapeHtml(entry.value || '');
             return `
                 <div data-map-shezhire-row style="display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.3fr) auto; gap:8px; align-items:start;">
-                    <input type="text" list="mapShezhireFieldOptions" data-map-shezhire-label
+                    <input name="map_shezhire_label" aria-label="Поле шежире" type="text" list="mapShezhireFieldOptions" data-map-shezhire-label
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
                         placeholder="${escapeHtml(t('shezhire_field_ph'))}" value="${label}">
-                    <textarea data-map-shezhire-value rows="2"
+                    <textarea name="map_shezhire_value" aria-label="Значение шежире" data-map-shezhire-value rows="2"
                         style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
                         placeholder="${escapeHtml(t('shezhire_value_ph'))}">${value}</textarea>
                     <button type="button" onclick="removeMapShezhireRow(this)"
