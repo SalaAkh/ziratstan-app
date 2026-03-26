@@ -368,7 +368,7 @@
   <div class="modal-overlay" id="edit-modal-overlay" onclick="closeEditModal(event)">
     <div class="modal" id="edit-modal">
       <div class="modal-header">
-        <h3>✏️ <span id="edit-modal-title">Профильді өңдеу</span></h3>
+        <h3 data-i18n="dash_edit_title">✏️ Профильді өңдеу</h3>
         <button class="modal-close" onclick="closeEditModal()">✕</button>
       </div>
       <form id="edit-form" autocomplete="off">
@@ -376,53 +376,53 @@
         <!-- Name fields -->
         <div class="form-row">
           <div class="form-group">
-            <label for="edit-last-name">Тегі (Фамилия)</label>
+            <label for="edit-last-name" data-i18n="dash_edit_last_name">Тегі (Фамилия)</label>
             <input type="text" id="edit-last-name" name="edit-last-name" placeholder="Иванов" autocomplete="family-name" />
           </div>
           <div class="form-group">
-            <label for="edit-first-name">Аты (Имя)</label>
+            <label for="edit-first-name" data-i18n="dash_edit_first_name">Аты (Имя)</label>
             <input type="text" id="edit-first-name" name="edit-first-name" placeholder="Иван" autocomplete="given-name" />
           </div>
         </div>
         <div class="form-group">
-          <label for="edit-patronymic">Әкесінің аты (Отчество)</label>
+          <label for="edit-patronymic" data-i18n="dash_edit_patronymic">Әкесінің аты (Отчество)</label>
           <input type="text" id="edit-patronymic" name="edit-patronymic" placeholder="Иванович" autocomplete="additional-name" />
         </div>
         <!-- Dates -->
         <div class="form-row">
           <div class="form-group">
-            <label for="edit-birth-date">Туған күні</label>
+            <label for="edit-birth-date" data-i18n="dash_edit_birth_date">Туған күні</label>
             <input type="date" id="edit-birth-date" name="edit-birth-date" autocomplete="off" />
           </div>
           <div class="form-group">
-            <label for="edit-death-date">Қайтыс болған күні</label>
+            <label for="edit-death-date" data-i18n="dash_edit_death_date">Қайтыс болған күні</label>
             <input type="date" id="edit-death-date" name="edit-death-date" autocomplete="off" />
           </div>
         </div>
         <!-- Photo URL -->
         <div class="form-group">
-          <label for="edit-photo-url">Фото URL</label>
+          <label for="edit-photo-url" data-i18n="dash_edit_photo_url">Фото URL</label>
           <input type="url" id="edit-photo-url" name="edit-photo-url" placeholder="https://..." autocomplete="off" />
         </div>
         <!-- Visibility -->
         <div class="form-group">
-          <label for="edit-visibility">Көрінушілік</label>
+          <label for="edit-visibility" data-i18n="dash_edit_visibility">Көрінушілік</label>
           <select id="edit-visibility" name="edit-visibility">
-            <option value="public">🌐 Барлығына ашық</option>
-            <option value="family">👨‍👩‍👧 Тек отбасы</option>
-            <option value="private">🔒 Жабық / Жеке</option>
+            <option value="public" data-i18n="dash_edit_vis_public">🌐 Барлығына ашық</option>
+            <option value="family" data-i18n="dash_edit_vis_family">👨‍👩‍👧 Тек отбасы</option>
+            <option value="private" data-i18n="dash_edit_vis_private">🔒 Жабық / Жеке</option>
           </select>
         </div>
         <!-- Biography -->
         <div class="form-group">
-          <label for="edit-bio">Өмірбаян / Описание</label>
+          <label for="edit-bio" data-i18n="dash_edit_bio">Өмірбаян / Сипаттама</label>
           <textarea id="edit-bio" name="edit-bio" placeholder="Қысқаша өмірбаян..."></textarea>
         </div>
       </form>
       <div class="modal-footer">
-        <button class="btn btn-gold" onclick="saveProfileEdits()" id="edit-save-btn">💾 Сақтау</button>
-        <button class="btn btn-outline" onclick="closeEditModal()">Болдырмау</button>
-        <button class="btn btn-danger" onclick="deleteProfile()" style="margin-left:auto">🗑️ Жою</button>
+        <button class="btn btn-gold" onclick="saveProfileEdits()" id="edit-save-btn" data-i18n="dash_edit_save">💾 Сақтау</button>
+        <button class="btn btn-outline" onclick="closeEditModal()" data-i18n="dash_edit_cancel">Болдырмау</button>
+        <button class="btn btn-danger" onclick="deleteProfile()" style="margin-left:auto" data-i18n="dash_edit_delete">🗑️ Жою</button>
       </div>
       <div id="edit-msg" style="margin-top:0.75rem; font-size:0.85rem;"></div>
     </div>
@@ -608,7 +608,7 @@
         </div>
         <div class="profile-actions" style="flex-wrap:wrap;">
           <a href="profile.html?id=${profile.id}" class="btn btn-outline">👁️ ${t('dash_btn_view', 'Көру')}</a>
-          <button class="btn btn-outline btn-edit" onclick="openEditModal('${profile.id}')">✏️ Өңдеу</button>
+          <button class="btn btn-outline btn-edit" onclick="openEditModal('${profile.id}')">${t('dash_btn_edit', '✏️ Өңдеу')}</button>
           <button class="btn btn-outline" ${lockedByAdmin ? `disabled style="opacity:0.55; cursor:not-allowed;" title="${t('dash_btn_admin_locked_title', 'Статус зафиксирован администратором')}"` : ''} onclick="toggleVisibility('${profile.id}', '${visibility}', '${moderationStatus}')">
             ${lockedByAdmin
               ? t('dash_btn_admin_locked', '🛡️ Решение админа')
@@ -761,7 +761,7 @@
       const msgEl = document.getElementById('edit-msg');
       const saveBtn = document.getElementById('edit-save-btn');
       saveBtn.disabled = true;
-      saveBtn.textContent = '⏳ Сақталуда...';
+      saveBtn.textContent = t('dash_edit_saving', '⏳ Сақталуда...');
       msgEl.textContent = '';
 
       const updates = {
@@ -783,15 +783,15 @@
         .eq('owner_id', currentUser.id);
 
       saveBtn.disabled = false;
-      saveBtn.textContent = '💾 Сақтау';
+      saveBtn.textContent = t('dash_edit_save', '💾 Сақтау');
 
       if (error) {
         msgEl.style.color = 'var(--danger)';
-        msgEl.textContent = `❌ Қате: ${error.message}`;
+        msgEl.textContent = `❌ ${t('dash_err_prefix', 'Қате')}: ${error.message}`;
         return;
       }
 
-      showToast('✅ Профиль жаңартылды!', 'success');
+      showToast(t('dash_edit_saved', '✅ Профиль жаңартылды!'), 'success');
       document.getElementById('edit-modal-overlay').classList.remove('open');
       document.body.style.overflow = '';
       _editingProfileId = null;
@@ -804,19 +804,20 @@
       if (!id) return;
 
       const profile = myProfiles.find(p => p.id === id);
+      const unknownLabel = t('common_unknown', 'Белгісіз');
       const displayName = profile
-        ? [profile.last_name, profile.first_name, profile.patronymic].filter(Boolean).join(' ') || 'Профиль'
-        : 'Профиль';
+        ? [profile.last_name, profile.first_name, profile.patronymic].filter(Boolean).join(' ') || unknownLabel
+        : unknownLabel;
 
-      const confirmed = confirm(`⚠️ "${displayName}" профилін жойғыңыз келе ме?\n\nБұл әрекетті кері қайтару мүмкін емес!`);
-      if (!confirmed) return;
+      const c1 = t('dash_delete_confirm1', '⚠️ "{}" профилін жойғыңыз келе ме?\n\nБұл әрекетті кері қайтару мүмкін емес!').replace('{}', displayName);
+      if (!confirm(c1)) return;
 
-      const doubleCheck = confirm(`🗑️ Соңғы растау: "${displayName}" мәңгілікке жойылады. Жалғастыру керек пе?`);
-      if (!doubleCheck) return;
+      const c2 = t('dash_delete_confirm2', '🗑️ Соңғы растау: "{}" мәңгілікке жойылады. Жалғастыру керек пе?').replace('{}', displayName);
+      if (!confirm(c2)) return;
 
       const msgEl = document.getElementById('edit-msg');
       msgEl.style.color = 'var(--danger)';
-      msgEl.textContent = '⏳ Жойылуда...';
+      msgEl.textContent = t('dash_delete_deleting', '⏳ Жойылуда...');
 
       const { error } = await sb
         .from('profiles')
@@ -825,11 +826,11 @@
         .eq('owner_id', currentUser.id);
 
       if (error) {
-        msgEl.textContent = `❌ Қате: ${error.message}`;
+        msgEl.textContent = `❌ ${t('dash_err_prefix', 'Қате')}: ${error.message}`;
         return;
       }
 
-      showToast('🗑️ Профиль жойылды', 'error');
+      showToast(t('dash_delete_done', '🗑️ Профиль жойылды'), 'error');
       document.getElementById('edit-modal-overlay').classList.remove('open');
       document.body.style.overflow = '';
       _editingProfileId = null;

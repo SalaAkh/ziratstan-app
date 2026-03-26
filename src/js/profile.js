@@ -138,6 +138,10 @@ function renderShezhireInfo(entries) {
 }
 
 async function loadEnrichedBio(profileId) {
+    // Only local JSON files exist for slug-style IDs (historical profiles).
+    // Supabase UUIDs (xxxxxxxx-xxxx-xxxx-…) have no matching JSON file — skip the fetch to avoid a 404.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (UUID_RE.test(profileId)) return null;
     try {
         const res = await fetch(`/public/data/profiles/${profileId}.json`);
         if (!res.ok) return null;
