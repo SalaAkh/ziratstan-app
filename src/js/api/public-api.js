@@ -194,6 +194,26 @@
         .maybeSingle();
 
       if (error || !data) return null;
+
+      // Enforce visibility explicitly for direct links (defense-in-depth if RLS misses it)
+      if (data.visibility_status && data.visibility_status !== 'public') {
+        let isAuthorized = false;
+        try {
+          var sessionRes = await sb.auth.getSession();
+          var user = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+          if (user) {
+            var isAdmin = (user.app_metadata && user.app_metadata.role === 'admin') || 
+                          (user.user_metadata && user.user_metadata.role === 'admin');
+            if (user.id === data.owner_id || isAdmin) {
+              isAuthorized = true;
+            }
+          }
+        } catch (_e) {}
+        if (!isAuthorized) {
+          console.warn("[public-api] Profile is private. Access denied.");
+          return null;
+        }
+      }
       
       return {
         id: data.id,
