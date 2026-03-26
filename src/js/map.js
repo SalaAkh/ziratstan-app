@@ -1127,14 +1127,20 @@
             const value = escapeHtml(entry.value || '');
             return `
                 <div data-map-shezhire-row style="display:grid; grid-template-columns:minmax(0,0.9fr) minmax(0,1.3fr) auto; gap:8px; align-items:start;">
-                    <input name="map_shezhire_label" aria-label="Поле шежире" type="text" list="mapShezhireFieldOptions" data-map-shezhire-label
-                        style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
-                        placeholder="${escapeHtml(t('shezhire_field_ph'))}" value="${label}">
-                    <textarea name="map_shezhire_value" aria-label="Значение шежире" data-map-shezhire-value rows="2"
-                        style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
-                        placeholder="${escapeHtml(t('shezhire_value_ph'))}">${value}</textarea>
+                    <label style="display:block; width:100%; margin:0;">
+                        <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Поле</span>
+                        <input name="map_shezhire_label" aria-label="Поле шежире" type="text" list="mapShezhireFieldOptions" data-map-shezhire-label
+                            style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box;"
+                            placeholder="${escapeHtml(t('shezhire_field_ph', 'Напр. Ру / племя'))}" value="${label}">
+                    </label>
+                    <label style="display:block; width:100%; margin:0;">
+                        <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Значение</span>
+                        <textarea name="map_shezhire_value" aria-label="Значение шежире" data-map-shezhire-value rows="2"
+                            style="width:100%; padding:11px 14px; background:#18181b; border:1px solid var(--border); border-radius:9px; color:var(--text); font-family:Inter; box-sizing:border-box; resize:vertical;"
+                            placeholder="${escapeHtml(t('shezhire_value_ph', 'Введите значение'))}">${value}</textarea>
+                    </label>
                     <button type="button" onclick="removeMapShezhireRow(this)"
-                        style="padding:11px 12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit; align-self:stretch;" data-i18n="common_remove_row">${escapeHtml(t('common_remove_row'))}</button>
+                        style="padding:11px 12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit; align-self:stretch;" data-i18n="common_remove_row">${escapeHtml(t('common_remove_row', 'Удалить'))}</button>
                 </div>`;
         }
 

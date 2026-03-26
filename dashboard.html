@@ -612,7 +612,7 @@
           <button class="btn btn-outline" ${lockedByAdmin ? `disabled style="opacity:0.55; cursor:not-allowed;" title="${t('dash_btn_admin_locked_title', 'Статус зафиксирован администратором')}"` : ''} onclick="toggleVisibility('${profile.id}', '${visibility}', '${moderationStatus}')">
             ${lockedByAdmin
               ? t('dash_btn_admin_locked', '🛡️ Решение админа')
-              : (profile.visibility === 'public' ? t('dash_btn_hide', '🔒 Жабу') : t('dash_btn_open', '🌐 Ашу'))}
+              : (visibility === 'public' ? t('dash_btn_hide', '🔒 Жабу') : t('dash_btn_open', '🌐 Ашу'))}
           </button>
         </div>
       `;
