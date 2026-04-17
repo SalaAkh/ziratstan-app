@@ -278,7 +278,10 @@ const PROFILES_STATIC = [
     filter: "historical",
     lat: 49.12712,
     lng: 79.323946,
-    photo: null
+    zhuz: "Орта жүз",
+    tribe: "Арғын — Тобықты",
+    epitaph: "Адам боп туса нақ адам, нағыз адам болу қиын...",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Abai_Kunanbayev_portrait.jpg/640px-Abai_Kunanbayev_portrait.jpg"
   },
   {
     id: "shakarim_19",
