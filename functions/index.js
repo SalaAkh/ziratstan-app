@@ -1,10 +1,5 @@
 const { onRequest } = require('firebase-functions/v2/https');
-const { defineSecret } = require('firebase-functions/params');
 const { createClient } = require('@supabase/supabase-js');
-
-// Firebase Functions v2 secrets must be declared and attached to the function to be available at runtime.
-const SUPABASE_URL_SECRET = defineSecret('SUPABASE_URL');
-const SUPABASE_SERVICE_ROLE_KEY_SECRET = defineSecret('SUPABASE_SERVICE_ROLE_KEY');
 
 let adminDb = null;
 
@@ -653,9 +648,6 @@ async function handleStatusPost(req, res) {
 }
 
 exports.api = onRequest(
-    {
-        secrets: [SUPABASE_URL_SECRET, SUPABASE_SERVICE_ROLE_KEY_SECRET],
-    },
     async (req, res) => {
     setCorsHeaders(req, res);
 

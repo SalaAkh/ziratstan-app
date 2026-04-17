@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.0",
-    "firebase-functions": "^6.5.0"
+    "firebase-functions": "^7.2.5"
   }
 }

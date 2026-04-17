@@ -40,6 +40,23 @@ function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Data Masking Utilities (Compliance)
+function maskEmail(email) {
+    if (!email || email === '-') return email;
+    const parts = String(email).split('@');
+    if (parts.length !== 2) return email;
+    const name = parts[0];
+    if (name.length <= 2) return `***@${parts[1]}`;
+    return `${name[0]}***${name[name.length - 1]}@${parts[1]}`;
+}
+
+function maskPhone(phone) {
+    if (!phone || phone === '-') return phone;
+    const raw = String(phone).replace(/[^\d+]/g, '');
+    if (raw.length < 10) return phone;
+    return `${raw.slice(0, 5)} *** ** ${raw.slice(-2)}`;
+}
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -2106,7 +2123,7 @@ function renderSessionList(containerId, items, emptyText) {
             : '—';
         const safeDeviceName = escapeHtml(item.device_name || getI18nText('admin_unknown_device', 'Неизвестное устройство'));
         const safeActiveLabel = escapeHtml(activeLabel);
-        const safeEmail = escapeHtml(item.email || '-');
+        const safeEmail = escapeHtml(maskEmail(item.email || '-'));
         const safeStartedAt = escapeHtml(formatDateTime(item.started_at));
         const safeLastSeen = escapeHtml(formatDateTime(item.last_seen_at));
         const safeEndedLabel = escapeHtml(endedLabel);
@@ -2715,7 +2732,7 @@ function createCard(type, item) {
         badgeClass = 'badge-profiles';
         title = `${getI18nText('admin_lbl_order', 'Заказ')}: ${item.service_type || ''}`;
         const safeCustomerName = escapeHtml(item.customer_name || '-');
-        const safeCustomerPhone = escapeHtml(item.customer_phone || '-');
+        const safeCustomerPhone = escapeHtml(maskPhone(item.customer_phone || '-'));
         const safeProfileRef = escapeHtml(item.profile_ref || '-');
         const safePrice = escapeHtml(item.price || '-');
         const safeComment = item.comment ? `<div class="card-detail" style="margin-top:8px;">${escapeHtml(item.comment)}</div>` : '';
