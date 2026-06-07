@@ -1458,6 +1458,12 @@
                     <label for="reg-password" data-i18n="auth_password_min">Пароль (мин. 6 символ)</label>
                     <input name="reg-password" type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password" />
                 </div>
+                <div class="auth-field-checkbox" style="display:flex; align-items:flex-start; gap:8px; margin-bottom:12px; font-size:0.78rem; line-height:1.4; color:var(--muted);">
+                    <input type="checkbox" id="reg-consent" required style="margin-top:2px; width:auto;" />
+                    <label for="reg-consent" data-i18n-html="auth_reg_consent">
+                        Мен <a href="terms.html" target="_blank">Пайдаланушылық келісіммен</a> және <a href="privacy.html" target="_blank">Құпиялылық саясатымен</a> келісемін, сондай-ақ Қазақстан Республикасының заңына сәйкес дербес деректерді өңдеуге келісім беремін.
+                    </label>
+                </div>
                 <div class="auth-error" id="reg-error"></div>
                 <div class="auth-success" id="reg-success" style="display:none;"></div>
                 <button type="submit" class="auth-submit" data-i18n="auth_reg_submit">✨ Тіркелу →</button>

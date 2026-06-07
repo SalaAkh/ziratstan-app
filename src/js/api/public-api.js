@@ -228,6 +228,7 @@
         bio: data.biography || '',
         shezhireEntries: normalizeShezhireEntries(data.shezhire_entries),
         epitaph: data.epitaph || '',
+        isPremium: Boolean(data.is_premium),
         filter: 'historical'
       };
     } catch (e) {

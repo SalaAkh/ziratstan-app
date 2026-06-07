@@ -169,7 +169,7 @@ const PhotoPicker = (() => {
 
     root.innerHTML = `
       <div class="pp-root">
-        <label class="pp-label">${_t('photo_upload_title','Фотографии')} (${items.length}/${maxPhotos})</label>
+        <label class="pp-label" for="pp-fi-${id}">${_t('photo_upload_title','Фотографии')} (${items.length}/${maxPhotos})</label>
         ${canAdd ? `
           <div class="pp-drop-zone" id="pp-dz-${id}" onclick="document.getElementById('pp-fi-${id}').click()">
             <div class="pp-drop-hint">
@@ -177,9 +177,9 @@ const PhotoPicker = (() => {
               ${_t('photo_upload_desc','JPEG, PNG, WebP · макс. 8 МБ · до')} ${maxPhotos} ${_t('photo_upload_unit','фото')}
             </div>
           </div>
-          <input type="file" accept="image/*" multiple class="pp-file-input" id="pp-fi-${id}"
-            onchange="PhotoPicker._handleFiles('${id}', this.files)" />
         ` : ''}
+        <input type="file" accept="image/*" multiple class="pp-file-input" id="pp-fi-${id}"
+          onchange="PhotoPicker._handleFiles('${id}', this.files)" ${canAdd ? '' : 'disabled style="display:none;"'} />
         ${galleryHtml}
         <div class="pp-counter ${items.length >= maxPhotos ? 'pp-at-max' : ''}">
           ${items.length}/${maxPhotos} ${_t('photo_upload_unit','фото')}

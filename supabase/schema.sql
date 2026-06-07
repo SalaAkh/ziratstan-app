@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     visibility_status VARCHAR(20) DEFAULT 'public' CHECK (visibility_status IN ('public', 'family_only', 'private')),
     pin_code VARCHAR(4),
     -- Для приватных профилей
+    is_premium BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

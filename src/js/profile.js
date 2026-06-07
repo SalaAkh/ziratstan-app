@@ -276,23 +276,52 @@ function renderBio(data) {
         document.getElementById('standardBioContainer').innerHTML = wrapper.innerHTML;
     }
 
-    const videoHTML = data.video_link ? `
-        <div style="margin-top:2rem;">
-            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> ${t('prof_video_title')}</h3>
-            <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);">
-                <iframe src="${data.video_link.replace('watch?v=', 'embed/')}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
-            </div>
-        </div>
-    ` : '';
+    const locked = isProfileLocked();
 
-    const galleryHTML = (_galleryPhotos && _galleryPhotos.length > 0) ? `
-        <div style="margin-top:2rem;">
-            <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> ${t('prof_gallery_title')}</h3>
-            <div class="photo-gallery">
-                ${_galleryPhotos.map((url, idx) => `<div class="gallery-item"><img src="${url}" onclick="openLightbox(${idx})" alt="Gallery Image"></div>`).join('')}
+    let videoHTML = '';
+    if (data.video_link) {
+        if (locked) {
+            videoHTML = `
+                <div style="margin-top:2rem;">
+                    <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> ${t('prof_video_title')}</h3>
+                    <div class="locked-section-placeholder">
+                        <div class="locked-icon">🔒</div>
+                        <h4 data-i18n="prof_lock_video_desc">${t('prof_lock_video_desc')}</h4>
+                        <button type="button" class="btn-action btn-premium-unlock" onclick="openCheckoutModal()">
+                            ${t('prof_lock_unlock_btn') || '⭐ Premium белсендіру'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            videoHTML = `
+                <div style="margin-top:2rem;">
+                    <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">🎥</span> ${t('prof_video_title')}</h3>
+                    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);">
+                        <iframe src="${data.video_link.replace('watch?v=', 'embed/')}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    let galleryHTML = '';
+    if (_galleryPhotos && _galleryPhotos.length > 0) {
+        galleryHTML = `
+            <div style="margin-top:2rem;">
+                <h3 style="font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:6px;"><span class="s-icon">📸</span> ${t('prof_gallery_title')}</h3>
+                <div class="photo-gallery">
+                    ${_galleryPhotos.map((url, idx) => {
+                        if (locked && idx > 0) {
+                            return `<div class="gallery-item locked" onclick="openCheckoutModal()"><img src="${url}" alt="Locked Gallery Image"></div>`;
+                        } else {
+                            return `<div class="gallery-item"><img src="${url}" onclick="openLightbox(${idx})" alt="Gallery Image"></div>`;
+                        }
+                    }).join('')}
+                </div>
             </div>
-        </div>
-    ` : '';
+        `;
+    }
 
     const galleryContainer = document.getElementById('galleryContainer');
     if (galleryHTML) {
@@ -384,6 +413,10 @@ function toggleBio() {
 // ── LIGHTBOX (P2.2) ──
 function openLightbox(index) {
     if (!_galleryPhotos || _galleryPhotos.length === 0) return;
+    if (isProfileLocked() && index > 0) {
+        openCheckoutModal();
+        return;
+    }
     _currentPhotoIndex = index;
     const overlay = document.getElementById('lightboxOverlay');
     overlay.classList.add('active');
@@ -397,12 +430,18 @@ function updateLightbox() {
     const counter = document.getElementById('lightboxCounter');
     const url = _galleryPhotos[_currentPhotoIndex];
     img.src = url;
-    counter.textContent = `${_currentPhotoIndex + 1} / ${_galleryPhotos.length}`;
+    
+    const locked = isProfileLocked();
+    if (locked) {
+        counter.textContent = `1 / 1`;
+    } else {
+        counter.textContent = `${_currentPhotoIndex + 1} / ${_galleryPhotos.length}`;
+    }
 
-    // Show/hide nav buttons if only 1 photo
+    // Show/hide nav buttons if only 1 photo or locked
     const prevBtn = document.getElementById('prevPhotoBtn');
     const nextBtn = document.getElementById('nextPhotoBtn');
-    if (_galleryPhotos.length <= 1) {
+    if (locked || _galleryPhotos.length <= 1) {
         prevBtn.style.display = 'none';
         nextBtn.style.display = 'none';
     } else {
@@ -608,6 +647,16 @@ async function initProfile() {
 
     // Load QR Code
     loadQrSection(realProfileId);
+
+    // Toggle activatePremiumBtn visibility
+    const activateBtn = document.getElementById('activatePremiumBtn');
+    if (activateBtn) {
+        if (isProfileLocked()) {
+            activateBtn.style.display = 'inline-flex';
+        } else {
+            activateBtn.style.display = 'none';
+        }
+    }
 }
 
 async function fetchProfilePhotos(profileId) {
@@ -630,23 +679,56 @@ async function fetchProfilePhotos(profileId) {
 
 async function loadFamilyTree(profileId, currentProfile) {
     try {
+        let hasTree = false;
         // Check if we have Custom JSON Shezhire data first!
         if (_enrichedData && _enrichedData.shezhire) {
             renderCustomShezhire(_enrichedData.shezhire, currentProfile);
-            return;
+            hasTree = true;
+        } else if (typeof fetchFamilyRelations === 'function') {
+            const relations = await fetchFamilyRelations(profileId);
+            _familyRelations = relations || null;
+
+            if (relations && relations.length > 0) {
+                document.getElementById('familySection').style.display = 'block';
+                renderTree(relations, currentProfile);
+                hasTree = true;
+            }
         }
 
-        if (typeof fetchFamilyRelations !== 'function') return;
-        const relations = await fetchFamilyRelations(profileId);
-        _familyRelations = relations || null;
-
-        if (!relations || relations.length === 0) {
+        if (!hasTree) {
             document.getElementById('familySection').style.display = 'none';
             return;
         }
 
-        document.getElementById('familySection').style.display = 'block';
-        renderTree(relations, currentProfile);
+        // Apply lock overlay if needed
+        const locked = isProfileLocked();
+        const treeContainer = document.querySelector('.tree-container');
+        const treeEl = document.getElementById('familyTree');
+        
+        if (treeContainer && treeEl) {
+            treeContainer.classList.remove('tree-container-relative');
+            const oldOverlay = treeContainer.querySelector('.tree-lock-overlay');
+            if (oldOverlay) oldOverlay.remove();
+            
+            if (locked) {
+                treeContainer.classList.add('tree-container-relative');
+                treeEl.classList.add('locked-tree');
+                
+                const lockOverlay = document.createElement('div');
+                lockOverlay.className = 'tree-lock-overlay';
+                lockOverlay.innerHTML = `
+                    <div class="locked-icon">🔒</div>
+                    <h4 data-i18n="prof_lock_tree_title">${t('prof_lock_tree_title')}</h4>
+                    <p data-i18n="prof_lock_tree_desc">${t('prof_lock_tree_desc')}</p>
+                    <button type="button" class="btn-action btn-premium-unlock" onclick="openCheckoutModal()">
+                        ${t('prof_lock_unlock_btn') || '⭐ Premium белсендіру'}
+                    </button>
+                `;
+                treeContainer.appendChild(lockOverlay);
+            } else {
+                treeEl.classList.remove('locked-tree');
+            }
+        }
     } catch (err) {
         console.error('[Ziratstan] Family tree error:', err);
         document.getElementById('familySection').style.display = 'none';
@@ -1275,3 +1357,94 @@ document.addEventListener('langchange', function () {
 // Run
 updateSeo(null);
 initProfile();
+
+// --- PREMIUM CHECKOUT FUNCTIONS ---
+function isProfileLocked() {
+    if (!_currentProfile) return false;
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(_currentProfile.id)) {
+        return false;
+    }
+    return _currentProfile.isPremium === false;
+}
+
+function openCheckoutModal() {
+    const modal = document.getElementById('checkoutModal');
+    const overlay = document.getElementById('checkoutOverlay');
+    if (modal && overlay) {
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+}
+
+function closeCheckoutModal() {
+    const modal = document.getElementById('checkoutModal');
+    const overlay = document.getElementById('checkoutOverlay');
+    if (modal && overlay) {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+}
+
+function selectTariff(tariffId) {
+    const radioPremium = document.getElementById('tariffPremium');
+    const radioPlaque = document.getElementById('tariffPlaque');
+    const optionPremium = document.getElementById('tariffOptionPremium');
+    const optionPlaque = document.getElementById('tariffOptionPlaque');
+
+    if (tariffId === 'premium') {
+        if (radioPremium) radioPremium.checked = true;
+        if (optionPremium) optionPremium.classList.add('selected');
+        if (optionPlaque) optionPlaque.classList.remove('selected');
+    } else {
+        if (radioPlaque) radioPlaque.checked = true;
+        if (optionPlaque) optionPlaque.classList.add('selected');
+        if (optionPremium) optionPremium.classList.remove('selected');
+    }
+}
+
+function copyKaspiCardCheckout() {
+    const cardNum = document.getElementById('checkoutKaspiNum')?.innerText || '4400 4303 2098 5507';
+    navigator.clipboard.writeText(cardNum.replace(/\s+/g, '')).then(() => {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = t('prof_checkout_copied_toast') || 'Көшірілді!';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+    }).catch(() => {
+        alert(cardNum);
+    });
+}
+
+function submitCheckout(event) {
+    event.preventDefault();
+    const email = document.getElementById('checkoutEmail')?.value.trim();
+    const consent = document.getElementById('checkoutConsent')?.checked;
+    
+    if (!email) {
+        alert(t('prof_checkout_email_err') || 'Email енгізіңіз');
+        return;
+    }
+    if (!consent) {
+        alert(t('prof_checkout_consent_err') || 'Келісімді белгілеңіз');
+        return;
+    }
+
+    const tariff = document.querySelector('input[name="tariff"]:checked')?.value || 'premium';
+    const tariffName = tariff === 'premium' ? 'Premium Мемориал (5 000 ₸)' : 'Premium + QR-Табличка (15 000 ₸)';
+    const profileId = _currentProfileUuid || _currentProfileId;
+    const profileName = _currentProfile?.fullName || '';
+
+    const text = `Бисмиллях! Мен "${tariffName}" тарифін төледім.\nМемориал ID: ${profileId}\nАты-жөні: ${profileName}\nEmail: ${email}`;
+    const waUrl = `https://wa.me/77073283296?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+    closeCheckoutModal();
+}
+
+window.isProfileLocked = isProfileLocked;
+window.openCheckoutModal = openCheckoutModal;
+window.closeCheckoutModal = closeCheckoutModal;
+window.selectTariff = selectTariff;
+window.copyKaspiCardCheckout = copyKaspiCardCheckout;
+window.submitCheckout = submitCheckout;

@@ -474,6 +474,12 @@ function bindAuthForms() {
       const errorEl = registerForm.querySelector('.auth-error');
       const successEl = registerForm.querySelector('.auth-success');
 
+      const consentBox = registerForm.querySelector('#reg-consent');
+      if (consentBox && !consentBox.checked) {
+        if (errorEl) errorEl.textContent = t('prof_checkout_consent_err', 'Жүйені пайдалану үшін келісімді растауыңыз қажет');
+        return;
+      }
+
       if (password.length < 6) {
         if (errorEl) errorEl.textContent = t('auth_password_short', 'Пароль кемінде 6 символ болуы керек');
         return;

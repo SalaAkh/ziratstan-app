@@ -815,6 +815,10 @@
                     <div class="card-title" style="margin-bottom: 12px; font-size:1.1rem;">➕ <span data-i18n="admin_cp_title">Создать новый профиль</span></div>
                     <form id="createProfileForm" onsubmit="handleCreateProfile(event)"
                         style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="heir-warning-banner" style="background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.3); padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:0.85rem; color:#d4af37; display:flex; gap:8px; align-items:center;">
+                            <span>⚠️</span>
+                            <span data-i18n="admin_lbl_heir_warning">Внимание! Перед публикацией убедитесь, что получено согласие законных наследников умершего на сбор и обработку персональных данных (ст. 15 Закона РК о ПД).</span>
+                        </div>
                         <input name="cp_firstName" type="text" id="cp_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
                             style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
                         <input name="cp_lastName" type="text" id="cp_lastName" placeholder="Фамилия" data-i18n-ph="admin_cp_ln" class="gate-input"
@@ -854,6 +858,11 @@
                             style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
                         
                         <div id="cp-photo-picker-mount"></div>
+
+                        <div style="display:flex; align-items:center; gap:8px; margin-top:4px; margin-bottom:4px;">
+                            <input type="checkbox" id="cp_isPremium" style="width:auto; margin:0;" />
+                            <label for="cp_isPremium" style="font-size:0.9rem; font-weight:600; color:var(--gold); cursor:pointer;" data-i18n="admin_lbl_is_premium">Premium белсендірілген</label>
+                        </div>
 
                         <button type="submit" class="gate-btn" id="cp_submitBtn"
                             style="width: auto; align-self: flex-start; padding: 10px 24px;"><span data-i18n="admin_cp_submit">Создать профиль</span></button>
@@ -897,6 +906,10 @@
                 <button type="button" class="modal-close" onclick="closeEditProfileModal()"><span data-i18n="common_close">Закрыть</span></button>
             </div>
             <form id="editProfileForm" onsubmit="handleEditProfile(event)" style="display:flex; flex-direction:column; gap:12px;">
+                <div class="heir-warning-banner" style="background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.3); padding:10px 14px; border-radius:8px; margin-bottom:4px; font-size:0.85rem; color:#d4af37; display:flex; gap:8px; align-items:center;">
+                    <span>⚠️</span>
+                    <span data-i18n="admin_lbl_heir_warning">Внимание! Перед публикацией убедитесь, что получено согласие законных наследников умершего на сбор и обработку персональных данных (ст. 15 Закона РК о ПД).</span>
+                </div>
                 <input name="ep_id" type="hidden" id="ep_id" />
                 <input name="ep_firstName" type="text" id="ep_firstName" placeholder="Имя (обязательно)" data-i18n-ph="admin_cp_fn" required class="gate-input"
                     style="margin-bottom:0; text-align:left; letter-spacing:normal;" />
@@ -935,6 +948,11 @@
                     style="margin-bottom:0; text-align:left; letter-spacing:normal; resize:vertical;"></textarea>
                 
                 <div id="ep-photo-picker-mount"></div>
+
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px; margin-bottom:4px;">
+                    <input type="checkbox" id="ep_isPremium" style="width:auto; margin:0;" />
+                    <label for="ep_isPremium" style="font-size:0.9rem; font-weight:600; color:var(--gold); cursor:pointer;" data-i18n="admin_lbl_is_premium">Premium белсендірілген</label>
+                </div>
 
                 <div class="form-actions-row">
                     <button type="button" class="gate-btn gate-btn-secondary" style="width:auto; padding:10px 20px;" onclick="closeEditProfileModal()"><span data-i18n="admin_cancel">Отмена</span></button>

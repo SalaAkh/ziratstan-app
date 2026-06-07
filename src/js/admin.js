@@ -881,14 +881,14 @@ async function apiRequest(path, options = {}) {
     if (path === '/admin/profiles' && method === 'GET') {
         let result = await db
             .from('profiles')
-            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, shezhire_entries, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
+            .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, shezhire_entries, visibility_status, cemetery_id, location, is_premium, cemeteries(id, name, city, region)')
             .order('created_at', { ascending: false })
             .limit(300);
 
         if (result?.error && isMissingColumnError(result.error, 'shezhire_entries')) {
             result = await db
                 .from('profiles')
-                .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, cemeteries(id, name, city, region)')
+                .select('id, first_name, last_name, birth_date, death_date, created_at, epitaph, biography, visibility_status, cemetery_id, location, is_premium, cemeteries(id, name, city, region)')
                 .order('created_at', { ascending: false })
                 .limit(300);
         }
@@ -934,6 +934,7 @@ async function apiRequest(path, options = {}) {
             location: locationPayload.point,
             visibility_status: 'public',
             owner_id: isUuidValue(approverUserId) ? approverUserId : null,
+            is_premium: Boolean(body.is_premium),
         };
 
         let result = await db.from('profiles').insert([payload]).select('id').single();
@@ -976,6 +977,10 @@ async function apiRequest(path, options = {}) {
 
         if (Object.prototype.hasOwnProperty.call(body, 'biography')) {
             patch.biography = normalizeTextValue(body.biography, 6000);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'is_premium')) {
+            patch.is_premium = Boolean(body.is_premium);
         }
 
         if (Object.prototype.hasOwnProperty.call(body, 'shezhire_entries')) {
@@ -1890,6 +1895,9 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
         document.getElementById(`${prefix}_lng`)?.value
     );
 
+    const isPremiumCheckbox = document.getElementById(`${prefix}_isPremium`);
+    const isPremium = isPremiumCheckbox ? isPremiumCheckbox.checked : false;
+
     const payload = {
         first_name: firstName,
         last_name: normalizeTextValue(document.getElementById(`${prefix}_lastName`)?.value, 100),
@@ -1900,6 +1908,7 @@ function buildProfilePayloadFromForm(prefix, { includeId = false } = {}) {
         cemetery_id: getSelectedCemeteryId(prefix),
         lat: locationPayload.lat,
         lng: locationPayload.lng,
+        is_premium: isPremium,
     };
 
     if (includeId) {
@@ -2032,11 +2041,11 @@ function renderManageTab(items) {
         const safeShezhire = escapeHtml(shezhireSummary || '-');
         const safeVisibility = escapeHtml(getVisibilityLabel(visibilityStatus));
         const visibilityClass = getVisibilityClass(visibilityStatus);
-        const profileUrl = `profile.html?id=${encodeURIComponent(String(item.id || ''))}`;
+        const premiumBadge = item.is_premium ? ` <span class="premium-badge-admin" style="background:#d4af37; color:#09090b; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; margin-left:8px; display:inline-block; vertical-align:middle;" data-i18n="admin_lbl_is_premium">${escapeHtml(getI18nText('admin_lbl_is_premium', 'Premium'))}</span>` : '';
 
         div.innerHTML = `
         <div>
-            <div class="card-title">${safeName}</div>
+            <div class="card-title">${safeName}${premiumBadge}</div>
             <div class="card-meta-row" style="margin-top:8px;">
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_years', 'Годы'))}: <span>${safeYears}</span></div>
                 <div class="card-meta-item">${escapeHtml(getI18nText('admin_lbl_legacy_slug', 'Старый ID (slug)'))}: <span>${safeLegacySlug}</span></div>
@@ -2363,6 +2372,9 @@ async function openEditProfileModal(profileId) {
     renderShezhireEntryRows('ep', item.shezhire_entries);
     if (latInput) latInput.value = Number.isFinite(item.lat) ? String(item.lat) : '';
     if (lngInput) lngInput.value = Number.isFinite(item.lng) ? String(item.lng) : '';
+
+    const isPremiumCheckbox = document.getElementById('ep_isPremium');
+    if (isPremiumCheckbox) isPremiumCheckbox.checked = !!item.is_premium;
 
     setCemeterySelection('ep', item.cemetery_id, item.cemetery_name || '');
     modal.style.display = 'flex';
