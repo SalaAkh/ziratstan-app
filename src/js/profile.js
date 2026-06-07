@@ -1437,7 +1437,7 @@ function submitCheckout(event) {
     const profileName = _currentProfile?.fullName || '';
 
     const text = `Бисмиллях! Мен "${tariffName}" тарифін төледім.\nМемориал ID: ${profileId}\nАты-жөні: ${profileName}\nEmail: ${email}`;
-    const waUrl = `https://wa.me/77073283296?text=${encodeURIComponent(text)}`;
+    const waUrl = `https://wa.me/77082373269?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
     closeCheckoutModal();
 }
