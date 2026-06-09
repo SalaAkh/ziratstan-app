@@ -1,7 +1,12 @@
--- 1. Сделаем тебя администратором
-UPDATE auth.users
-SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
-WHERE email = 'epicgamesakkauntaboba@gmail.com';
+-- 1. Назначение администратора
+-- ⚠️ НЕ ХАРДКОДЬТЕ РЕАЛЬНЫЙ EMAIL В GIT!
+-- Вместо этого используйте: node scripts/register_admin_email.js
+-- с переменной окружения ADMIN_EMAIL.
+--
+-- Пример ручного выполнения (НЕ коммитить с реальным email):
+-- UPDATE auth.users
+-- SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+-- WHERE email = 'YOUR_ADMIN_EMAIL_HERE';
 
 -- 2. Включаем RLS для таблицы user_profiles
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;

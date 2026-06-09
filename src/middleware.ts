@@ -3,15 +3,14 @@ import type { NextRequest } from 'next/server';
 
 // Простой In-Memory Rate Limiter для Middleware Edge-функций Next.js
 // В продакшене используем Upstash Redis (Redis.lrange, ZADD и т.д.)
-const rateLimitMap = new Map<{ ip: string }, { count: number, timestamp: number }>();
+const rateLimitMap = new Map<string, { count: number, timestamp: number }>();
 
 export function middleware(request: NextRequest) {
   // Rate-limiting только для эндпоинтов верификации PIN-кода и аутентификации
   if (request.nextUrl.pathname.startsWith('/api/verify-pin') || request.nextUrl.pathname.startsWith('/api/auth')) {
     const ip = request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1';
     
-    // Fallback: Map keys in JS are strictly objects, so we stringify IP as key
-    const current = rateLimitMap.get(ip as any) || { count: 0, timestamp: Date.now() };
+    const current = rateLimitMap.get(ip) || { count: 0, timestamp: Date.now() };
     
     // Clear limit after 60 seconds
     if (Date.now() - current.timestamp > 60000) {
@@ -20,7 +19,7 @@ export function middleware(request: NextRequest) {
     }
     
     current.count++;
-    rateLimitMap.set(ip as any, current);
+    rateLimitMap.set(ip, current);
 
     // Максимум 5 попыток ввода в минуту. 
     // Защита от Bruteforce на PIN-коды мертвецов (ст. 21 Конституции РК)

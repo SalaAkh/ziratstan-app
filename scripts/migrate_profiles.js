@@ -32,11 +32,11 @@ if (!SUPABASE_KEY) {
 // --- Загружаем profiles_data.js ---
 const ROOT_DIR = path.resolve(__dirname, '..');
 const raw = fs.readFileSync(path.join(ROOT_DIR, 'data', 'profiles_data.js'), 'utf8');
-let PROFILES_STATIC;
-
-// Eval в CommonJS контексте
-const evalScript = raw.replace('const PROFILES_STATIC', 'PROFILES_STATIC');
-eval(evalScript);
+const vm = require('vm');
+const context = {};
+vm.createContext(context);
+vm.runInNewContext(raw.replace('const PROFILES_STATIC = ', 'var PROFILES_STATIC = '), context);
+const PROFILES_STATIC = context.PROFILES_STATIC;
 
 if (!PROFILES_STATIC || !Array.isArray(PROFILES_STATIC)) {
     console.error('❌ Не удалось загрузить PROFILES_STATIC из profiles_data.js');

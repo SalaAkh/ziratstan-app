@@ -6,7 +6,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public, auth
+set search_path = ''
 as $$
   select exists (
     select 1

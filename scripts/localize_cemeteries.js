@@ -11,8 +11,11 @@ const path = require('path');
 const dataPath = path.join(__dirname, '..', 'data', 'cemeteries_data.js');
 const raw = fs.readFileSync(dataPath, 'utf8');
 
-let CEMETERIES_DATA = [];
-eval(raw.replace('const CEMETERIES_DATA = ', 'CEMETERIES_DATA = '));
+const vm = require('vm');
+const context = {};
+vm.createContext(context);
+vm.runInNewContext(raw.replace('const CEMETERIES_DATA = ', 'var CEMETERIES_DATA = '), context);
+const CEMETERIES_DATA = context.CEMETERIES_DATA;
 
 // ─── Translation Rules (applied in order) ─────────────────────────────────
 // Pattern-based Ru -> Kk conversion for cemetery naming conventions

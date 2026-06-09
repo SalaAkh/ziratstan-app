@@ -586,7 +586,7 @@ async function initProfile() {
     const nameParts = p.fullName.split(' ');
     const lastName = nameParts[0];
     const restName = nameParts.slice(1).join(' ');
-    document.getElementById('heroName').innerHTML = `${lastName}<br><span class="accent">${restName}</span>`;
+    document.getElementById('heroName').innerHTML = `${escapeHtml(lastName)}<br><span class="accent">${escapeHtml(restName)}</span>`;
     document.getElementById('heroDates').textContent = `📅 ${p.birth} — ${p.death}`;
     document.getElementById('heroLocation').textContent = `📍 ${displayOrUnknown(p.cemetery)}, ${displayOrUnknown(p.city)}`;
 
@@ -832,10 +832,10 @@ function createVirtualNode(p, role) {
     
     node.innerHTML = `
         <div class="node-avatar">
-            ${p.photo ? `<img src="${p.photo}" />` : initials}
+            ${p.photo ? `<img src="${escapeHtml(p.photo)}" />` : escapeHtml(initials)}
         </div>
-        <div class="node-name">${p.name}</div>
-        <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.75; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">${role}</div>
+        <div class="node-name">${escapeHtml(p.name)}</div>
+        <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.75; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(role)}</div>
     `;
     return node;
 }
@@ -898,11 +898,11 @@ function createNode(p, role) {
 
     node.innerHTML = `
         <div class="node-avatar">
-            ${p.main_photo_url || p.photo ? `<img src="${p.main_photo_url || p.photo}" />` : initials}
+            ${p.main_photo_url || p.photo ? `<img src="${escapeHtml(p.main_photo_url || p.photo)}" />` : escapeHtml(initials)}
         </div>
-        <div class="node-name">${p.fullName || p.name}</div>
-        <div class="node-dates">${birth} — ${death}</div>
-        <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.7;">${role}</div>
+        <div class="node-name">${escapeHtml(p.fullName || p.name)}</div>
+        <div class="node-dates">${escapeHtml(birth)} — ${escapeHtml(death)}</div>
+        <div style="font-size:0.6rem; color:var(--gold); margin-top:4px; opacity:0.7;">${escapeHtml(role)}</div>
     `;
     return node;
 }
@@ -1028,21 +1028,27 @@ function renderQrDisplayLegacy(container, qr, profileId) {
             <canvas id="qrCanvas"></canvas>
         </div>
         <br>
-        <div class="qr-slug-display">📲 ${qr.slug}</div>
+        <div class="qr-slug-display">📲 ${escapeHtml(qr.slug)}</div>
         <br>
         <div class="qr-scan-count">
             ${tf('prof_qr_scan_count_tpl', { count: (qr.scan_count || 0) })}
         </div>
         <div class="qr-actions">
-            <button class="btn-action btn-fill" onclick="downloadQrJpg('${qrUrl}', '${qr.slug}')">${t('prof_qr_download')}</button>
-            <button class="btn-action btn-outline" onclick="downloadQrHtml('${qrUrl}', '${qr.slug}')">${t('prof_qr_html')}</button>
-            <button class="btn-action btn-outline" onclick="downloadQrPdf('${qrUrl}', '${qr.slug}')">${t('prof_qr_pdf')}</button>
-            <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
+            <button class="btn-action btn-fill btn-download-jpg">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-outline btn-download-html">${t('prof_qr_html')}</button>
+            <button class="btn-action btn-outline btn-download-pdf">${t('prof_qr_pdf')}</button>
+            <button class="btn-action btn-outline btn-copy-link">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
             ${t('prof_qr_hint')}
         </p>
     `;
+
+    const slug = qr.slug;
+    container.querySelector('.btn-download-jpg').addEventListener('click', function() { downloadQrJpg(qrUrl, slug); });
+    container.querySelector('.btn-download-html').addEventListener('click', function() { downloadQrHtml(qrUrl, slug); });
+    container.querySelector('.btn-download-pdf').addEventListener('click', function() { downloadQrPdf(qrUrl, slug); });
+    container.querySelector('.btn-copy-link').addEventListener('click', function() { copyQrLink(qrUrl); });
 
     if (typeof QRCode !== 'undefined') {
         QRCode.toCanvas(document.getElementById('qrCanvas'), qrUrl, {
@@ -1058,7 +1064,7 @@ function renderQrDisplay(container, qr, profileId) {
     const qrUrl = qr.url || (window.location.origin + '/qr.html?s=' + qr.slug);
     const slugHtml = qr.slug ? `
         <br>
-        <div class="qr-slug-display">📲 ${qr.slug}</div>
+        <div class="qr-slug-display">📲 ${escapeHtml(qr.slug)}</div>
     ` : '';
     const scanHtml = Number.isFinite(qr.scan_count) ? `
         <br>
@@ -1074,15 +1080,21 @@ function renderQrDisplay(container, qr, profileId) {
         ${slugHtml}
         ${scanHtml}
         <div class="qr-actions">
-            <button class="btn-action btn-fill" onclick="downloadQrJpg('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_download')}</button>
-            <button class="btn-action btn-outline" onclick="downloadQrHtml('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_html')}</button>
-            <button class="btn-action btn-outline" onclick="downloadQrPdf('${qrUrl}', '${qr.slug || profileId}')">${t('prof_qr_pdf')}</button>
-            <button class="btn-action btn-outline" onclick="copyQrLink('${qrUrl}')">${t('prof_qr_copy_link')}</button>
+            <button class="btn-action btn-fill btn-download-jpg">${t('prof_qr_download')}</button>
+            <button class="btn-action btn-outline btn-download-html">${t('prof_qr_html')}</button>
+            <button class="btn-action btn-outline btn-download-pdf">${t('prof_qr_pdf')}</button>
+            <button class="btn-action btn-outline btn-copy-link">${t('prof_qr_copy_link')}</button>
         </div>
         <p class="qr-hint">
             ${t('prof_qr_hint')}
         </p>
     `;
+
+    const slug = qr.slug || profileId;
+    container.querySelector('.btn-download-jpg').addEventListener('click', function() { downloadQrJpg(qrUrl, slug); });
+    container.querySelector('.btn-download-html').addEventListener('click', function() { downloadQrHtml(qrUrl, slug); });
+    container.querySelector('.btn-download-pdf').addEventListener('click', function() { downloadQrPdf(qrUrl, slug); });
+    container.querySelector('.btn-copy-link').addEventListener('click', function() { copyQrLink(qrUrl); });
 
     if (typeof QRCode !== 'undefined') {
         QRCode.toCanvas(document.getElementById('qrCanvas'), qrUrl, {

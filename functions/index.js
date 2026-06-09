@@ -35,9 +35,18 @@ function sendJson(res, status, payload) {
     res.status(status).json(payload);
 }
 
+const ALLOWED_ORIGINS = [
+    'https://ziratstan.kz',
+    'https://www.ziratstan.kz',
+    'https://ziratstan-app.web.app',
+    'https://ziratstan-app.firebaseapp.com',
+];
+
 function setCorsHeaders(req, res) {
-    const origin = req.headers.origin || '*';
-    res.set('Access-Control-Allow-Origin', origin);
+    const origin = req.headers.origin || '';
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.set('Access-Control-Allow-Origin', origin);
+    }
     res.set('Vary', 'Origin');
     res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -647,6 +656,35 @@ async function handleStatusPost(req, res) {
     sendJson(res, 200, { ok: true });
 }
 
+const limiterMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 30; // Max 30 requests per minute
+
+function checkRateLimit(req) {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    
+    // Periodically clean up stale records if map size grows large
+    if (limiterMap.size > 1000) {
+        for (const [key, value] of limiterMap.entries()) {
+            if (now - value.timestamp > RATE_LIMIT_WINDOW_MS) {
+                limiterMap.delete(key);
+            }
+        }
+    }
+    
+    const record = limiterMap.get(ip) || { count: 0, timestamp: now };
+    if (now - record.timestamp > RATE_LIMIT_WINDOW_MS) {
+        record.count = 0;
+        record.timestamp = now;
+    }
+    
+    record.count++;
+    limiterMap.set(ip, record);
+    
+    return record.count <= MAX_REQUESTS_PER_WINDOW;
+}
+
 exports.api = onRequest(
     async (req, res) => {
     setCorsHeaders(req, res);
@@ -659,18 +697,30 @@ exports.api = onRequest(
         const route = getRoutePath(req);
 
         if (route === 'public/ugc/name' && req.method === 'POST') {
+            if (!checkRateLimit(req)) {
+                return sendJson(res, 429, { error: 'Too many requests. Please try again later.' });
+            }
             return await handlePublicUgcName(req, res);
         }
 
         if (route === 'public/ugc/profile' && req.method === 'POST') {
+            if (!checkRateLimit(req)) {
+                return sendJson(res, 429, { error: 'Too many requests. Please try again later.' });
+            }
             return await handlePublicUgcProfile(req, res);
         }
 
         if (route === 'public/ugc/bio' && req.method === 'POST') {
+            if (!checkRateLimit(req)) {
+                return sendJson(res, 429, { error: 'Too many requests. Please try again later.' });
+            }
             return await handlePublicUgcBio(req, res);
         }
 
         if (route === 'public/services/lead' && req.method === 'POST') {
+            if (!checkRateLimit(req)) {
+                return sendJson(res, 429, { error: 'Too many requests. Please try again later.' });
+            }
             return await handlePublicServicesLead(req, res);
         }
 
