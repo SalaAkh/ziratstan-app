@@ -1,5 +1,7 @@
 # Ziratstan.kz
 
+**Production URL:** [https://ziratstan-app.web.app/index.html](https://ziratstan-app.web.app/index.html)
+
 Репозиторий проекта `ziratstan.kz` c двумя основными частями:
 
 - корневой сайт на статических HTML-страницах, которые публикуются через Firebase Hosting;
