@@ -41,7 +41,7 @@ BEGIN
         FROM pg_policies
         WHERE schemaname = 'storage'
           AND tablename = 'objects'
-          AND policyname LIKE '%profile%photo%'
+          AND (policyname LIKE '%profile%photo%' OR policyname LIKE 'storage_photos_%')
     LOOP
         EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', pol.policyname);
     END LOOP;
@@ -750,6 +750,11 @@ END $$;
 -- ╔═══════════════════════════════════════════════════════════════════════╗
 -- ║  PHASE 4: STORAGE POLICIES для profile-photos                        ║
 -- ╚═══════════════════════════════════════════════════════════════════════╝
+
+-- Drop existing storage policies if they exist to avoid "already exists" errors
+DROP POLICY IF EXISTS "storage_photos_insert" ON storage.objects;
+DROP POLICY IF EXISTS "storage_photos_select" ON storage.objects;
+DROP POLICY IF EXISTS "storage_photos_delete" ON storage.objects;
 
 -- Upload: аутентифицированный пользователь в свою папку
 CREATE POLICY "storage_photos_insert"
