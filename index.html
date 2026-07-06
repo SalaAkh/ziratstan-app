@@ -2217,9 +2217,8 @@
     <a href="#" class="nav-logo"><span>З</span>иратстан</a>
     <div class="nav-links">
       <a href="#features" data-i18n="nav_features">Мүмкіндіктер</a>
+      <a href="#khans" data-i18n="nav_khans">Тарих</a>
       <a href="#qr" data-i18n="nav_qr">QR-Мемориал</a>
-      <a href="#services" data-i18n="nav_services">Қызметтер</a>
-      <a href="#contact" data-i18n="nav_contact">Байланыс</a>
       <a href="map.html" class="nav-cta" data-i18n="nav_open_map">Картаны ашу →</a>
     </div>
     
@@ -2241,9 +2240,8 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobileMenu">
     <a href="#features" onclick="closeMenu()" data-i18n="mob_features">📱 Мүмкіндіктер</a>
+    <a href="#khans" onclick="closeMenu()" data-i18n="mob_khans">🏛️ Тарих</a>
     <a href="#qr" onclick="closeMenu()" data-i18n="mob_qr">📲 QR-Мемориал</a>
-    <a href="#services" onclick="closeMenu()" data-i18n="mob_services">🤲 Қызметтер</a>
-    <a href="#contact" onclick="closeMenu()" data-i18n="mob_contact">📞 Байланыс</a>
     <a href="map.html" style="color: var(--gold); font-weight: 600;" onclick="closeMenu()" data-i18n="nav_open_map_mobile">→ Картаны ашу</a>
     <a href="#" id="mob-auth-btn" onclick="ZiratAuth.openAuthModal(); closeMenu();"
       style="color: var(--gold); font-weight: 600;">🔑 Кіру / Тіркелу</a>
@@ -2321,21 +2319,20 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="badge" data-i18n="hero_badge">Қазақстанның цифрлық архиві</div>
+    <div class="badge" data-i18n="hero_badge">Қазақстанның тарихи некропольдері мен генеалогиясы</div>
     <h1>
-      <span data-i18n="hero_title">Цифрлық Жады</span>
-      <span class="sub" data-i18n="hero_subtitle">Зиратстан — Қазақстанның жерлеу мұрағаты</span>
+      <span data-i18n="hero_title">Бірыңғай Цифрлық Архив</span>
+      <span class="sub" data-i18n="hero_subtitle">Зиратстан — Тарихшылар мен зерттеушілерге арналған геоақпараттық жүйе</span>
     </h1>
     <p class="hero-desc" data-i18n="hero_desc">
-      Жақындарыңызды табыңыз, цифрландырыңыз және естелігін сақтаңыз. Құлпытастағы QR-кодты сканерлеңіз —
-      және сіздің алдыңызда адамның толық өмірбаяны, суреттері мен дауысы ашылады.
+      Тарихи тұлғалардың жерленген жерлерін зерттеңіз, шежірелерді байланыстырыңыз және верификацияланған деректер қорын қалыптастыруға үлес қосыңыз.
     </p>
     <div class="btn-group">
       <a href="map.html" class="btn-primary" data-i18n="hero_btn_map">
-        🗺️ Жерлеу картасын ашу
+        🗺️ Интерактивті картаны ашу
       </a>
-      <a href="profile.html?id=abai_18" class="btn-outline" data-i18n="hero_btn_demo">
-        QR-профиль демосы →
+      <a href="#" class="btn-outline" onclick="ZiratAuth.openAuthModal(); return false;" data-i18n="hero_btn_demo">
+        Зерттеуші ретінде кіру →
       </a>
     </div>
   </section>
@@ -2362,26 +2359,23 @@
 
   <!-- FEATURES -->
   <section class="features" id="features">
-    <div class="section-label" data-i18n="feat_label">Платформа мүмкіндіктері</div>
-    <h2 class="section-title" data-i18n="feat_title">Естелікті сақтауға арналған бәрі</h2>
+    <div class="section-label" data-i18n="feat_label">Институттар үшін мүмкіндіктер</div>
+    <h2 class="section-title" data-i18n="feat_title">Зерттеулерге арналған толық құралдар</h2>
     <div class="grid">
       <div class="card">
-        <div class="card-icon">📱</div>
-        <h3 data-i18n="feat_qr_title">QR-Мемориал</h3>
-        <p data-i18n="feat_qr_desc">Құлпытас тақтайшасындағы бірегей QR-код естелік парақшасын толығымен ашады:
-          өмірбаян, фото, видео, аудио дауыс.</p>
-      </div>
-      <div class="card">
         <div class="card-icon">🗺️</div>
-        <h3 data-i18n="feat_map_title">Жерлеу картасы</h3>
-        <p data-i18n="feat_map_desc">Әрбір қабірдің нақты координаттары бар интерактивті карта. Геолокация зираттан
-          қажетті орынды табуға көмектеседі.</p>
+        <h3 data-i18n="feat_map_title">ГИС-жүйесі</h3>
+        <p data-i18n="feat_map_desc">Әрбір нысанның нақты координаттары бар интерактивті карта. Тарихи некропольдердің геолокациялық деректер қоры.</p>
       </div>
       <div class="card">
-        <div class="card-icon">🤲</div>
-        <h3 data-i18n="feat_care_title">Қашықтықтан күтім</h3>
-        <p data-i18n="feat_care_desc">Әлемнің кез келген нүктесінен онлайн тазалау, қоршауды сырлау немесе Құран оқуға
-          тапсырыс беріңіз. Орындаушы фотоесеп жібереді.</p>
+        <div class="card-icon">✅</div>
+        <h3 data-i18n="feat_verify_title">Мәліметтерді верификациялау</h3>
+        <p data-i18n="feat_verify_desc">Тарихи тұлғалардың профильдері қатаң тексеруден өтеді. Ресми расталған профильдер «Верификацияланған» белгісіне ие.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3 data-i18n="feat_role_title">Рөлдік модель (RLS)</h3>
+        <p data-i18n="feat_role_desc">Мәліметтер базасы деңгейіндегі қауіпсіздік. Жеке, отбасылық және көпшілік қолжетімділік деңгейлері.</p>
       </div>
       <div class="card">
         <div class="card-icon">📡</div>
@@ -2595,11 +2589,37 @@
     </div>
   </section>
 
+  <!-- QR SHOWCASE -->
+  <section class="qr-section" id="qr">
+    <div class="qr-card">
+      <div class="qr-box" id="qrDemoBox">
+        <!-- Live QR generated by JS -->
+        <canvas id="qrDemoCanvas"></canvas>
+      </div>
+      <div class="qr-desc">
+        <h2 data-i18n="qr_title">Тастан тарихқа 📲</h2>
+        <p data-i18n="qr_desc">Камерамен бір қозғалыс — және сіздің алдыңызда адамның бүкіл өмірі ашылады. Суреттер, өмірбаян, мұрағаттық құжаттар мен зерттеу материалдары.</p>
+        <div class="qr-steps">
+          <div class="qr-step">
+            <div class="step-num">1</div> <span data-i18n="qr_step1">Телефон камерасын QR-кодқа бағыттаңыз</span>
+          </div>
+          <div class="qr-step">
+            <div class="step-num">2</div> <span data-i18n="qr_step2">Өмірбаяны бар естелік парақшасы ашылады</span>
+          </div>
+          <div class="qr-step">
+            <div class="step-num">3</div> <span data-i18n="qr_step3">Мұрағаттық деректер мен тарихи материалдармен танысыңыз</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FOOTER -->
   <footer>
     <div class="footer-links">
       <a href="#features" data-i18n="footer_features">Мүмкіндіктер</a>
       <a href="#khans" data-i18n="nav_khans">Тарих</a>
+      <a href="#qr" data-i18n="footer_qr">QR-Архив</a>
       <a href="map.html" data-i18n="footer_app">Қосымша</a>
     </div>
     <!-- Правовые документы -->
